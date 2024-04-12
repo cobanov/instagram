@@ -27,19 +27,19 @@ Windows: Ctrl+Shift+J
 MacOS: ⌘+⌥+I
 ```
 
-![instagram](assets/instagram.png)
+![instagram](https://cobanov.dev/old-cobanov.github.io/assets/instagram.png)
 
 ## PROBLEM 1: Kodu Yapistiramiyorsaniz!
 Yeni guncellemeler ile birlikte console'a direkt kod yapistiramazsiniz ve asagidaki gibi bir hata mesaji alirsiniz. Aciklamada soyledigi gibi klavyenizle ilgili yere `allow pasting` yazmalisiniz ve kod yapistirmayi bu sekilde aktif edebilirsiniz.
 
-![Alt text](assets/self-xss-console-warn.png)
+![Alt text](https://cobanov.dev/old-cobanov.github.io/assets/self-xss-console-warn.png)
 
 ## Kodu Console'a yapistirip calistirin
 
-![](assets/insta3.png)
+![](https://cobanov.dev/old-cobanov.github.io/assets/insta3.png)
 
 ## Run tusuna basarak baslatabilirsiniz
 
 Calistirin ve takipten cikmak istediginiz kullanicilari tikleyip calistirin.
 
-![](assets/insta2.png)
+![](https://cobanov.dev/old-cobanov.github.io/assets/insta2.png)
