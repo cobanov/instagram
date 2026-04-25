@@ -1,45 +1,32 @@
 # Instagram Unfollowers
 
-## Guncellendi! - 27/11/2023
+Araç yenilendi. David Arroyo'nun orijinal projesindeki pratik kullanım akışı
+korundu, fakat arayüz daha sade hale getirildi ve tarama mantığı optimize
+edildi.
 
-Bu github projesiyle instagramda sizi geri takip etmeyen kisileri bulabilir ve kolayca takipten cikabilirsiniz.
+## Yeni Sürüm
 
-Bu projeye [davidarroyo1234](https://github.com/davidarroyo1234)'nun bu [github reposundan](https://github.com/davidarroyo1234/InstagramUnfollowers) ulasabilirsiniz.
+- Sadece takip ettiğiniz hesaplar taranır.
+- Takipçiler ayrı ayrı çekilmez; Instagram'ın geri takip bilgisi kullanılır.
+- Bu yüzden büyük takipçi listelerinde eski iki liste karşılaştırma yaklaşımına
+  göre çok daha hızlıdır.
+- Panel sürüklenebilir, minimize edilebilir ve Türkçe/İngilizce çalışır.
 
-## Linkteki web adresine gidin ve copy butonuna basin
+## Kullanım
 
-### [LINK ](https://davidarroyo1234.github.io/InstagramUnfollowers/)
+1. `https://www.instagram.com` adresinde hesabınıza giriş yapın.
+2. Developer Console'u açın.
+   - Windows/Linux: `Ctrl+Shift+J`
+   - macOS: `⌘+⌥+I`
+3. Web sayfasındaki **Kodu kopyala** butonuyla kodu kopyalayın.
+4. Console'a yapıştırıp Enter'a basın.
+5. Açılan panelde **Scan now** ile taramayı başlatın.
 
-### Alternatif Linker
+Chrome yapıştırmayı engellerse console'a önce `allow pasting` yazın.
 
-Alternatif linkler icin kodun tamamini `ctrl+a` `ctrl+c` veya koda uc kez tiklayarak tumunu sectikten sonra kopyalayabilirsiniz.
+## Kaynak
 
-- [GIST](https://gist.githubusercontent.com/cobanov/5804dc3e9deb6b07ede82207102b5562/raw/2156dacc8727559654183757e5ef39b8ebb4010d/unfollowers)
-
-- [ZEROBIN](https://zerobin.net/?505411b9c44fe0a7#ueNIjXVBswk+LdE/6jxYy8P9EWin24SrWI9FmDBWdIo=)
-
-- [PASTEBIN](https://pastebin.com/qGB93W4B)
-
-## Instagram hesabiniza girin ve developer console'u acin
-
-```bash
-Windows: Ctrl+Shift+J
-MacOS: ⌘+⌥+I
-```
-
-![instagram](https://cobanov.dev/old-cobanov.github.io/assets/instagram.png)
-
-## PROBLEM 1: Kodu Yapistiramiyorsaniz!
-Yeni guncellemeler ile birlikte console'a direkt kod yapistiramazsiniz ve asagidaki gibi bir hata mesaji alirsiniz. Aciklamada soyledigi gibi klavyenizle ilgili yere `allow pasting` yazmalisiniz ve kod yapistirmayi bu sekilde aktif edebilirsiniz.
-
-![Alt text](https://cobanov.dev/old-cobanov.github.io/assets/self-xss-console-warn.png)
-
-## Kodu Console'a yapistirip calistirin
-
-![](https://cobanov.dev/old-cobanov.github.io/assets/insta3.png)
-
-## Run tusuna basarak baslatabilirsiniz
-
-Calistirin ve takipten cikmak istediginiz kullanicilari tikleyip calistirin.
-
-![](https://cobanov.dev/old-cobanov.github.io/assets/insta2.png)
+Eski kullanım fikri
+[davidarroyo1234/InstagramUnfollowers](https://github.com/davidarroyo1234/InstagramUnfollowers)
+projesinden geliyor. Bu repodaki sürüm temiz arayüz ve optimize edilmiş tek
+liste tarama mantığıyla yeniden yazıldı.

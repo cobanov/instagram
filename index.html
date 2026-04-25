@@ -3,6 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Instagram'da sizi geri takip etmeyenleri bulan, sade arayüzlü ve optimize edilmiş console aracı."
+    />
+    <meta name="theme-color" content="#f7f4ef" />
     <title>Instagram Unfollowers</title>
     <script
       async
@@ -10,154 +15,556 @@
       crossorigin="anonymous"
     ></script>
     <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f4ef;
+        --paper: #fffdfa;
+        --ink: #191816;
+        --muted: #6f6a62;
+        --line: #e2ddd4;
+        --soft: #ece6db;
+        --accent: #266df0;
+        --accent-ink: #ffffff;
+        --danger: #b42318;
+        --shadow: 0 24px 70px rgba(37, 31, 24, 0.1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
-        font-family: Arial, sans-serif;
         margin: 0;
-        padding: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
         line-height: 1.6;
-        background-color: #f4f4f4;
       }
-      header,
-      footer {
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        padding: 10px 0;
+
+      a {
+        color: inherit;
+        text-decoration-color: rgba(38, 109, 240, 0.35);
+        text-underline-offset: 3px;
       }
-      main {
-        padding: 20px;
-        max-width: 800px;
-        margin: auto;
-        background-color: #fff;
+
+      a:hover {
+        text-decoration-color: var(--accent);
       }
-      h1,
-      h2,
-      h3 {
-        color: #333;
+
+      .page {
+        width: min(1080px, calc(100% - 32px));
+        margin: 0 auto;
       }
-      img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        margin: 10px auto;
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 22px 0;
       }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .brand-mark {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #266df0, #24b47e);
+        box-shadow: 0 0 0 5px rgba(38, 109, 240, 0.1);
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+        gap: 36px;
+        align-items: center;
+        padding: 42px 0 34px;
+      }
+
+      .eyebrow {
+        margin: 0 0 14px;
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 720px;
+        font-size: clamp(42px, 7vw, 82px);
+        line-height: 0.94;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        max-width: 620px;
+        margin: 22px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        color: var(--ink);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        transition:
+          transform 0.12s ease,
+          border-color 0.12s ease,
+          background 0.12s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-1px);
+        border-color: #cfc7ba;
+      }
+
+      .button-primary {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--accent-ink);
+      }
+
+      .button-primary:hover {
+        border-color: #1f5fd7;
+        background: #1f5fd7;
+      }
+
+      .status {
+        min-height: 22px;
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .preview {
+        background: #15171d;
+        color: #f4f7fb;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .preview-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        color: #b8c0cc;
+        font-size: 13px;
+      }
+
+      .dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .dots span {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ff5f57;
+      }
+
+      .dots span:nth-child(2) {
+        background: #ffbd2e;
+      }
+
+      .dots span:nth-child(3) {
+        background: #28c840;
+      }
+
       pre {
-        background: #f4f4f4;
-        padding: 10px;
-        border: 1px solid #ddd;
+        margin: 0;
+        max-height: 360px;
+        overflow: auto;
+        padding: 18px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font: 12px/1.55 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
       }
-      .adsense {
+
+      .section {
+        padding: 34px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .section h2 {
+        margin: 0 0 14px;
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .item {
+        padding: 20px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+
+      .item strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 16px;
+      }
+
+      .item p,
+      .steps p,
+      .credit p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .steps {
+        display: grid;
+        gap: 12px;
+        counter-reset: step;
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        gap: 14px;
+        align-items: start;
+        padding: 18px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .step:last-child {
+        border-bottom: none;
+      }
+
+      .step::before {
+        counter-increment: step;
+        content: counter(step);
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--soft);
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      .step h3 {
+        margin: 0 0 4px;
+        font-size: 17px;
+      }
+
+      code {
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: var(--soft);
+        color: var(--ink);
+        font-size: 0.94em;
+      }
+
+      .note {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-left: 3px solid var(--danger);
+        background: rgba(180, 35, 24, 0.06);
+        color: #5f241f;
+      }
+
+      .credit {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: center;
+      }
+
+      footer {
+        padding: 28px 0 42px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .ad {
+        margin: 18px 0 0;
         text-align: center;
-        margin: 20px 0;
+      }
+
+      @media (max-width: 860px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding-top: 24px;
+        }
+
+        .nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .credit {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+
+      @media (max-width: 520px) {
+        .page {
+          width: min(100% - 22px, 1080px);
+        }
+
+        h1 {
+          font-size: 42px;
+        }
+
+        .lead {
+          font-size: 16px;
+        }
+
+        .actions,
+        .button {
+          width: 100%;
+        }
+
+        .nav-links {
+          flex-wrap: wrap;
+          gap: 12px;
+        }
       }
     </style>
   </head>
   <body>
-    <header>
-      <h1>Instagram Unfollowers</h1>
-    </header>
+    <div class="page">
+      <nav class="nav" aria-label="Ana navigasyon">
+        <a class="brand" href="#">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>Instagram Unfollowers</span>
+        </a>
+        <div class="nav-links">
+          <a href="#kullanim">Kullanım</a>
+          <a href="#yenilikler">Yenilikler</a>
+          <a href="https://github.com/cobanov/instagram" rel="noreferrer">GitHub</a>
+        </div>
+      </nav>
 
-    <main>
-      <h2>Guncellendi! - 27/11/2023</h2>
-      <p>
-        Bu github projesiyle instagramda sizi geri takip etmeyen kisileri
-        bulabilir ve kolayca takipten cikabilirsiniz.
-      </p>
-      <p>
-        Bu projeye
-        <a href="https://github.com/davidarroyo1234">davidarroyo1234</a>'nun bu
-        <a href="https://github.com/davidarroyo1234/InstagramUnfollowers"
-          >github reposundan</a
-        >
-        ulasabilirsiniz.
-      </p>
+      <main>
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Yenilendi</p>
+            <h1>Instagram Unfollowers</h1>
+            <p class="lead">
+              David Arroyo'nun projesinden kalan pratik akışı koruyup aracı daha temiz
+              bir arayüzle yeniden yazdım. Yeni sürüm sadece takip ettiğiniz hesapları
+              tarar ve Instagram'ın geri takip bilgisini kullanarak sonucu çok daha
+              hızlı çıkarır.
+            </p>
+            <div class="actions">
+              <button class="button button-primary" type="button" data-copy>
+                Kodu kopyala
+              </button>
+              <a class="button" href="dist/instagram-unfollower.one-line.js">
+                Kod dosyasını aç
+              </a>
+            </div>
+            <p class="status" data-status aria-live="polite"></p>
+          </div>
 
-      <h2>Linkteki web adresine gidin ve copy butonuna basin</h2>
-      <h3>
-        <a href="https://davidarroyo1234.github.io/InstagramUnfollowers/"
-          >LINK</a
-        >
-      </h3>
+          <div class="preview" aria-label="Kod önizlemesi">
+            <div class="preview-head">
+              <div class="dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+              <span>paste into DevTools console</span>
+            </div>
+            <pre><code data-preview>Yükleniyor...</code></pre>
+          </div>
+        </section>
 
-      <h3>Alternatif Linker</h3>
-      <p>
-        Alternatif linkler icin kodun tamamini <code>ctrl+a</code>
-        <code>ctrl+c</code> veya koda uc kez tiklayarak tumunu sectikten sonra
-        kopyalayabilirsiniz.
-      </p>
-      <ul>
-        <li>
-          <a
-            href="https://gist.githubusercontent.com/cobanov/5804dc3e9deb6b07ede82207102b5562/raw/2156dacc8727559654183757e5ef39b8ebb4010d/unfollowers"
-            >GIST</a
-          >
-        </li>
-        <li>
-          <a
-            href="https://zerobin.net/?505411b9c44fe0a7#ueNIjXVBswk+LdE/6jxYy8P9EWin24SrWI9FmDBWdIo="
-            >ZEROBIN</a
-          >
-        </li>
-        <li><a href="https://pastebin.com/qGB93W4B">PASTEBIN</a></li>
-      </ul>
+        <section id="yenilikler" class="section">
+          <h2>Neler değişti?</h2>
+          <div class="grid">
+            <div class="item">
+              <strong>Tek liste taraması</strong>
+              <p>
+                Artık takipçi listeniz ayrıca çekilmiyor. Araç takip ettiklerinizi
+                tarayıp her hesap için geri takip durumunu okuyor.
+              </p>
+            </div>
+            <div class="item">
+              <strong>Daha temiz panel</strong>
+              <p>
+                Sürüklenebilir, minimize edilebilir, iki dilli ve daha okunaklı bir
+                panel var.
+              </p>
+            </div>
+            <div class="item">
+              <strong>Daha kontrollü işlemler</strong>
+              <p>
+                Tarama ve takip bırakma akışlarında duraklatma, gecikme ayarları ve
+                yavaş çalışma varsayılanları korunuyor.
+              </p>
+            </div>
+          </div>
+        </section>
 
-      <h2>Instagram hesabiniza girin ve developer console'u acin</h2>
-      <pre><code>Windows: Ctrl+Shift+J
-MacOS: ⌘+⌥+I</code></pre>
-      <img
-        src="https://cobanov.dev/old-cobanov.github.io/assets/instagram.png"
-        alt="instagram"
-      />
+        <section id="kullanim" class="section">
+          <h2>Nasıl kullanılır?</h2>
+          <div class="steps">
+            <div class="step">
+              <div>
+                <h3>Instagram'a giriş yapın</h3>
+                <p>
+                  Önce <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a>
+                  üzerinde hesabınızla giriş yapın.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div>
+                <h3>Console'u açın</h3>
+                <p>
+                  Windows/Linux için <code>Ctrl+Shift+J</code>, macOS için
+                  <code>⌘+⌥+I</code> kısayolunu kullanabilirsiniz.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div>
+                <h3>Kodu yapıştırın</h3>
+                <p>
+                  Yukarıdaki <strong>Kodu kopyala</strong> butonuna basın, console'a
+                  yapıştırın ve Enter'a basın. Chrome yapıştırmayı engellerse console'a
+                  önce <code>allow pasting</code> yazın.
+                </p>
+              </div>
+            </div>
+            <div class="step">
+              <div>
+                <h3>Scan now ile başlatın</h3>
+                <p>
+                  Panel açıldıktan sonra taramayı başlatın. Sonuçlardan seçtiklerinizi
+                  yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
+                </p>
+              </div>
+            </div>
+          </div>
+          <p class="note">
+            Bu araç hesabınızda otomatik işlem yapmadan önce sizden seçim ister. Yine de
+            Instagram rate-limit uygulayabilir; takip bırakma ayarlarını gereksiz yere
+            hızlandırmayın.
+          </p>
+        </section>
 
-      <h2>PROBLEM 1: Kodu Yapistiramiyorsaniz!</h2>
-      <p>
-        Yeni guncellemeler ile birlikte console'a direkt kod yapistiramazsiniz
-        ve asagidaki gibi bir hata mesaji alirsiniz. Aciklamada soyledigi gibi
-        klavyenizle ilgili yere <code>allow pasting</code> yazmalisiniz ve kod
-        yapistirmayi bu sekilde aktif edebilirsiniz.
-      </p>
-      <img
-        src="https://cobanov.dev/old-cobanov.github.io/assets/self-xss-console-warn.png"
-        alt="self-xss-console-warn"
-      />
+        <section class="section credit">
+          <div>
+            <h2>Kaynak</h2>
+            <p>
+              Bu sayfa ve yeni araç güncellendi; eski kullanım fikri
+              <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">
+                davidarroyo1234/InstagramUnfollowers
+              </a>
+              projesinden geliyor. Yeni sürüm sadeleştirilmiş arayüz ve optimize edilmiş
+              tarama mantığıyla burada yayınlanıyor.
+            </p>
+          </div>
+          <a class="button" href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">
+            Eski projeyi gör
+          </a>
+        </section>
+      </main>
 
-      <h2>Kodu Console'a yapistirip calistirin</h2>
-      <img
-        src="https://cobanov.dev/old-cobanov.github.io/assets/insta3.png"
-        alt="insta3"
-      />
+      <div class="ad">
+        <ins
+          class="adsbygoogle"
+          style="display: block"
+          data-ad-client="ca-pub-8348629135684902"
+          data-ad-slot="8348629135684902"
+          data-ad-format="auto"
+        ></ins>
+      </div>
 
-      <h2>Run tusuna basarak baslatabilirsiniz</h2>
-      <p>
-        Calistirin ve takipten cikmak istediginiz kullanicilari tikleyip
-        calistirin.
-      </p>
-      <img
-        src="https://cobanov.dev/old-cobanov.github.io/assets/insta2.png"
-        alt="insta2"
-      />
-    </main>
-
-    <!-- Google AdSense Ad Code -->
-    <div style="text-align: center; margin: 20px 0">
-      <script
-        async
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
-      ></script>
-      <ins
-        class="adsbygoogle"
-        style="display: block"
-        data-ad-client="ca-pub-8348629135684902"
-        data-ad-slot="8348629135684902"
-        data-ad-format="auto"
-      ></ins>
-      <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-      </script>
+      <footer>© 2026 Mert Cobanov. All rights reserved.</footer>
     </div>
 
-    <footer>
-      <p>© 2024 Mert Cobanov. All rights reserved.</p>
-    </footer>
+    <script>
+      const scriptUrl = "dist/instagram-unfollower.one-line.js";
+      const preview = document.querySelector("[data-preview]");
+      const status = document.querySelector("[data-status]");
+      const copyButton = document.querySelector("[data-copy]");
+      let snippet = "";
+
+      async function loadSnippet() {
+        try {
+          const response = await fetch(scriptUrl, { cache: "no-store" });
+          if (!response.ok) throw new Error("Kod dosyası yüklenemedi.");
+          snippet = await response.text();
+          preview.textContent = snippet.slice(0, 1400) + (snippet.length > 1400 ? "\n..." : "");
+        } catch (error) {
+          preview.textContent = "Kod önizlemesi yüklenemedi. Kod dosyasını aç butonunu kullanın.";
+          status.textContent = error.message || "Kod yüklenemedi.";
+        }
+      }
+
+      copyButton.addEventListener("click", async () => {
+        try {
+          if (!snippet) await loadSnippet();
+          await navigator.clipboard.writeText(snippet);
+          status.textContent = "Kod kopyalandı. Instagram console'una yapıştırabilirsiniz.";
+        } catch {
+          status.textContent = "Kopyalama başarısız oldu. Kod dosyasını açıp elle kopyalayın.";
+        }
+      });
+
+      loadSnippet();
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
   </body>
 </html>
