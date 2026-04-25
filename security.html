@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Cobanov Instagram Unfollowers için güvenlik notları ve rapor bağlantıları."
+    />
+    <meta name="theme-color" content="#f7f4ef" />
+    <title>Security | Cobanov Instagram Unfollowers</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/site.css" />
+    <link rel="stylesheet" href="assets/security-page.css" />
+  </head>
+  <body class="page-security">
+    <header class="top">
+      <div class="wrap top-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>cobanov</span>
+        </a>
+        <nav class="top-nav" aria-label="Primary">
+          <a class="nav-link" href="security.html" data-i18n="navSecurity">Güvenlik</a>
+          <a class="icon-link" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.86 8.37 6.84 9.73.5.09.68-.22.68-.49v-1.9c-2.78.62-3.37-1.21-3.37-1.21-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.97c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.92v2.79c0 .27.18.58.69.48A10.08 10.08 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
+            </svg>
+          </a>
+          <a class="icon-link" href="https://www.instagram.com/mertcobanov/" rel="noreferrer" aria-label="Instagram" title="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+            </svg>
+          </a>
+          <a class="icon-link" href="https://twitter.com/cobanov" rel="noreferrer" aria-label="Twitter" title="Twitter">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M18.9 3h3.1l-6.8 7.8 8 10.2h-6.3l-4.9-6.3L6.4 21H3.3l7.3-8.4L3 3h6.4l4.4 5.7L18.9 3Zm-1.1 16.2h1.7L8.5 4.7H6.7l11.1 14.5Z" />
+            </svg>
+          </a>
+          <button class="lang" type="button" data-language-toggle aria-label="Switch to English" title="Türkçe">TR</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <h1 data-i18n="headline">Güvenlik</h1>
+      <p class="lead" data-i18n="lead">
+        Bu sayfada kodla ilgili raporları ve kontrol edebileceğiniz bağlantıları bulabilirsiniz.
+      </p>
+
+      <section class="block">
+        <h2 data-i18n="hashTitle">Mevcut snippet hash'i</h2>
+        <p class="block-lead" data-i18n="hashBody">
+          Kopyalanan tek satırlık kodun hash bilgisi aşağıdadır.
+        </p>
+        <div class="panel">
+          <span>SHA-256</span>
+          <code class="hash">048D5406CBE26E88EE08F5D867C2DE6F074A1BEDA8DAC36F17628EB495659D7D</code>
+          <div class="scan-row">
+            <a href="https://www.virustotal.com/gui/file/048d5406cbe26e88ee08f5d867c2de6f074a1beda8dac36f17628eb495659d7d/detection" rel="noreferrer" data-i18n="virusTotalReport">
+              VirusTotal raporu
+            </a>
+            <a class="scan-badge" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer" aria-label="Semgrep status">
+              <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep status" />
+            </a>
+          </div>
+          <p class="vt-summary" data-vt-summary data-i18n="vtLoading">VirusTotal sonucu yükleniyor...</p>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2 data-i18n="doesTitle">Kısa notlar</h2>
+        <ul>
+          <li data-i18n-html="does1">Kod sadece <code>www.instagram.com</code> üzerinde, kendi tarayıcınızda çalışır.</li>
+          <li data-i18n="does2">Takip ettiğiniz hesapları tarar ve geri takip bilgisini gösterir.</li>
+          <li data-i18n="does3">Instagram verileriniz Cobanov'a ait bir sunucuya gönderilmez.</li>
+          <li data-i18n="does4">Takip bırakma işlemi sadece seçim ve onaydan sonra çalışır.</li>
+        </ul>
+      </section>
+
+      <section class="block">
+        <h2 data-i18n="verifyTitle">Raporlar</h2>
+        <ul>
+          <li data-i18n="verify1">Kaynak kodu GitHub üzerinden inceleyebilirsiniz.</li>
+          <li data-i18n="verify2">Hash bilgisini yukarıdaki değerle karşılaştırabilirsiniz.</li>
+          <li data-i18n="verify3">VirusTotal raporunu ve Semgrep sonucunu kontrol edebilirsiniz.</li>
+        </ul>
+        <div class="actions">
+          <a class="btn btn-primary" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer" data-i18n="sourceCta">
+            Kaynağı incele
+          </a>
+          <a class="btn" href="https://www.virustotal.com/gui/file/048d5406cbe26e88ee08f5d867c2de6f074a1beda8dac36f17628eb495659d7d/detection" rel="noreferrer" data-i18n="virusTotalReport">VirusTotal raporu</a>
+          <a class="btn" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer">Semgrep</a>
+        </div>
+        <p class="note" data-i18n="note">
+          Hiçbir tarama aracı kesin güvenlik garantisi vermez. Güvenmediğiniz kodu konsola yapıştırmayın.
+        </p>
+      </section>
+    </main>
+
+    <footer class="wrap">
+      <span data-i18n="copyright">© 2026 Mert Cobanov.</span>
+      <span class="footer-links">
+        <a href="privacy.html" data-i18n="navPrivacy">Gizlilik</a>
+        <a href="contact.html" data-i18n="navContact">İletişim</a>
+        <a href="security.html" data-i18n="navSecurity">Güvenlik</a>
+        <a href="https://github.com/cobanov/instagram" rel="noreferrer">GitHub</a>
+      </span>
+    </footer>
+
+    <script>
+      const languageToggle = document.querySelector("[data-language-toggle]");
+      const vtSummary = document.querySelector("[data-vt-summary]");
+      let vtResult = null;
+      let currentLanguage = localStorage.getItem("cobanov_iu_language") || "tr";
+
+      const translations = {
+        tr: {
+          metaDescription: "Cobanov Instagram Unfollowers için güvenlik notları ve rapor bağlantıları.",
+          navHome: "Ana sayfa",
+          navPrivacy: "Gizlilik",
+          navContact: "İletişim",
+          navSecurity: "Güvenlik",
+          headline: "Güvenlik",
+          lead: "Bu sayfada kodla ilgili raporları ve kontrol edebileceğiniz bağlantıları bulabilirsiniz.",
+          hashTitle: "Mevcut snippet hash'i",
+          hashBody: "Kopyalanan tek satırlık kodun hash bilgisi aşağıdadır.",
+          doesTitle: "Kısa notlar",
+          does1: "Kod sadece <code>www.instagram.com</code> üzerinde, kendi tarayıcınızda çalışır.",
+          does2: "Takip ettiğiniz hesapları tarar ve geri takip bilgisini gösterir.",
+          does3: "Instagram verileriniz Cobanov'a ait bir sunucuya gönderilmez.",
+          does4: "Takip bırakma işlemi sadece seçim ve onaydan sonra çalışır.",
+          verifyTitle: "Raporlar",
+          verify1: "Kaynak kodu GitHub üzerinden inceleyebilirsiniz.",
+          verify2: "Hash bilgisini yukarıdaki değerle karşılaştırabilirsiniz.",
+          verify3: "VirusTotal raporunu ve Semgrep sonucunu kontrol edebilirsiniz.",
+          sourceCta: "Kodu incele",
+          virusTotalReport: "VirusTotal raporu",
+          vtLoading: "VirusTotal sonucu yükleniyor...",
+          vtClean: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
+          vtFlagged: "VirusTotal uyarısı: {malicious} malicious / {suspicious} suspicious.",
+          vtUnavailable: "VirusTotal canlı özeti şu anda yüklenemedi.",
+          note: "Hiçbir tarama aracı kesin güvenlik garantisi vermez. Güvenmediğiniz kodu konsola yapıştırmayın.",
+          copyright: "© 2026 Mert Cobanov."
+        },
+        en: {
+          metaDescription: "Security notes and report links for Cobanov Instagram Unfollowers.",
+          navHome: "Home",
+          navPrivacy: "Privacy",
+          navContact: "Contact",
+          navSecurity: "Security",
+          headline: "Security",
+          lead: "This page includes report links and simple checks you can review before using the code.",
+          hashTitle: "Current snippet hash",
+          hashBody: "The SHA-256 hash for the copied one-line code is shown below.",
+          doesTitle: "Short notes",
+          does1: "The code runs only in your own browser on <code>www.instagram.com</code>.",
+          does2: "It scans the accounts you follow and shows follow-back status.",
+          does3: "Your Instagram data is not sent to a Cobanov server.",
+          does4: "Unfollow actions run only after selection and confirmation.",
+          verifyTitle: "Reports",
+          verify1: "You can review the source code on GitHub.",
+          verify2: "You can compare the hash with the value shown above.",
+          verify3: "You can check the VirusTotal report and Semgrep result.",
+          sourceCta: "Review code",
+          virusTotalReport: "VirusTotal report",
+          vtLoading: "Loading VirusTotal result...",
+          vtClean: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
+          vtFlagged: "VirusTotal warning: {malicious} malicious / {suspicious} suspicious.",
+          vtUnavailable: "Live VirusTotal summary could not be loaded right now.",
+          note: "No third-party scanner can guarantee that code is safe. Do not paste code you do not trust into DevTools.",
+          copyright: "© 2026 Mert Cobanov."
+        }
+      };
+
+      function applyLanguage(language) {
+        currentLanguage = translations[language] ? language : "tr";
+        const dict = translations[currentLanguage];
+        document.documentElement.lang = currentLanguage;
+        document.title = (currentLanguage === "tr" ? "Güvenlik" : "Security") + " | Cobanov Instagram Unfollowers";
+        document.querySelector("meta[name='description']").setAttribute("content", dict.metaDescription);
+        document.querySelectorAll("[data-i18n]").forEach((node) => {
+          if (dict[node.dataset.i18n] !== undefined) node.textContent = dict[node.dataset.i18n];
+        });
+        document.querySelectorAll("[data-i18n-html]").forEach((node) => {
+          if (dict[node.dataset.i18nHtml] !== undefined) node.innerHTML = dict[node.dataset.i18nHtml];
+        });
+        languageToggle.textContent = currentLanguage === "tr" ? "TR" : "EN";
+        languageToggle.setAttribute("aria-label", currentLanguage === "tr" ? "Switch to English" : "Türkçeye geç");
+        languageToggle.setAttribute("title", currentLanguage === "tr" ? "Türkçe" : "English");
+        localStorage.setItem("cobanov_iu_language", currentLanguage);
+        renderVirusTotalSummary();
+      }
+
+      function format(template, values) {
+        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
+      }
+
+      function renderVirusTotalSummary() {
+        if (!vtSummary) return;
+        const dict = translations[currentLanguage];
+        if (!vtResult) {
+          vtSummary.textContent = dict.vtLoading;
+          return;
+        }
+        if (!vtResult.ok) {
+          vtSummary.textContent = dict.vtUnavailable;
+          return;
+        }
+        const stats = vtResult.stats || {};
+        const values = {
+          malicious: stats.malicious || 0,
+          suspicious: stats.suspicious || 0
+        };
+        const key = values.malicious || values.suspicious ? "vtFlagged" : "vtClean";
+        vtSummary.textContent = format(dict[key], values);
+      }
+
+      async function loadVirusTotalSummary() {
+        if (!vtSummary) return;
+        try {
+          const response = await fetch("/api/virustotal", { cache: "no-store" });
+          vtResult = response.ok ? await response.json() : { ok: false };
+        } catch {
+          vtResult = { ok: false };
+        }
+        renderVirusTotalSummary();
+      }
+
+      languageToggle.addEventListener("click", () => {
+        applyLanguage(currentLanguage === "tr" ? "en" : "tr");
+      });
+
+      applyLanguage(currentLanguage);
+      loadVirusTotalSummary();
+    </script>
+  </body>
+</html>

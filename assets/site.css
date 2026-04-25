@@ -1,0 +1,252 @@
+/* Shared tokens, layout, header, footer, mobile nav */
+:root {
+  color-scheme: light;
+  --bg: #f7f4ef;
+  --paper: #fbf8f2;
+  --ink: #161513;
+  --muted: #6f6a62;
+  --line: #e3dccf;
+  --accent: #266df0;
+  --code-bg: #15161a;
+  --code-ink: #e8e3d6;
+  --code-muted: #6e6a5e;
+
+  /* One column width and type scale for every page */
+  --content-gutter: 40px;
+  --content-width: 680px;
+  --type-h1: clamp(32px, 5vw, 44px);
+  --type-h2: 22px;
+  --type-h3: 1rem;
+  --type-lead: 17px;
+  --type-body: 1rem;
+  --type-body-sm: 0.875rem;
+  --leading-prose: 1.65;
+  --main-pad-y-top: 56px;
+  --main-pad-y-bottom: 64px;
+  --h1-tracking: -0.02em;
+  --h2-tracking: -0.012em;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: var(--type-body);
+  line-height: var(--leading-prose);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgba(22, 21, 19, 0.25);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: var(--ink);
+}
+
+.wrap {
+  width: min(var(--content-width), calc(100% - var(--content-gutter)));
+  margin: 0 auto;
+}
+
+/* Top bar */
+header.top {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.top-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--ink);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink);
+  flex: 0 0 auto;
+}
+
+nav.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0px;
+  font-size: 14px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 40px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+nav.top-nav::-webkit-scrollbar {
+  height: 4px;
+}
+
+nav.top-nav::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+
+nav.top-nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+nav.top-nav a:hover {
+  color: var(--ink);
+}
+
+.nav-link {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-right: 8px;
+}
+
+.icon-link {
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+.icon-link:hover {
+  background: rgba(25, 24, 22, 0.05);
+  color: var(--ink);
+}
+
+.icon-link svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.lang {
+  box-sizing: border-box;
+  height: 30px;
+  min-width: 38px;
+  padding: 0 7px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font: 600 11.5px/1 Inter, ui-sans-serif, sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.lang:hover {
+  border-color: var(--ink);
+}
+
+.lang:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Footer */
+footer {
+  padding: 28px 0 48px;
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--type-body-sm);
+  line-height: var(--leading-prose);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+footer a:hover {
+  color: var(--ink);
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+@media (min-width: 601px) {
+  .top-inner {
+    gap: 16px;
+  }
+
+  nav.top-nav {
+    gap: 0px;
+  }
+}
+
+@media (max-width: 600px) {
+  .top-inner {
+    align-items: center;
+  }
+
+  nav.top-nav {
+    font-size: 13px;
+  }
+
+  .icon-link {
+    width: 28px;
+    height: 28px;
+  }
+
+  .lang {
+    height: 28px;
+    min-width: 34px;
+    font-size: 11px;
+    padding: 0 5px;
+  }
+}

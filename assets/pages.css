@@ -1,0 +1,92 @@
+/* contact.html + privacy.html — same column + type scale as site.css / home */
+.page-doc main {
+  width: min(var(--content-width), calc(100% - var(--content-gutter)));
+  margin: 0 auto;
+  padding: var(--main-pad-y-top) 0 var(--main-pad-y-bottom);
+}
+
+.page-doc main h1 {
+  margin: 0 0 16px;
+  font-size: var(--type-h1);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: var(--h1-tracking);
+  color: var(--ink);
+}
+
+.page-doc main h1 + p[data-i18n="updated"] {
+  margin: 0 0 24px;
+  font-size: var(--type-body);
+  line-height: var(--leading-prose);
+}
+
+.page-doc main h1 + p:not([data-i18n="updated"]) {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: var(--type-body);
+  line-height: var(--leading-prose);
+}
+
+.page-doc main h2 {
+  margin: 32px 0 8px;
+  font-size: var(--type-h2);
+  font-weight: 600;
+  letter-spacing: var(--h2-tracking);
+  color: var(--ink);
+}
+
+.page-doc main p,
+.page-doc main li {
+  color: var(--muted);
+  font-size: var(--type-body);
+  line-height: var(--leading-prose);
+}
+
+.page-doc main a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(38, 109, 240, 0.35);
+  text-underline-offset: 3px;
+}
+
+.page-doc main a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.page-doc .panel {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.page-doc .contact-line {
+  margin: 0;
+}
+
+.page-doc .social-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.page-doc .social-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: var(--type-body);
+}
+
+.page-doc .social-list a:hover {
+  color: var(--ink);
+}
+
+.page-doc .social-list svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}

@@ -1,0 +1,10 @@
+{
+  "name": "instagram-unfollower",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Cobanov Instagram Unfollowers site and pasteable console scanner.",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "check": "node --check src/instagram-unfollower.js && node --check scripts/build.js"
+  }
+}
