@@ -53,7 +53,9 @@
       filterVerified: "Verified",
       filterPrivate: "Private",
       filterNoAvatar: "No profile picture",
+      filterShowFollowers: "Following back",
       filterShowHidden: "Hidden users",
+      tagMutual: "Mutual",
       foundCount: "{count} non-followers",
       foundOne: "1 non-follower",
       foundNone: "Nice — everyone you follow follows you back.",
@@ -130,7 +132,9 @@
       filterVerified: "Onaylı",
       filterPrivate: "Gizli",
       filterNoAvatar: "Profil resmi yok",
+      filterShowFollowers: "Geri takip edenler",
       filterShowHidden: "Gizlenen kullanıcılar",
+      tagMutual: "Karşılıklı",
       foundCount: "{count} takip etmeyen",
       foundOne: "1 takip etmeyen",
       foundNone: "Harika — takip ettiğin herkes seni takip ediyor.",
@@ -213,7 +217,7 @@
     hidden: new Set(persisted.hidden || []),
     log: [],
     search: "",
-    filters: persisted.filters || { verified: true, private: true, noAvatar: true, showHidden: false },
+    filters: { verified: true, private: true, noAvatar: true, showFollowers: false, showHidden: false, ...(persisted.filters || {}) },
     timings: { ...DEFAULT_TIMINGS, ...(persisted.timings || {}) },
     panelPos: persisted.panelPos || null,
     minimized: Boolean(persisted.minimized),
@@ -543,6 +547,7 @@
           ${filterChip("verified", t("filterVerified"))}
           ${filterChip("private", t("filterPrivate"))}
           ${filterChip("noAvatar", t("filterNoAvatar"))}
+          ${filterChip("showFollowers", t("filterShowFollowers"))}
           ${filterChip("showHidden", t("filterShowHidden"), state.hidden.size > 0 || state.filters.showHidden)}
         </div>
         <div class="iu-list" data-list>${renderUserList(display)}</div>
@@ -586,6 +591,7 @@
     const tags = [];
     if (user.is_verified) tags.push(`<span class="iu-tag iu-tag--blue">${escapeHTML(t("filterVerified"))}</span>`);
     if (user.is_private) tags.push(`<span class="iu-tag">${escapeHTML(t("filterPrivate"))}</span>`);
+    if (user.follows_viewer) tags.push(`<span class="iu-tag iu-tag--green">${escapeHTML(t("tagMutual"))}</span>`);
     return `
       <div class="iu-row ${hidden ? "iu-row--hidden" : ""} ${checked ? "iu-row--selected" : ""}" data-row="${escapeAttr(user.id)}" role="button" tabindex="0">
         <input type="checkbox" class="iu-row-check" data-select="${escapeAttr(user.id)}" ${checked ? "checked" : ""} aria-label="${escapeAttr(user.username)}">
@@ -1070,7 +1076,7 @@
   function getDisplayUsers() {
     const query = state.search.trim().toLowerCase();
     return state.users
-      .filter((u) => !u.follows_viewer)
+      .filter((u) => state.filters.showFollowers || !u.follows_viewer)
       .filter((u) => state.filters.showHidden ? state.hidden.has(u.id) : !state.hidden.has(u.id))
       .filter((u) => state.filters.verified || !u.is_verified)
       .filter((u) => state.filters.private || !u.is_private)
