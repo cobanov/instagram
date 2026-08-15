@@ -58,43 +58,61 @@
 
       <!-- HERO -->
       <section class="hero">
-        <div class="wrap-wide hero-grid">
-          <div class="hero-copy">
-            <h1 data-i18n="headline">Seni geri takip etmeyenleri gör</h1>
-            <p class="lead" data-i18n="lead">
-              Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık
-              kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya
-              gitmez, her şey kendi tarayıcında çalışır.
-            </p>
+        <div class="wrap-wide">
+          <h1 class="display" data-i18n="headline">Seni geri takip etmeyenleri gör</h1>
+          <p class="statement" data-i18n-html="statement">
+            Tarama <b>senin tarayıcında</b> çalışır.<br />Veri <b>hiçbir sunucuya</b> gitmez.
+          </p>
+          <p class="hero-sub" data-i18n="lead">
+            Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler.
+          </p>
 
-            <div class="copybar">
-              <code class="copybar-code" data-preview>instagram-unfollower.js</code>
-              <button class="btn btn-primary" type="button" data-copy>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-                <span data-i18n="copyCode">Kodu kopyala</span>
-              </button>
+          <div class="facts">
+            <div class="fact">
+              <b data-i18n="factCode">Tek satır kod</b>
+              <span data-i18n="factCodeSub">konsola yapıştır</span>
             </div>
-            <p class="status" data-status aria-live="polite"></p>
-
-            <div class="hero-links">
-              <a class="btn" href="dist/instagram-unfollower.one-line.js" data-i18n="openCode">Dosyayı aç</a>
-              <a class="btn" href="https://github.com/cobanov/instagram" rel="noreferrer">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.11.79-.25.79-.56v-2.14c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18A10.96 10.96 0 0 1 12 6.05c.98 0 1.96.13 2.88.39 2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.42.36.79 1.07.79 2.16v3.13c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-                </svg>
-                <span data-i18n="githubProject">GitHub</span>
-              </a>
-            </div>
-
-            <p class="hero-meta">
+            <div class="fact">
+              <b data-i18n="factOpen">Açık kaynak</b>
               <span>SHA-256 <span data-script-hash>&hellip;</span></span>
-              <span data-last-updated hidden></span>
-            </p>
+            </div>
+            <div class="fact">
+              <b data-last-updated>&mdash;</b>
+              <span data-i18n="factUpdatedSub">son güncelleme</span>
+            </div>
           </div>
 
-          <div class="hero-visual">
+          <div class="framed hero-frame">
+            <div>
+              <p class="eyebrow" data-i18n="heroEyebrow">Başla</p>
+              <h2 data-i18n="heroFrameTitle">Kodu kopyala, konsola yapıştır</h2>
+              <p data-i18n="heroFrameBody">
+                Instagram sekmende DevTools konsolunu aç ve yapıştır. Panel açılır, tarama başlar.
+              </p>
+
+              <div class="copybar">
+                <code class="copybar-code" data-preview>instagram-unfollower.js</code>
+                <button class="btn btn-primary" type="button" data-copy>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                  <span data-i18n="copyCode">Kodu kopyala</span>
+                </button>
+              </div>
+              <p class="status" data-status aria-live="polite"></p>
+
+              <div class="hero-links">
+                <a class="btn" href="dist/instagram-unfollower.one-line.js" data-i18n="openCode">Dosyayı aç</a>
+                <a class="btn" href="https://github.com/cobanov/instagram" rel="noreferrer">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.11.79-.25.79-.56v-2.14c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.16 1.18A10.96 10.96 0 0 1 12 6.05c.98 0 1.96.13 2.88.39 2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.42.36.79 1.07.79 2.16v3.13c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+                </svg>
+                  <span data-i18n="githubProject">GitHub</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="hero-visual">
             <div class="mock" aria-hidden="true">
               <div class="mock-head">
                 <span class="mock-dot"></span>
@@ -137,6 +155,7 @@
               </div>
             </div>
             <p class="mock-caption" data-i18n="mockCaption">Örnek görünüm — veriler temsilidir</p>
+            </div>
           </div>
         </div>
       </section>
@@ -144,6 +163,7 @@
       <!-- SUPPORT -->
       <section class="block" id="support">
         <div class="wrap-wide">
+          <p class="eyebrow eyebrow--muted" data-i18n="eyebrow_supportTitle">destek</p>
           <h2 data-i18n="supportTitle">Destek</h2>
           <p class="block-lead" data-i18n="supportBody">
             Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan
@@ -181,6 +201,7 @@
       <!-- USAGE -->
       <section class="block" id="usage">
         <div class="wrap-wide">
+          <p class="eyebrow eyebrow--muted" data-i18n="eyebrow_usageTitle">kullanım</p>
           <h2 data-i18n="usageTitle">Nasıl kullanılır</h2>
           <p class="block-lead" data-i18n="usageBody">
             Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
@@ -222,6 +243,7 @@
       <!-- CHANGELOG (rendered from changelog.json) -->
       <section class="block" id="changelog">
         <div class="wrap-wide">
+          <p class="eyebrow eyebrow--muted" data-i18n="eyebrow_changelogTitle">sürümler</p>
           <h2 data-i18n="changelogTitle">Değişiklikler</h2>
           <p class="block-lead" data-i18n="changelogBody">
             Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
@@ -237,6 +259,7 @@
       <!-- SECURITY -->
       <section class="block" id="security">
         <div class="wrap-wide">
+          <p class="eyebrow eyebrow--muted" data-i18n="eyebrow_securityTitle">güven</p>
           <h2 data-i18n="securityTitle">Güvenlik</h2>
           <p class="block-lead" data-i18n="securityBody">
             Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
@@ -276,6 +299,7 @@
       <!-- TRAFFIC -->
       <section class="block" id="numbers">
         <div class="wrap-wide">
+          <p class="eyebrow eyebrow--muted" data-i18n="eyebrow_numbersTitle">rakamlar</p>
           <h2 data-i18n="numbersTitle">Trafik</h2>
           <p class="block-lead" data-i18n="numbersBody">
             Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.
@@ -301,6 +325,7 @@
       <!-- CREDIT -->
       <section class="block">
         <div class="wrap-wide">
+          <p class="eyebrow eyebrow--muted" data-i18n="eyebrow_sourceTitle">kaynak</p>
           <h2 data-i18n="sourceTitle">Kaynak</h2>
           <p class="block-lead" data-i18n-html="sourceBody">
             Yeni sürüm; eski kullanım fikri
@@ -346,8 +371,22 @@
           navSecurity: "Güvenlik",
           navPrivacy: "Gizlilik",
           navContact: "İletişim",
+          statement: "Tarama <b>senin tarayıcında</b> çalışır.<br />Veri <b>hiçbir sunucuya</b> gitmez.",
+          factCode: "Tek satır kod",
+          factCodeSub: "konsola yapıştır",
+          factOpen: "Açık kaynak",
+          factUpdatedSub: "son güncelleme",
+          heroEyebrow: "başla",
+          heroFrameTitle: "Kodu kopyala, konsola yapıştır",
+          heroFrameBody: "Instagram sekmende DevTools konsolunu aç ve yapıştır. Panel açılır, tarama başlar.",
+          eyebrow_supportTitle: "destek",
+          eyebrow_usageTitle: "kullanım",
+          eyebrow_changelogTitle: "sürümler",
+          eyebrow_securityTitle: "güven",
+          eyebrow_numbersTitle: "rakamlar",
+          eyebrow_sourceTitle: "kaynak",
           headline: "Seni geri takip etmeyenleri gör",
-          lead: "Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya gitmez, her şey kendi tarayıcında çalışır.",
+          lead: "Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler.",
           copyCode: "Kodu kopyala",
           openCode: "Kod dosyasını aç",
           githubProject: "GitHub",
@@ -412,8 +451,22 @@
           navSecurity: "Security",
           navPrivacy: "Privacy",
           navContact: "Contact",
+          statement: "The scan runs <b>in your browser</b>.<br />Your data reaches <b>no server</b>.",
+          factCode: "One line of code",
+          factCodeSub: "paste into the console",
+          factOpen: "Open source",
+          factUpdatedSub: "last updated",
+          heroEyebrow: "start",
+          heroFrameTitle: "Copy the code, paste it in the console",
+          heroFrameBody: "Open DevTools on your Instagram tab and paste. The panel opens and the scan starts.",
+          eyebrow_supportTitle: "support",
+          eyebrow_usageTitle: "usage",
+          eyebrow_changelogTitle: "releases",
+          eyebrow_securityTitle: "trust",
+          eyebrow_numbersTitle: "numbers",
+          eyebrow_sourceTitle: "source",
           headline: "See who does not follow you back",
-          lead: "It scans the accounts you follow and lists the ones that do not follow back. Paste a single line into your browser console; nothing about your account leaves your browser.",
+          lead: "It scans the accounts you follow and lists the ones that do not follow back.",
           copyCode: "Copy code",
           openCode: "Open code file",
           githubProject: "GitHub",
@@ -558,7 +611,7 @@
         }));
 
         if (updatedNode) {
-          updatedNode.textContent = format(dict.lastUpdated, { date: formatDate(changelog[0].date) });
+          updatedNode.textContent = formatDate(changelog[0].date);
           updatedNode.hidden = false;
         }
       }

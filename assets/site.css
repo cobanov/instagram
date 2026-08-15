@@ -27,11 +27,13 @@
 
   /* One column width and type scale for every page. All rem so a reader's
      browser font size scales the whole hierarchy, not just parts of it. */
-  --content-gutter: 40px;
+  --content-gutter: 64px;
   --content-width: 680px;
   /* Prose stays narrow; anything laid out on a grid gets the wider track so
      the page stops using half the viewport. */
-  --content-wide: 1060px;
+  --content-wide: 1200px;
+  --type-display: clamp(2.75rem, 7.5vw, 5.25rem);
+  --type-statement: clamp(1.25rem, 2.4vw, 1.75rem);
   --type-h1: clamp(2rem, 5vw, 2.75rem);
   --type-h2: 1.5rem;
   --type-h3: 1.125rem;
@@ -453,4 +455,63 @@ section.block h2 {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Editorial layer: an oversized wordmark, a statement set in the page's own
+   voice with the load-bearing words in the accent, and small monospace
+   eyebrows that label a section without spending a heading on it.
+   --------------------------------------------------------------------------- */
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--accent);
+  font: 400 var(--type-caption)/1 "JetBrains Mono", "SFMono-Regular", monospace;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.eyebrow--muted {
+  color: var(--muted);
+}
+
+main h1.display {
+  font-size: var(--type-display);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.statement {
+  margin: 22px 0 0;
+  max-width: 22ch;
+  color: var(--ink);
+  font-size: var(--type-statement);
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+}
+
+.statement b {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* A container that announces itself with a single accent edge rather than a
+   heavier border or a fill. */
+.framed {
+  position: relative;
+  margin-top: 40px;
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.framed::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--gradient);
 }

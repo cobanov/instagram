@@ -2,27 +2,74 @@
    .scan-row, .vt-summary, .hash-line) live in site.css. */
 
 /* ---------------------------------------------------------------------------
-   Hero: copy on the left, the actual product on the right. The page used to
-   lead with minified source, which is the least appealing thing this project
-   owns. What it sells is the list, so the list is what it shows.
+   Hero: an oversized wordmark, a two-line statement, three facts, then a
+   single framed panel holding the call to action beside the product.
    --------------------------------------------------------------------------- */
 .hero {
-  padding: 64px 0 56px;
+  padding: 72px 0 64px;
 }
 
-.hero-grid {
+.page-home .hero-sub {
+  margin: 18px 0 0;
+  max-width: 52ch;
+  color: var(--muted);
+  font-size: var(--type-body);
+  line-height: var(--leading-prose);
+}
+
+.page-home .facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 36px;
+}
+
+.page-home .fact {
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.page-home .fact b {
+  display: block;
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.page-home .fact span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font: 400 var(--type-caption)/1.5 "JetBrains Mono", "SFMono-Regular", monospace;
+  overflow-wrap: anywhere;
+}
+
+.page-home .fact .accent {
+  color: var(--accent);
+}
+
+.hero-frame {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
-  gap: 56px;
+  gap: 48px;
   align-items: center;
 }
 
-.page-home .hero-copy h1 {
-  max-width: 12ch;
+.page-home .hero-frame h2 {
+  margin: 0;
+  font-size: var(--type-h2);
+  font-weight: 600;
+  letter-spacing: var(--h2-tracking);
 }
 
-.page-home .hero-copy .lead {
-  max-width: 46ch;
+.page-home .hero-frame > div > p:not(.eyebrow) {
+  margin: 10px 0 0;
+  max-width: 44ch;
+  color: var(--muted);
+  font-size: var(--type-body-sm);
+  line-height: var(--leading-prose);
 }
 
 /* Compact copy bar: the code is a means, not the headline. */
@@ -30,11 +77,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 28px;
+  margin-top: 24px;
   padding: 8px 8px 8px 14px;
   background: var(--code-bg);
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
 }
 
 .page-home .copybar-code {
@@ -65,22 +112,6 @@
   margin-top: 12px;
 }
 
-.page-home .hero-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 22px 0 0;
-  color: var(--muted);
-  font: 400 var(--type-caption)/1.7 "JetBrains Mono", "SFMono-Regular", monospace;
-  overflow-wrap: anywhere;
-}
-
-/* ---------------------------------------------------------------------------
-   Product mock. A faithful replica of the injected panel built from markup, so
-   it cannot drift into being a stale screenshot and costs no extra bytes.
-   The gradient lives here as ambient light rather than as a hairline border,
-   which read as a rendering artifact at 1px.
-   --------------------------------------------------------------------------- */
 .hero-visual {
   position: relative;
   justify-self: center;
@@ -88,9 +119,11 @@
   max-width: 400px;
 }
 
-/* A blurred gradient orb behind a UI shot is the most over-used flourish on
-   the web right now. The gradient earns more as a single hairline along the
-   top edge of the panel: same identity, none of the haze. */
+/* ---------------------------------------------------------------------------
+   Product mock. A faithful replica of the injected panel built from markup, so
+   it cannot drift into being a stale screenshot and costs no extra bytes. The
+   gradient is a single edge along its top rather than a blurred orb behind it.
+   --------------------------------------------------------------------------- */
 .mock {
   position: relative;
   z-index: 1;
