@@ -1,4 +1,4 @@
-const FILE_HASH = "048d5406cbe26e88ee08f5d867c2de6f074a1beda8dac36f17628eb495659d7d";
+import { FILE_HASH } from "./_script-hash.js";
 
 export async function onRequestGet({ env }) {
   const apiKey = env.virustotalapikey || env.VIRUSTOTAL_API_KEY;
@@ -13,8 +13,16 @@ export async function onRequestGet({ env }) {
     }
   });
 
+  /* A freshly built script has no report until someone uploads it, and VirusTotal
+     answers 404 for an unknown hash. That is a normal state, not a failure. */
+  if (response.status === 404) {
+    return json({ ok: false, hash: FILE_HASH, error: "unscanned" }, 200, {
+      "Cache-Control": "public, max-age=300"
+    });
+  }
+
   if (!response.ok) {
-    return json({ ok: false, error: "VirusTotal request failed" }, response.status);
+    return json({ ok: false, hash: FILE_HASH, error: "VirusTotal request failed" }, response.status);
   }
 
   const payload = await response.json();

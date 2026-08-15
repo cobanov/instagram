@@ -80,6 +80,7 @@
       idle: "Ready",
       unfollowDoneTitle: "Done",
       unfollowDoneBody: "{ok} unfollowed, {fail} failed",
+      unfollowBlocked: "Instagram blocked this action, so {count} remaining users were skipped. Wait a few hours before trying again.",
       settings: "Settings",
       settingsTitle: "Timing settings",
       settingsBody: "Lower delays make Instagram more likely to throttle or block your account. Keep these conservative.",
@@ -157,6 +158,7 @@
       idle: "Hazır",
       unfollowDoneTitle: "Tamamlandı",
       unfollowDoneBody: "{ok} başarılı, {fail} başarısız",
+      unfollowBlocked: "Instagram bu işlemi engelledi, kalan {count} kişi atlandı. Tekrar denemeden önce birkaç saat bekle.",
       settings: "Ayarlar",
       settingsTitle: "Hız ayarları",
       settingsBody: "Düşük gecikmeler Instagram'ın hesabını kısıtlamasına neden olabilir. Yavaş tut.",
@@ -203,6 +205,7 @@
     scanPaused: false,
     scanCancelled: false,
     unfollowPaused: false,
+    unfollowBlocked: 0,
     progress: { current: 0, total: 0, label: "scanning", note: "" },
     waitUntil: 0,
     waitReason: "",
@@ -217,12 +220,16 @@
     timings: { ...DEFAULT_TIMINGS, ...(persisted.timings || {}) },
     panelPos: persisted.panelPos || null,
     minimized: Boolean(persisted.minimized),
-    language: persisted.language === "tr" ? "tr" : "en",
+    language: persisted.language === "tr" || persisted.language === "en"
+      ? persisted.language
+      : (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en"),
     error: ""
   };
 
   let countdownTimer = null;
   let toastTimer = null;
+  let dialogCounter = 0;
+  let closeActiveDialog = null;
 
   function loadStored() {
     try {
@@ -280,6 +287,7 @@
 
   function unmount() {
     stopCountdown();
+    closeActiveDialog?.();
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
     document.getElementById(APP_ID)?.remove();
     document.getElementById(STYLE_ID)?.remove();
@@ -619,6 +627,7 @@
       el.addEventListener("click", () => {
         const key = el.getAttribute("data-filter");
         state.filters[key] = !state.filters[key];
+        pruneSelectionToDisplayed();
         persist();
         renderBody();
       });
@@ -724,8 +733,10 @@
           <div class="iu-current">
             <span class="iu-muted">${escapeHTML(t("currently"))}</span>
             <strong>@${escapeHTML(last.user.username)}</strong>
-            <span class="iu-tag ${last.ok ? "iu-tag--green" : "iu-tag--red"}">${last.ok ? "✓" : "✕"}</span>
+            <span class="iu-tag ${last.ok ? "iu-tag--green" : "iu-tag--red"}" title="${escapeAttr(last.reason || "")}">${last.ok ? "✓" : "✕"}</span>
           </div>` : ""}
+        ${state.unfollowBlocked ? `
+          <div class="iu-blocked">${escapeHTML(t("unfollowBlocked", { count: state.unfollowBlocked }))}</div>` : ""}
         <div class="iu-progress-actions">
           ${state.mode === "unfollowing" ? `
             <button type="button" class="iu-btn" data-action="pause-unfollow">${escapeHTML(t(state.unfollowPaused ? "resume" : "pause"))}</button>
@@ -880,6 +891,36 @@
     return 0;
   }
 
+  function evaluateUnfollowResponse(status, bodyText) {
+    const text = typeof bodyText === "string" ? bodyText : "";
+    let payload = null;
+    try { payload = JSON.parse(text); } catch { payload = null; }
+
+    const message = String(payload?.message || "");
+    const blockedByPayload =
+      payload?.feedback_required === true ||
+      payload?.spam === true ||
+      payload?.require_login === true ||
+      /feedback_required|checkpoint_required|challenge_required|login_required/i.test(message);
+
+    if (status === 401 || status === 403 || status === 429 || blockedByPayload) {
+      return { ok: false, blocked: true, reason: message || `HTTP ${status}` };
+    }
+    if (status >= 500) {
+      return { ok: false, blocked: false, reason: `HTTP ${status}` };
+    }
+    if (status < 200 || status >= 300) {
+      return { ok: false, blocked: false, reason: message || `HTTP ${status}` };
+    }
+    if (payload === null) {
+      return { ok: false, blocked: false, reason: "unexpected response" };
+    }
+    if (payload.status === "ok" || payload.friendship_status !== undefined) {
+      return { ok: true, blocked: false, reason: "" };
+    }
+    return { ok: false, blocked: false, reason: message || String(payload.status || "unfollow rejected") };
+  }
+
   function confirmUnfollow() {
     if (!state.selected.size) return;
     const count = state.selected.size;
@@ -904,6 +945,7 @@
     state.mode = "unfollowing";
     state.unfollowPaused = false;
     state.unfollowCancelled = false;
+    state.unfollowBlocked = 0;
     state.log = [];
     state.progress = { current: 0, total: targets.length, label: "unfollowing", note: "" };
     renderBody();
@@ -914,21 +956,33 @@
       if (state.unfollowCancelled) break;
 
       const user = targets[i];
-      let ok = false;
+      let outcome = { ok: false, blocked: false, reason: "" };
       try {
-        ok = await unfollowUser(user.id, csrf);
+        outcome = await unfollowUser(user.id, csrf);
       } catch (error) {
         console.error("[iu] unfollow failed for", user.username, error);
+        outcome = { ok: false, blocked: false, reason: error?.message || "" };
       }
-      state.log.push({ user, ok });
-      if (ok) {
+      state.log.push({ user, ok: outcome.ok, reason: outcome.reason });
+      if (outcome.ok) {
         state.selected.delete(user.id);
         const userRef = state.users.find((u) => u.id === user.id);
         if (userRef) userRef.unfollowed = true;
       }
       processed += 1;
-      state.progress = { current: processed, total: targets.length, label: "unfollowing", note: "" };
+      state.progress = {
+        current: processed,
+        total: targets.length,
+        label: "unfollowing",
+        note: outcome.ok ? "" : outcome.reason
+      };
       renderBody();
+
+      if (outcome.blocked) {
+        state.unfollowBlocked = targets.length - processed;
+        console.warn("[iu] Instagram blocked the unfollow action:", outcome.reason);
+        break;
+      }
 
       const isLast = i === targets.length - 1;
       if (!isLast) {
@@ -947,22 +1001,34 @@
   }
 
   async function unfollowUser(id, csrf) {
-    const headers = {
+    const formHeaders = {
       "content-type": "application/x-www-form-urlencoded",
       "x-csrftoken": csrf
     };
-    let response = await fetch(`/api/v1/friendships/destroy/${id}/`, {
-      method: "POST",
-      credentials: "include",
-      headers: { ...IG_HEADERS, ...headers }
-    });
-    if (response.ok) return true;
-    response = await fetch(`/web/friendships/${id}/unfollow/`, {
-      method: "POST",
-      credentials: "include",
-      headers: { ...IG_HEADERS, ...headers }
-    });
-    return response.ok;
+    const attempts = [
+      { url: `/api/v1/friendships/destroy/${id}/`, headers: { ...IG_HEADERS, ...formHeaders } },
+      { url: `/web/friendships/${id}/unfollow/`, headers: formHeaders }
+    ];
+
+    let outcome = { ok: false, blocked: false, reason: "" };
+    for (let i = 0; i < attempts.length; i += 1) {
+      if (i > 0) await sleep(randomBetween(1200, 2500));
+      let response;
+      try {
+        response = await fetch(attempts[i].url, {
+          method: "POST",
+          credentials: "include",
+          headers: attempts[i].headers
+        });
+      } catch (error) {
+        outcome = { ok: false, blocked: false, reason: error?.message || "network error" };
+        continue;
+      }
+      const text = await response.text().catch(() => "");
+      outcome = evaluateUnfollowResponse(response.status, text);
+      if (outcome.ok || outcome.blocked) return outcome;
+    }
+    return outcome;
   }
 
   async function copyUsernames() {
@@ -1033,11 +1099,14 @@
   }
 
   function showDialog({ title, body, contentHTML, confirmLabel, destructive, extraButton, onConfirm, onExtra }) {
+    dialogCounter += 1;
+    const titleId = `${APP_ID}-dialog-title-${dialogCounter}`;
+    const previouslyFocused = document.activeElement;
     const overlay = document.createElement("div");
     overlay.className = "iu-overlay";
     overlay.innerHTML = `
-      <div class="iu-dialog" role="dialog" aria-modal="true">
-        <h3>${escapeHTML(title)}</h3>
+      <div class="iu-dialog" role="dialog" aria-modal="true" aria-labelledby="${titleId}" tabindex="-1">
+        <h3 id="${titleId}">${escapeHTML(title)}</h3>
         ${body ? `<p>${escapeHTML(body)}</p>` : ""}
         ${contentHTML || ""}
         <div class="iu-dialog-actions">
@@ -1048,17 +1117,58 @@
       </div>
     `;
     document.getElementById(APP_ID).appendChild(overlay);
-    const close = () => overlay.remove();
+    const dialog = overlay.querySelector(".iu-dialog");
+
+    const close = () => {
+      document.removeEventListener("keydown", onKeyDown, true);
+      if (closeActiveDialog === close) closeActiveDialog = null;
+      overlay.remove();
+      if (previouslyFocused && document.contains(previouslyFocused)) previouslyFocused.focus();
+    };
+
+    /* aria-modal only tells assistive tech the rest of the page is inert; Tab
+       still has to be held inside the dialog for that to be true. */
+    const focusables = () => Array.from(
+      dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    ).filter((el) => !el.disabled && el.getClientRects().length > 0);
+
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        close();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", onKeyDown, true);
+    closeActiveDialog = close;
+
     overlay.addEventListener("click", (event) => {
       if (event.target === overlay) close();
     });
     overlay.querySelector("[data-cancel]").addEventListener("click", close);
     overlay.querySelector("[data-confirm]").addEventListener("click", () => {
-      try { onConfirm?.(overlay.querySelector(".iu-dialog")); } finally { close(); }
+      try { onConfirm?.(dialog); } finally { close(); }
     });
     if (extraButton && onExtra) {
-      overlay.querySelector("[data-extra]").addEventListener("click", () => onExtra(overlay.querySelector(".iu-dialog")));
+      overlay.querySelector("[data-extra]").addEventListener("click", () => onExtra(dialog));
     }
+
+    /* Never open a destructive dialog with the destructive button pre-focused. */
+    (dialog.querySelector("input") || (destructive ? dialog.querySelector("[data-cancel]") : dialog)).focus();
   }
 
   function toggleLanguage() {
@@ -1077,6 +1187,14 @@
       .filter((u) => state.filters.noAvatar || !isDefaultAvatar(u))
       .filter((u) => !query || (u.username + " " + (u.full_name || "")).toLowerCase().includes(query))
       .sort((a, b) => a.username.localeCompare(b.username));
+  }
+
+  function pruneSelectionToDisplayed() {
+    if (!state.selected.size) return;
+    const visible = new Set(getDisplayUsers().map((u) => u.id));
+    state.selected.forEach((id) => {
+      if (!visible.has(id)) state.selected.delete(id);
+    });
   }
 
   function normalizeUser(raw) {
@@ -1125,19 +1243,21 @@
   }
 
   async function sleepWithCountdown(ms, reasonKey) {
-    state.waitUntil = Date.now() + ms;
     state.waitReason = reasonKey;
+    let remaining = Math.max(0, ms);
+    state.waitUntil = Date.now() + remaining;
     updateCountdownDOM();
-    const start = Date.now();
-    while (Date.now() - start < ms) {
+    while (remaining > 0) {
       if (state.scanCancelled || state.unfollowCancelled) break;
-      await sleep(Math.min(250, ms - (Date.now() - start)));
       if (state.scanPaused || state.unfollowPaused) {
-        const pauseStart = Date.now();
         await waitWhile(() => state.scanPaused || state.unfollowPaused);
-        state.waitUntil += Date.now() - pauseStart;
+        state.waitUntil = Date.now() + remaining;
         updateCountdownDOM();
+        continue;
       }
+      const before = Date.now();
+      await sleep(Math.min(250, remaining));
+      remaining -= Date.now() - before;
     }
     state.waitUntil = 0;
     state.waitReason = "";
@@ -1194,6 +1314,8 @@
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
     const node = document.createElement("div");
     node.className = "iu-toast";
+    node.setAttribute("role", "status");
+    node.setAttribute("aria-live", "polite");
     node.textContent = message;
     root.appendChild(node);
     toastTimer = setTimeout(() => { node.remove(); toastTimer = null; }, 3500);
@@ -1220,23 +1342,28 @@
   const CSS = `
     #${APP_ID}, #${APP_ID} * { box-sizing: border-box; }
     #${APP_ID} {
-      --iu-bg: #15171d;
-      --iu-bg-2: #1c1f27;
-      --iu-bg-3: #232733;
-      --iu-line: rgba(255,255,255,0.08);
-      --iu-line-strong: rgba(255,255,255,0.16);
-      --iu-text: #f1f3f5;
-      --iu-muted: #8b94a3;
+      --iu-bg: #161513;
+      --iu-bg-2: #201e1a;
+      --iu-bg-3: #2b2823;
+      --iu-line: rgba(247,244,239,0.10);
+      --iu-line-strong: rgba(247,244,239,0.20);
+      --iu-text: #f7f4ef;
+      --iu-muted: #9a948a;
       --iu-accent: #4f8cff;
-      --iu-accent-2: #6ea6ff;
-      --iu-danger: #ef4444;
+      --iu-accent-2: #7fb0ff;
+      --iu-danger: #d92d20;
+      --iu-danger-text: #f06a5d;
       --iu-success: #22c55e;
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 2147483647;
       color: var(--iu-text);
-      font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+      font: 14px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    }
+    #${APP_ID} :focus-visible {
+      outline: 2px solid var(--iu-accent);
+      outline-offset: 2px;
     }
     #${APP_ID} > * { pointer-events: auto; }
     #${APP_ID} button, #${APP_ID} input, #${APP_ID} a { font: inherit; color: inherit; }
@@ -1328,7 +1455,7 @@
       color: var(--iu-accent);
       margin-bottom: 4px;
     }
-    #${APP_ID} .iu-welcome-icon--error { background: rgba(239,68,68,0.15); color: var(--iu-danger); }
+    #${APP_ID} .iu-welcome-icon--error { background: rgba(240,106,93,0.15); color: var(--iu-danger-text); }
     #${APP_ID} .iu-welcome h2 { margin: 0; font-size: 17px; font-weight: 600; }
     #${APP_ID} .iu-welcome p { margin: 0; color: var(--iu-muted); font-size: 13px; max-width: 300px; }
 
@@ -1345,10 +1472,10 @@
     #${APP_ID} .iu-btn:hover:not(:disabled) { background: var(--iu-bg-3); border-color: var(--iu-line-strong); }
     #${APP_ID} .iu-btn:active:not(:disabled) { transform: scale(0.98); }
     #${APP_ID} .iu-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    #${APP_ID} .iu-btn--primary { background: var(--iu-accent); border-color: var(--iu-accent); color: #061224; }
+    #${APP_ID} .iu-btn--primary { background: var(--iu-accent); border-color: var(--iu-accent); color: var(--iu-bg); }
     #${APP_ID} .iu-btn--primary:hover:not(:disabled) { background: var(--iu-accent-2); border-color: var(--iu-accent-2); }
     #${APP_ID} .iu-btn--danger { background: var(--iu-danger); border-color: var(--iu-danger); color: #fff; }
-    #${APP_ID} .iu-btn--danger:hover:not(:disabled) { background: #f25555; border-color: #f25555; }
+    #${APP_ID} .iu-btn--danger:hover:not(:disabled) { background: #b81f14; border-color: #b81f14; }
     #${APP_ID} .iu-btn--ghost { background: transparent; }
     #${APP_ID} .iu-btn--lg { padding: 10px 20px; font-size: 14px; margin-top: 8px; }
     #${APP_ID} .iu-btn--small { padding: 6px 10px; font-size: 12px; }
@@ -1386,6 +1513,16 @@
     }
     #${APP_ID} .iu-current strong { font-weight: 600; }
 
+    #${APP_ID} .iu-blocked {
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #fecaca;
+      background: rgba(240, 106, 93, 0.12);
+      border: 1px solid rgba(240, 106, 93, 0.35);
+    }
+
     #${APP_ID} .iu-results {
       flex: 1 1 auto;
       min-height: 0;
@@ -1408,7 +1545,6 @@
       border-radius: 8px;
       background: var(--iu-bg-2);
       color: var(--iu-text);
-      outline: none;
       transition: border-color 0.15s;
     }
     #${APP_ID} .iu-search:focus { border-color: var(--iu-accent); }
@@ -1462,10 +1598,10 @@
       border-bottom: 1px solid rgba(255,255,255,0.04);
       transition: background 0.1s;
     }
-    #${APP_ID} .iu-row:hover { background: rgba(255,255,255,0.02); }
-    #${APP_ID} .iu-row:focus-visible { outline: none; background: rgba(79,140,255,0.06); }
-    #${APP_ID} .iu-row--selected { background: rgba(79,140,255,0.08); }
-    #${APP_ID} .iu-row--selected:hover { background: rgba(79,140,255,0.12); }
+    #${APP_ID} .iu-row:hover { background: rgba(247,244,239,0.04); }
+    #${APP_ID} .iu-row:focus-visible { outline: 2px solid var(--iu-accent); outline-offset: -2px; }
+    #${APP_ID} .iu-row--selected { background: rgba(79,140,255,0.14); box-shadow: inset 3px 0 0 var(--iu-accent); }
+    #${APP_ID} .iu-row--selected:hover { background: rgba(79,140,255,0.2); }
     #${APP_ID} .iu-row:last-child { border-bottom: none; }
     #${APP_ID} .iu-row--hidden { opacity: 0.55; }
     #${APP_ID} .iu-row-check {
@@ -1539,7 +1675,7 @@
     }
     #${APP_ID} .iu-tag--blue { background: rgba(79,140,255,0.15); color: var(--iu-accent-2); }
     #${APP_ID} .iu-tag--green { background: rgba(34,197,94,0.15); color: var(--iu-success); }
-    #${APP_ID} .iu-tag--red { background: rgba(239,68,68,0.15); color: var(--iu-danger); }
+    #${APP_ID} .iu-tag--red { background: rgba(240,106,93,0.15); color: var(--iu-danger-text); }
 
     #${APP_ID} .iu-actionbar {
       flex-shrink: 0;
@@ -1591,7 +1727,6 @@
       border-radius: 6px;
       background: var(--iu-bg-2);
       color: var(--iu-text);
-      outline: none;
     }
     #${APP_ID} .iu-field input:focus { border-color: var(--iu-accent); }
 
@@ -1601,7 +1736,7 @@
       bottom: 12px;
       transform: translateX(-50%);
       padding: 8px 14px;
-      background: rgba(20,22,28,0.95);
+      background: rgba(32,30,26,0.96);
       border: 1px solid var(--iu-line);
       border-radius: 999px;
       font-size: 12px;
@@ -1634,7 +1769,7 @@
       background: var(--iu-muted);
     }
     #${APP_ID} .iu-pill-dot--active { background: var(--iu-accent); animation: iu-pulse 1.4s infinite; }
-    #${APP_ID} .iu-pill-dot--error { background: var(--iu-danger); }
+    #${APP_ID} .iu-pill-dot--error { background: var(--iu-danger-text); }
     @keyframes iu-pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
@@ -1651,7 +1786,20 @@
       }
       #${APP_ID} .iu-list { max-height: none; flex: 1 1 auto; }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      #${APP_ID} *, #${APP_ID} *::before, #${APP_ID} *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   `;
+
+  if (globalThis.__IU_TEST__) {
+    globalThis.__IU_TEST__({ evaluateUnfollowResponse, unfollowUser, normalizeUser, isDefaultAvatar, parseRetryAfter });
+    return;
+  }
 
   cleanupExisting();
   injectStyles();
