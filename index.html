@@ -97,13 +97,6 @@
                 <span class="code-window-name">instagram-unfollower.js</span>
                 <span class="code-window-lang">JavaScript</span>
               </span>
-              <button class="code-copy" type="button" data-copy>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-copy-icon>
-                  <rect x="9" y="9" width="12" height="12" rx="2.5" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-                <span data-copy-label data-i18n="copyShort">Kopyala</span>
-              </button>
             </div>
             <div class="code-body" data-code></div>
           </div>
@@ -293,7 +286,7 @@
     <script>
       const scriptUrl = "dist/instagram-unfollower.one-line.js";
       const status = document.querySelector("[data-status]");
-      const copyButtons = document.querySelectorAll("[data-copy]");
+      const copyButton = document.querySelector("[data-copy]");
       const languageToggle = document.querySelector("[data-language-toggle]");
       const vtSummary = document.querySelector("[data-vt-summary]");
 
@@ -317,8 +310,6 @@
           headline: "Seni geri takip etmeyenleri gör",
           lead: "Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz.",
           copyCode: "Kodu kopyala",
-          copyShort: "Kopyala",
-          copiedShort: "Kopyalandı",
           openCode: "Dosyayı aç",
           shotCaption: "Panel, Instagram sekmende bu şekilde açılır.",
           supportTitle: "Destek",
@@ -387,8 +378,6 @@
           headline: "See who does not follow you back",
           lead: "It scans the accounts you follow and lists the ones that do not follow back. Your data stays in the browser.",
           copyCode: "Copy code",
-          copyShort: "Copy",
-          copiedShort: "Copied",
           openCode: "Open the file",
           shotCaption: "This is how the panel opens on your Instagram tab.",
           supportTitle: "Support",
@@ -656,19 +645,15 @@
         try {
           const response = await fetch("src/instagram-unfollower.js", { cache: "no-store" });
           if (!response.ok) return;
-          lines = (await response.text()).split("\n").slice(0, 11);
+          lines = (await response.text()).replace(/\s+$/, "").split("\n");
         } catch {
           return;
         }
-        while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
 
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        host.replaceChildren();
-
+        const frag = document.createDocumentFragment();
         lines.forEach((line, index) => {
           const row = document.createElement("div");
           row.className = "code-line";
-          if (!reduce) row.style.animationDelay = `${index * 85}ms`;
 
           const gutter = document.createElement("span");
           gutter.className = "code-num";
@@ -678,46 +663,20 @@
           text.className = "code-text";
           highlightInto(line, text);
 
-          if (index === lines.length - 1) {
-            const caret = document.createElement("span");
-            caret.className = "code-caret";
-            text.appendChild(caret);
-          }
-
           row.append(gutter, text);
-          host.appendChild(row);
+          frag.appendChild(row);
         });
+        host.replaceChildren(frag);
       }
 
-      const CHECK_PATH = "M20 6L9 17l-5-5";
-      function flashCopied(button) {
-        const label = button.querySelector("[data-copy-label]");
-        const icon = button.querySelector("[data-copy-icon]");
-        if (!label || !icon) return;
-        const originalLabel = label.textContent;
-        const originalIcon = icon.innerHTML;
-        label.textContent = translations[currentLanguage].copiedShort;
-        icon.innerHTML = `<path d="${CHECK_PATH}" />`;
-        button.classList.add("is-copied");
-        clearTimeout(button.resetTimer);
-        button.resetTimer = setTimeout(() => {
-          label.textContent = originalLabel;
-          icon.innerHTML = originalIcon;
-          button.classList.remove("is-copied");
-        }, 1600);
-      }
-
-      copyButtons.forEach((button) => {
-        button.addEventListener("click", async () => {
-          try {
-            if (!snippet) await loadSnippet();
-            await navigator.clipboard.writeText(snippet);
-            status.textContent = translations[currentLanguage].copied;
-            flashCopied(button);
-          } catch {
-            status.textContent = translations[currentLanguage].copyFailed;
-          }
-        });
+      copyButton.addEventListener("click", async () => {
+        try {
+          if (!snippet) await loadSnippet();
+          await navigator.clipboard.writeText(snippet);
+          status.textContent = translations[currentLanguage].copied;
+        } catch {
+          status.textContent = translations[currentLanguage].copyFailed;
+        }
       });
 
       languageToggle.addEventListener("click", () => {
