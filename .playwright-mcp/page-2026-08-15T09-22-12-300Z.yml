@@ -1,0 +1,158 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "cobanov" [ref=e4] [cursor=pointer]:
+        - /url: index.html
+      - navigation "Primary" [ref=e7]:
+        - link "Güvenlik" [ref=e8] [cursor=pointer]:
+          - /url: security.html
+        - link "GitHub" [ref=e9] [cursor=pointer]:
+          - /url: https://github.com/cobanov/instagram
+        - link "Instagram" [ref=e12] [cursor=pointer]:
+          - /url: https://www.instagram.com/mertcobanov/
+        - link "Twitter" [ref=e17] [cursor=pointer]:
+          - /url: https://twitter.com/cobanov
+        - button "Switch to English" [ref=e20] [cursor=pointer]: TR
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - heading "Seni geri takip etmeyenleri gör" [level=1] [ref=e23]
+      - paragraph [ref=e24]: Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya gitmez, her şey kendi tarayıcında çalışır.
+      - generic "Code preview" [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - generic [ref=e28]: ~ DevTools konsoluna yapıştırın
+            - generic [ref=e29]: .js
+          - code [ref=e31]: "(() => { \"use strict\"; if (location.hostname !== \"www.instagram.com\") { alert(\"Open https://www.instagram.com first, then paste this script again.\"); return; } const APP_ID = \"iu-app\"; const STYLE_ID = \"iu-style\"; const STORAGE_KEY = \"iu_state_v3\"; const IG_HEADERS = { \"x-ig-app-id\": \"936619743392459\", \"x-requested-with\": \"XMLHttpRequest\" }; const DEFAULT_TIMINGS = { scanDelayMin: 700, scanDelayMax: 1500, scanPauseEveryPages: 5, scanPauseMs: 8000, unfollowDelayMin: 5000, unfollowDelayMax: 9000, unfollowPauseEvery: 5, unfollowPauseMs: 300000 }; const PANEL_WIDTH = 380; const PANEL_MARGIN = 18; const MAX_RETRIES = 3; const I18N = { en: { title: \"Instagram Unfollower\", subtitle: \"See who doesn't follow you back\", welcomeTitle: \"Ready when you are\", welcomeBody: \"We'll scan only the people you follow and use Instagram's follow-back status to keep the scan fast. Nothing is changed on your account during the scan.\", scanBtn: \"Scan now\", scanning: \"Scanning\", loadingFollowing: \"Loading the people you follow\", loadingFollowers: \"Checking follow-back status\", paused: \"Paused\", pause: \"Pause\", resume: \"Resume\", cancel: \"Cancel\", ofTotal: \"{current} of {total}\", ofUnknown: \"{current} so far\", scanCompletedToast: \"{count} non-followers found\", scanFailed: \"Scan failed\", retry: \"Try again\", goBack: \"Back to results\", search: \"Search by name or username\", filterVerified: \"Verified\", filterPr ..."
+          - generic [ref=e32]:
+            - button "Kodu kopyala" [ref=e33] [cursor=pointer]
+            - link "Kod dosyasını aç" [ref=e38] [cursor=pointer]:
+              - /url: dist/instagram-unfollower.one-line.js
+            - link "GitHub" [ref=e39] [cursor=pointer]:
+              - /url: https://github.com/cobanov/instagram
+      - paragraph [ref=e43]
+      - paragraph [ref=e44]:
+        - generic [ref=e45]: SHA-256 AB709F189F0E57C66CEA9FCB82D917D4DB8AF2B1C65A4DCDCE42FA8317ACADEA
+        - generic [ref=e46]: Son güncelleme 15 Ağustos 2026
+    - generic [ref=e48]:
+      - heading "Nasıl kullanılır" [level=2] [ref=e49]
+      - paragraph [ref=e50]: Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
+      - list [ref=e51]:
+        - listitem [ref=e52]:
+          - heading "Instagram'a giriş yapın" [level=3] [ref=e53]
+          - paragraph [ref=e54]:
+            - text: Önce
+            - link "instagram.com" [ref=e55] [cursor=pointer]:
+              - /url: https://www.instagram.com/
+            - text: üzerinde hesabınızla giriş yapın.
+        - listitem [ref=e56]:
+          - heading "Konsolu açın" [level=3] [ref=e57]
+          - paragraph [ref=e58]:
+            - text: "Windows/Linux:"
+            - generic [ref=e59]: Ctrl
+            - text: +
+            - generic [ref=e60]: Shift
+            - text: +
+            - generic [ref=e61]: J
+            - text: "· macOS:"
+            - generic [ref=e62]: ⌘
+            - text: +
+            - generic [ref=e63]: ⌥
+            - text: +
+            - generic [ref=e64]: I
+            - text: .
+        - listitem [ref=e65]:
+          - heading "Kodu yapıştırın" [level=3] [ref=e66]
+          - paragraph [ref=e67]:
+            - text: Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce
+            - generic [ref=e68]: allow pasting
+            - text: yazın.
+        - listitem [ref=e69]:
+          - heading "\"Taramayı başlat\"a basın" [level=3] [ref=e70]
+          - paragraph [ref=e71]: Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
+      - paragraph [ref=e72]: Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.
+    - generic [ref=e74]:
+      - heading "Güvenlik" [level=2] [ref=e75]
+      - paragraph [ref=e76]: Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
+      - paragraph [ref=e77]: VirusTotal raporu ve Semgrep sonucu burada gösterilir. Kod açık kaynaklıdır.
+      - paragraph [ref=e78]: "SHA-256: AB709F189F0E57C66CEA9FCB82D917D4DB8AF2B1C65A4DCDCE42FA8317ACADEA"
+      - generic [ref=e79]:
+        - link "VirusTotal raporu" [ref=e80] [cursor=pointer]:
+          - /url: https://www.virustotal.com/gui/file/ab709f189f0e57c66cea9fcb82d917d4db8af2b1c65a4dcdce42fa8317acadea/detection
+        - link "Semgrep status" [ref=e81] [cursor=pointer]:
+          - /url: https://github.com/cobanov/instagram/actions/workflows/semgrep.yml
+          - img "Semgrep status" [ref=e82]
+      - paragraph [ref=e83]: VirusTotal canlı özeti şu anda yüklenemedi.
+      - generic [ref=e84]:
+        - link "Detayları gör" [ref=e85] [cursor=pointer]:
+          - /url: security.html
+        - link "Kodu incele" [ref=e86] [cursor=pointer]:
+          - /url: https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js
+    - generic [ref=e88]:
+      - heading "Trafik" [level=2] [ref=e89]
+      - paragraph [ref=e90]: Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e93]: 53.8k
+          - generic [ref=e94]: tekil ziyaretçi
+        - generic [ref=e95]:
+          - generic [ref=e96]: 599k
+          - generic [ref=e97]: toplam request
+        - generic [ref=e98]:
+          - generic [ref=e99]: 1 GB
+          - generic [ref=e100]: veri trafiği
+      - paragraph [ref=e101]: 26 Mart — 25 Nisan 2026 · Cloudflare
+    - generic [ref=e103]:
+      - heading "Destek" [level=2] [ref=e104]
+      - paragraph [ref=e105]: Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan geliştirilmesine destek olabilirsin.
+      - generic [ref=e106]:
+        - generic [ref=e107]:
+          - link "GitHub Sponsors" [ref=e108] [cursor=pointer]:
+            - /url: https://github.com/sponsors/cobanov
+          - link "Kurumsal sponsorluk" [ref=e109] [cursor=pointer]:
+            - /url: mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship
+        - paragraph [ref=e110]: Kurumsal destek olmak istersen sayfada ve README'de teşekkür yerleştirebilirim.
+      - generic [ref=e111]:
+        - paragraph [ref=e112]: Reklam
+        - insertion
+    - generic [ref=e114]:
+      - heading "Değişiklikler" [level=2] [ref=e115]
+      - paragraph [ref=e116]: Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
+      - list [ref=e117]:
+        - listitem [ref=e118]:
+          - generic [ref=e119]:
+            - generic [ref=e120]: v2.1.0
+            - generic [ref=e121]: 15 Ağustos 2026
+          - list [ref=e122]:
+            - listitem [ref=e123]: Takipten çıkarma artık başarısız işlemleri başarılı diye raporlamıyor. Instagram işlemi engellediğinde tarama durur ve nedenini gösterir.
+            - listitem [ref=e124]: Filtreyi değiştirdiğinde görünmez olan kişiler seçili kalmıyor; artık yalnızca gördüğün kişiler takipten çıkarılıyor.
+            - listitem [ref=e125]: Duraklat sırasında bekleme süresi sessizce atlanıyordu, düzeltildi. Hız sınırı koruması artık gerçekten bekliyor.
+            - listitem [ref=e126]: Klavyeyle gezinirken odak görünür oldu, hareket azaltma tercihi destekleniyor, onay penceresi Escape ile kapanıyor.
+            - listitem [ref=e127]: Site ve panel tek renk paletine ve tek tipografi ölçeğine geçti.
+            - listitem [ref=e128]: Site koyu bir görünüme geçti; kod bloğu artık sayfanın merkezinde ve kopyala butonu içinde.
+            - listitem [ref=e129]: Bu değişiklik listesi eklendi, son güncelleme tarihi ana sayfada görünüyor.
+            - listitem [ref=e130]: Sitede gösterilen SHA-256 artık indirdiğin dosyadan hesaplanıyor, elle yazılmıyor.
+        - listitem [ref=e131]:
+          - generic [ref=e132]:
+            - generic [ref=e133]: v2.0.0
+            - generic [ref=e134]: 25 Nisan 2026
+          - list [ref=e135]:
+            - listitem [ref=e136]: "İlk sürüm: tek satırlık konsol aracı, tarama paneli ve güvenlik sayfası."
+    - generic [ref=e138]:
+      - heading "Kaynak" [level=2] [ref=e139]
+      - paragraph [ref=e140]:
+        - text: Yeni sürüm; eski kullanım fikri
+        - link "davidarroyo1234/InstagramUnfollowers" [ref=e141] [cursor=pointer]:
+          - /url: https://github.com/davidarroyo1234/InstagramUnfollowers
+        - text: projesinden geliyor.
+  - contentinfo [ref=e142]:
+    - generic [ref=e143]: © 2026 Mert Cobanov.
+    - generic [ref=e144]: Instagram ve Meta ile ilişkili değildir.
+    - generic [ref=e145]:
+      - link "Gizlilik" [ref=e146] [cursor=pointer]:
+        - /url: privacy.html
+      - link "İletişim" [ref=e147] [cursor=pointer]:
+        - /url: contact.html
+      - link "Güvenlik" [ref=e148] [cursor=pointer]:
+        - /url: security.html
+      - link "GitHub" [ref=e149] [cursor=pointer]:
+        - /url: https://github.com/cobanov/instagram

@@ -1,85 +1,315 @@
 /* index.html only. Shared components (.btn, .lead, section.block, .note,
    .scan-row, .vt-summary, .hash-line) live in site.css. */
+
+/* ---------------------------------------------------------------------------
+   Hero: copy on the left, the actual product on the right. The page used to
+   lead with minified source, which is the least appealing thing this project
+   owns. What it sells is the list, so the list is what it shows.
+   --------------------------------------------------------------------------- */
 .hero {
-  padding: 56px 0 40px;
+  padding: 64px 0 56px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+  gap: 56px;
+  align-items: center;
+}
+
+.page-home .hero-copy h1 {
+  max-width: 12ch;
+}
+
+.page-home .hero-copy .lead {
+  max-width: 46ch;
+}
+
+/* Compact copy bar: the code is a means, not the headline. */
+.page-home .copybar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  padding: 8px 8px 8px 14px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.page-home .copybar-code {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--code-muted);
+  font: 400 var(--type-body-sm)/1.5 "JetBrains Mono", "SFMono-Regular", monospace;
+}
+
+.page-home .copybar .btn {
+  flex: 0 0 auto;
 }
 
 .page-home .status {
   min-height: 20px;
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   color: var(--muted);
   font-size: var(--type-body-sm);
 }
 
-/* The product is a line you paste, so the code block is the hero rather than
-   a preview tucked under the buttons. The gradient border is one of only two
-   places the Instagram gradient appears. */
-.page-home .terminal {
-  margin-top: 32px;
-  padding: 1px;
-  background: var(--gradient);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-}
-
-.page-home .terminal-inner {
-  background: var(--code-bg);
-  border-radius: calc(var(--radius-lg) - 1px);
-  overflow: hidden;
-}
-
-.page-home .terminal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 11px 14px;
-  border-bottom: 1px solid rgba(247, 244, 239, 0.07);
-  font: 400 var(--type-caption)/1 "JetBrains Mono", "SFMono-Regular", monospace;
-  color: var(--code-muted);
-}
-
-.page-home .terminal pre {
-  margin: 0;
-  max-height: 200px;
-  overflow: auto;
-  padding: 16px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--code-ink);
-  font: 400 var(--type-body-sm)/1.65 "JetBrains Mono", "SFMono-Regular", monospace;
-}
-
-.page-home .terminal pre::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.page-home .terminal pre::-webkit-scrollbar-thumb {
-  background: rgba(247, 244, 239, 0.12);
-  border-radius: 999px;
-}
-
-.page-home .terminal-actions {
+.page-home .hero-links {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-top: 1px solid rgba(247, 244, 239, 0.07);
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .page-home .hero-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
-  margin: 14px 0 0;
+  flex-direction: column;
+  gap: 2px;
+  margin: 22px 0 0;
   color: var(--muted);
   font: 400 var(--type-caption)/1.7 "JetBrains Mono", "SFMono-Regular", monospace;
   overflow-wrap: anywhere;
 }
 
+/* ---------------------------------------------------------------------------
+   Product mock. A faithful replica of the injected panel built from markup, so
+   it cannot drift into being a stale screenshot and costs no extra bytes.
+   The gradient lives here as ambient light rather than as a hairline border,
+   which read as a rendering artifact at 1px.
+   --------------------------------------------------------------------------- */
+.hero-visual {
+  position: relative;
+  justify-self: center;
+  width: 100%;
+  max-width: 400px;
+}
+
+.hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: -18% -12% -12%;
+  background: var(--gradient);
+  filter: blur(60px);
+  opacity: 0.28;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.mock {
+  position: relative;
+  z-index: 1;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+  font-size: var(--type-body-sm);
+}
+
+.mock-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mock-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--gradient);
+  flex: 0 0 auto;
+}
+
+.mock-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mock-title strong {
+  display: block;
+  font-size: var(--type-body-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.mock-title span {
+  display: block;
+  font-size: var(--type-caption);
+  color: var(--muted);
+}
+
+.mock-icons {
+  display: flex;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+.mock-icons i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+
+.mock-summary {
+  margin: 0;
+  padding: 12px 14px 6px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.mock-search {
+  margin: 0 14px 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.mock-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 12px;
+}
+
+.mock-chips span {
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.mock-chips .on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.mock-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.mock-list li {
+  display: grid;
+  grid-template-columns: 16px 30px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(247, 244, 239, 0.05);
+}
+
+.mock-list li.is-selected {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.mock-check {
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+}
+
+.mock-check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  position: relative;
+}
+
+.mock-check.on::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--on-accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.mock-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--c, var(--surface-2));
+}
+
+.mock-name {
+  min-width: 0;
+}
+
+.mock-name b {
+  display: block;
+  font-size: var(--type-caption);
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mock-name em {
+  display: block;
+  font-style: normal;
+  font-size: var(--type-caption);
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.mock-action {
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  background: #b3251c;
+  color: #fff;
+  font-weight: 500;
+}
+
+.mock-caption {
+  position: relative;
+  z-index: 1;
+  margin: 14px 0 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+/* ---------------------------------------------------------------------------
+   Sections
+   --------------------------------------------------------------------------- */
+
+/* Steps read as four parallel actions, not a ranked list, so they sit on a
+   grid instead of stacking into one more vertical run of text. */
 .page-home ol.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -87,32 +317,41 @@
 }
 
 .page-home ol.steps li {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   counter-increment: step;
 }
 
-.page-home ol.steps li:last-child {
-  border-bottom: none;
-}
-
 .page-home ol.steps h3 {
-  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 8px;
   font-size: var(--type-h3);
   font-weight: 600;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .page-home ol.steps h3::before {
-  content: counter(step) ". ";
-  color: var(--accent);
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: var(--type-caption);
   font-weight: 600;
 }
 
 .page-home ol.steps p {
   margin: 0;
   color: var(--muted);
-  font-size: var(--type-body);
+  font-size: var(--type-body-sm);
   line-height: var(--leading-prose);
 }
 
@@ -127,25 +366,42 @@
   color: var(--ink);
 }
 
-.page-home .trust-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Trust signals as a scannable row rather than a paragraph plus two buttons. */
+.page-home .trust-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 4px;
 }
 
-.page-home .trust-list li {
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
+.page-home .trust-item {
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.page-home .trust-item h3 {
+  margin: 0 0 6px;
   font-size: var(--type-body);
+  font-weight: 600;
+}
+
+.page-home .trust-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--type-body-sm);
   line-height: var(--leading-prose);
+  overflow-wrap: anywhere;
 }
 
-.page-home .trust-list li:last-child {
-  border-bottom: none;
+.page-home .trust-item .hash-line {
+  margin: 0;
+  font-size: var(--type-caption);
 }
 
-/* Changelog */
+/* Changelog: latest release in full, the rest a click away. It used to take
+   more vertical space than the entire security section. */
 .page-home .changelog {
   margin: 0;
   padding: 0;
@@ -153,17 +409,14 @@
 }
 
 .page-home .changelog-entry {
-  padding: 20px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
 }
 
-.page-home .changelog-entry:first-child {
-  padding-top: 0;
-}
-
-.page-home .changelog-entry:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.page-home .changelog-entry + .changelog-entry {
+  margin-top: 12px;
 }
 
 .page-home .changelog-head {
@@ -192,7 +445,7 @@
 
 .page-home .changelog-list li {
   color: var(--muted);
-  font-size: var(--type-body);
+  font-size: var(--type-body-sm);
   line-height: var(--leading-prose);
 }
 
@@ -206,52 +459,69 @@
 
 /* Support */
 .page-home .support-card {
-  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
   padding: 20px 22px;
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
 }
 
+.page-home .support-card .actions {
+  margin-top: 0;
+}
+
 .page-home .support-note {
-  margin: 14px 0 0;
+  flex: 1 1 240px;
+  margin: 0;
   color: var(--muted);
   font-size: var(--type-body-sm);
   line-height: var(--leading-prose);
 }
 
+/* Numbers earn their size */
 .page-home .stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 32px 40px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
   margin: 0;
 }
 
+.page-home .stat {
+  padding: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
 .page-home .stat .num {
-  font-size: 1.75rem;
+  display: block;
+  font-size: 2.25rem;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   color: var(--ink);
 }
 
 .page-home .stat .label {
-  margin-top: 2px;
+  margin-top: 6px;
   color: var(--muted);
   font-size: var(--type-body-sm);
-  line-height: var(--leading-prose);
 }
 
 .page-home .stats-period {
-  margin: 22px 0 0;
+  margin: 16px 0 0;
   color: var(--muted);
-  font: 400 var(--type-body-sm)/1.5 "JetBrains Mono", monospace;
+  font: 400 var(--type-caption)/1.5 "JetBrains Mono", monospace;
 }
 
 .page-home .ad-wrap {
-  margin: 36px 0 0;
+  margin: 28px 0 0;
   padding: 18px 0;
   border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
   text-align: center;
 }
 
@@ -263,18 +533,39 @@
   text-transform: uppercase;
 }
 
-@media (max-width: 600px) {
-  .page-home .actions .btn,
-  .page-home .terminal-actions .btn {
-    flex: 1 1 auto;
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
   }
 
-  .page-home .terminal pre {
-    max-height: 160px;
-    font-size: var(--type-caption);
+  .page-home .hero-copy h1,
+  .page-home .hero-copy .lead {
+    max-width: none;
   }
 
+  .page-home .trust-grid,
   .page-home .stats {
-    gap: 22px 28px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .hero {
+    padding: 40px 0;
+  }
+
+  .page-home ol.steps,
+  .page-home .trust-grid,
+  .page-home .stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-home .copybar {
+    flex-wrap: wrap;
+  }
+
+  .page-home .copybar .btn {
+    flex: 1 1 auto;
   }
 }

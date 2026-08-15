@@ -21,7 +21,6 @@
   --on-accent: #161513;
   --gradient: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
   --code-bg: #0f0e0c;
-  --code-ink: #e8e3d6;
   --code-muted: #8b8578;
   --warn-bg: #241d12;
   --warn-line: #b37a1f;
@@ -31,6 +30,9 @@
      browser font size scales the whole hierarchy, not just parts of it. */
   --content-gutter: 40px;
   --content-width: 680px;
+  /* Prose stays narrow; anything laid out on a grid gets the wider track so
+     the page stops using half the viewport. */
+  --content-wide: 1060px;
   --type-h1: clamp(2rem, 5vw, 2.75rem);
   --type-h2: 1.5rem;
   --type-h3: 1.125rem;
@@ -80,6 +82,11 @@ a:hover {
 
 .wrap {
   width: min(var(--content-width), calc(100% - var(--content-gutter)));
+  margin: 0 auto;
+}
+
+.wrap-wide {
+  width: min(var(--content-wide), calc(100% - var(--content-gutter)));
   margin: 0 auto;
 }
 

@@ -25,7 +25,7 @@
   </head>
   <body class="page-home">
     <header class="top">
-      <div class="wrap top-inner">
+      <div class="wrap-wide top-inner">
         <a class="brand" href="index.html">
           <span class="brand-mark" aria-hidden="true"></span>
           <span>cobanov</span>
@@ -57,27 +57,28 @@
     <main>
 
       <!-- HERO -->
-      <section class="hero wrap">
-        <h1 data-i18n="headline">Seni geri takip etmeyenleri gör</h1>
-        <p class="lead" data-i18n="lead">
-          Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık
-          kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya
-          gitmez, her şey kendi tarayıcında çalışır.
-        </p>
-        <div class="terminal" aria-label="Code preview">
-          <div class="terminal-inner">
-            <div class="terminal-head">
-              <span data-i18n="previewLabel">~ DevTools konsoluna yapıştırın</span>
-              <span aria-hidden="true">.js</span>
-            </div>
-            <pre><code data-preview>Yükleniyor...</code></pre>
-            <div class="terminal-actions">
+      <section class="hero">
+        <div class="wrap-wide hero-grid">
+          <div class="hero-copy">
+            <h1 data-i18n="headline">Seni geri takip etmeyenleri gör</h1>
+            <p class="lead" data-i18n="lead">
+              Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık
+              kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya
+              gitmez, her şey kendi tarayıcında çalışır.
+            </p>
+
+            <div class="copybar">
+              <code class="copybar-code" data-preview>instagram-unfollower.js</code>
               <button class="btn btn-primary" type="button" data-copy>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
                 <span data-i18n="copyCode">Kodu kopyala</span>
               </button>
+            </div>
+            <p class="status" data-status aria-live="polite"></p>
+
+            <div class="hero-links">
               <a class="btn" href="dist/instagram-unfollower.one-line.js" data-i18n="openCode">Dosyayı aç</a>
               <a class="btn" href="https://github.com/cobanov/instagram" rel="noreferrer">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -86,20 +87,100 @@
                 <span data-i18n="githubProject">GitHub</span>
               </a>
             </div>
+
+            <p class="hero-meta">
+              <span>SHA-256 <span data-script-hash>&hellip;</span></span>
+              <span data-last-updated hidden></span>
+            </p>
+          </div>
+
+          <div class="hero-visual">
+            <div class="mock" aria-hidden="true">
+              <div class="mock-head">
+                <span class="mock-dot"></span>
+                <span class="mock-title">
+                  <strong>Takip Etmeyenler</strong>
+                  <span>128 hesap tarandı</span>
+                </span>
+                <span class="mock-icons"><i></i><i></i><i></i></span>
+              </div>
+              <p class="mock-summary">37 kişi geri takip etmiyor</p>
+              <div class="mock-search">Ada veya kullanıcı adına göre ara</div>
+              <div class="mock-chips">
+                <span class="on">Onaylı</span><span>Gizli</span><span>Fotoğrafsız</span>
+              </div>
+              <ul class="mock-list">
+              <li>
+                <span class="mock-check"></span>
+                <span class="mock-avatar" style="--c:#3f5c8a"></span>
+                <span class="mock-name"><b>@ornek.hesap</b><em>Örnek Hesap</em></span>
+              </li>
+              <li class="is-selected">
+                <span class="mock-check on"></span>
+                <span class="mock-avatar" style="--c:#7a4a6d"></span>
+                <span class="mock-name"><b>@demo.kullanici</b><em>Demo Kullanıcı</em></span>
+              </li>
+              <li>
+                <span class="mock-check"></span>
+                <span class="mock-avatar" style="--c:#5a6b3c"></span>
+                <span class="mock-name"><b>@test.profil</b><em>Test Profil</em></span>
+              </li>
+              <li class="is-selected">
+                <span class="mock-check on"></span>
+                <span class="mock-avatar" style="--c:#8a5a3c"></span>
+                <span class="mock-name"><b>@deneme.adi</b><em>Deneme Adı</em></span>
+              </li>
+              </ul>
+              <div class="mock-bar">
+                <span>2 seçili</span>
+                <span class="mock-action">Takipten çıkar</span>
+              </div>
+            </div>
+            <p class="mock-caption" data-i18n="mockCaption">Örnek görünüm — veriler temsilidir</p>
           </div>
         </div>
+      </section>
 
-        <p class="status" data-status aria-live="polite"></p>
+      <!-- SUPPORT -->
+      <section class="block" id="support">
+        <div class="wrap-wide">
+          <h2 data-i18n="supportTitle">Destek</h2>
+          <p class="block-lead" data-i18n="supportBody">
+            Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan
+            geliştirilmesine destek olabilirsin.
+          </p>
 
-        <p class="hero-meta">
-          <span>SHA-256 <span data-script-hash>&hellip;</span></span>
-          <span data-last-updated hidden></span>
-        </p>
+          <div class="support-card">
+            <p class="support-note" data-i18n="supportNote">
+              Kurumsal destek olmak istersen sayfada ve README'de teşekkür yerleştirebilirim.
+            </p>
+            <div class="actions">
+              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-i18n="supportSponsorCta">
+                GitHub Sponsors
+              </a>
+              <a class="btn" href="mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship" data-i18n="supportEmailCta">
+                Kurumsal sponsorluk
+              </a>
+            </div>
+          </div>
+
+          <div class="ad-wrap">
+            <p class="ad-label" data-i18n="adLabel">Reklam</p>
+            <ins
+              class="adsbygoogle"
+              style="display: block"
+              data-ad-client="ca-pub-8348629135684902"
+              data-ad-slot="8348629135684902"
+              data-ad-format="auto"
+              data-full-width-responsive="true"
+            ></ins>
+          </div>
+        </div>
       </section>
 
       <!-- USAGE -->
       <section class="block" id="usage">
-        <div class="wrap">
+        <div class="wrap-wide">
           <h2 data-i18n="usageTitle">Nasıl kullanılır</h2>
           <p class="block-lead" data-i18n="usageBody">
             Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
@@ -138,28 +219,53 @@
         </div>
       </section>
 
+      <!-- CHANGELOG (rendered from changelog.json) -->
+      <section class="block" id="changelog">
+        <div class="wrap-wide">
+          <h2 data-i18n="changelogTitle">Değişiklikler</h2>
+          <p class="block-lead" data-i18n="changelogBody">
+            Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
+          </p>
+          <ol class="changelog" data-changelog></ol>
+          <p class="block-lead" data-changelog-status hidden></p>
+          <div class="actions">
+            <a class="btn" href="https://github.com/cobanov/instagram/commits/main" rel="noreferrer" data-i18n="changelogAll">Tüm geçmiş</a>
+          </div>
+        </div>
+      </section>
+
       <!-- SECURITY -->
       <section class="block" id="security">
-        <div class="wrap">
+        <div class="wrap-wide">
           <h2 data-i18n="securityTitle">Güvenlik</h2>
           <p class="block-lead" data-i18n="securityBody">
             Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
           </p>
-          <p class="block-lead" data-i18n="securityReports">
-            VirusTotal raporu ve Semgrep sonucu burada gösterilir. Kod açık kaynaklıdır.
-          </p>
-          <p class="hash-line">
-            SHA-256: <span data-script-hash>&hellip;</span>
-          </p>
-          <div class="scan-row">
-            <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="securityVirusTotal">
-              VirusTotal raporu
-            </a>
-            <a class="scan-badge" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer" aria-label="Semgrep status">
-              <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep status" />
-            </a>
+
+          <div class="trust-grid">
+            <div class="trust-item">
+              <h3 data-i18n="trustHashTitle">Dosya imzası</h3>
+              <p class="hash-line">SHA-256 <span data-script-hash>&hellip;</span></p>
+            </div>
+            <div class="trust-item">
+              <h3 data-i18n="trustVtTitle">VirusTotal</h3>
+              <p class="vt-summary" data-vt-summary data-i18n="vtLoading">VirusTotal sonucu yükleniyor...</p>
+              <div class="scan-row">
+                <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="securityVirusTotal">
+                  VirusTotal raporu
+                </a>
+              </div>
+            </div>
+            <div class="trust-item">
+              <h3 data-i18n="trustSemgrepTitle">Statik analiz</h3>
+              <div class="scan-row">
+                <a class="scan-badge" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer" aria-label="Semgrep status">
+                  <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep status" />
+                </a>
+              </div>
+            </div>
           </div>
-          <p class="vt-summary" data-vt-summary data-i18n="vtLoading">VirusTotal sonucu yükleniyor...</p>
+
           <div class="actions">
             <a class="btn" href="security.html" data-i18n="securityPageCta">Güvenlik sayfasını aç</a>
             <a class="btn" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer" data-i18n="securitySourceCta">Kaynağı incele</a>
@@ -169,83 +275,32 @@
 
       <!-- TRAFFIC -->
       <section class="block" id="numbers">
-        <div class="wrap">
+        <div class="wrap-wide">
           <h2 data-i18n="numbersTitle">Trafik</h2>
           <p class="block-lead" data-i18n="numbersBody">
             Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.
           </p>
           <div class="stats">
             <div class="stat">
-              <div class="num">53.8k</div>
-              <div class="label" data-i18n="trafficVisitors">tekil ziyaretçi</div>
+              <span class="num">53.8k</span>
+              <span class="label" data-i18n="trafficVisitors">tekil ziyaretçi</span>
             </div>
             <div class="stat">
-              <div class="num">599k</div>
-              <div class="label" data-i18n="trafficRequests">toplam request</div>
+              <span class="num">599k</span>
+              <span class="label" data-i18n="trafficRequests">toplam request</span>
             </div>
             <div class="stat">
-              <div class="num">1 GB</div>
-              <div class="label" data-i18n="trafficData">veri trafiği</div>
+              <span class="num">1 GB</span>
+              <span class="label" data-i18n="trafficData">veri trafiği</span>
             </div>
           </div>
           <p class="stats-period" data-i18n="trafficPeriod">26 Mart — 25 Nisan 2026 · Cloudflare</p>
         </div>
       </section>
 
-      <!-- SUPPORT (sponsorship, donations and the ad kept together, away from
-           the security section so the trust message is not sharing a screen
-           with three different ways of asking for money) -->
-      <section class="block" id="support">
-        <div class="wrap">
-          <h2 data-i18n="supportTitle">Destek</h2>
-          <p class="block-lead" data-i18n="supportBody">
-            Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan
-            geliştirilmesine destek olabilirsin.
-          </p>
-
-          <div class="support-card">
-            <div class="actions">
-              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-i18n="supportSponsorCta">
-                GitHub Sponsors
-              </a>
-              <a class="btn" href="mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship" data-i18n="supportEmailCta">
-                Kurumsal sponsorluk
-              </a>
-            </div>
-            <p class="support-note" data-i18n="supportNote">
-              Kurumsal destek olmak istersen sayfada ve README'de teşekkür yerleştirebilirim.
-            </p>
-          </div>
-
-          <div class="ad-wrap">
-            <p class="ad-label" data-i18n="adLabel">Reklam</p>
-            <ins
-              class="adsbygoogle"
-              style="display: block"
-              data-ad-client="ca-pub-8348629135684902"
-              data-ad-slot="8348629135684902"
-              data-ad-format="auto"
-              data-full-width-responsive="true"
-            ></ins>
-          </div>
-        </div>
-      </section>
-
-      <!-- CHANGELOG (rendered from changelog.json) -->
-      <section class="block" id="changelog">
-        <div class="wrap">
-          <h2 data-i18n="changelogTitle">Değişiklikler</h2>
-          <p class="block-lead" data-i18n="changelogBody">
-            Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
-          </p>
-          <ol class="changelog" data-changelog></ol>
-          <p class="block-lead" data-changelog-status hidden></p>
-        </div>
-      </section>
-
       <!-- CREDIT -->
       <section class="block">
-        <div class="wrap">
+        <div class="wrap-wide">
           <h2 data-i18n="sourceTitle">Kaynak</h2>
           <p class="block-lead" data-i18n-html="sourceBody">
             Yeni sürüm; eski kullanım fikri
@@ -257,7 +312,7 @@
 
     </main>
 
-    <footer class="wrap">
+    <footer class="wrap-wide">
       <span data-i18n="copyright">© 2026 Mert Cobanov.</span>
       <span class="footer-note" data-i18n="disclaimer">Instagram ve Meta ile ilişkili değildir.</span>
       <span class="footer-links">
@@ -332,6 +387,11 @@
           supportEmailCta: "Kurumsal sponsorluk",
           supportNote: "Kurumsal destek olmak istersen sayfada ve README'de teşekkür yerleştirebilirim.",
           adLabel: "Reklam",
+          mockCaption: "Örnek görünüm — veriler temsilidir",
+          changelogAll: "Tüm geçmiş",
+          trustHashTitle: "Dosya imzası",
+          trustVtTitle: "VirusTotal",
+          trustSemgrepTitle: "Statik analiz",
           changelogTitle: "Değişiklikler",
           changelogBody: "Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.",
           changelogUnavailable: "Değişiklik listesi şu anda yüklenemedi.",
@@ -393,6 +453,11 @@
           supportEmailCta: "Company sponsorship",
           supportNote: "For company sponsorship I can add a thank-you on this page and in the README.",
           adLabel: "Advertisement",
+          mockCaption: "Sample view — data is illustrative",
+          changelogAll: "Full history",
+          trustHashTitle: "File signature",
+          trustVtTitle: "VirusTotal",
+          trustSemgrepTitle: "Static analysis",
           changelogTitle: "Changelog",
           changelogBody: "Every time the code is updated, you can see what changed here.",
           changelogUnavailable: "The changelog could not be loaded right now.",
@@ -466,7 +531,7 @@
         }
         if (statusNode) statusNode.hidden = true;
 
-        list.replaceChildren(...changelog.slice(0, 3).map((entry) => {
+        list.replaceChildren(...changelog.slice(0, 1).map((entry) => {
           const item = document.createElement("li");
           item.className = "changelog-entry";
 
@@ -567,7 +632,7 @@
           const response = await fetch(scriptUrl, { cache: "no-store" });
           if (!response.ok) throw new Error(translations[currentLanguage].loadError);
           snippet = await response.text();
-          preview.textContent = snippet.slice(0, 1400) + (snippet.length > 1400 ? "\n..." : "");
+          preview.textContent = snippet.slice(0, 120) + (snippet.length > 120 ? "…" : "");
           applyScriptHash(await sha256Hex(snippet), true);
         } catch (error) {
           preview.textContent = translations[currentLanguage].loadFailed;
