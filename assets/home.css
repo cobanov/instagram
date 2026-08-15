@@ -53,10 +53,8 @@
   font-size: var(--step--1);
 }
 
-/* Product shot. Hidden until a real screenshot exists, so the page never
-   ships a broken image frame. */
-/* Capped at the capture's own width so it is never upscaled into softness,
-   and centred once the column is wider than that. */
+/* Product shot, capped at the capture's own width so it is never upscaled
+   into softness, and centred once the column is wider than that. */
 .shot {
   margin: 48px auto 0;
   max-width: 858px;
