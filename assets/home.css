@@ -43,7 +43,9 @@
   margin-top: 4px;
   color: var(--muted);
   font: 400 var(--type-caption)/1.5 "JetBrains Mono", "SFMono-Regular", monospace;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .page-home .fact .accent {
@@ -52,7 +54,7 @@
 
 .hero-frame {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
   gap: 48px;
   align-items: center;
 }
@@ -193,16 +195,6 @@
 .mock-summary {
   margin: 0;
   padding: 12px 14px 6px;
-  color: var(--muted);
-  font-size: var(--type-caption);
-}
-
-.mock-search {
-  margin: 0 14px 10px;
-  padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--paper);
   color: var(--muted);
   font-size: var(--type-caption);
 }

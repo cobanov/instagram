@@ -484,7 +484,7 @@ main h1.display {
 
 .statement {
   margin: 22px 0 0;
-  max-width: 22ch;
+  max-width: 40ch;
   color: var(--ink);
   font-size: var(--type-statement);
   font-weight: 600;
