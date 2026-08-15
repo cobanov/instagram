@@ -12,3 +12,7 @@ yarn-error.log*
 # local review artefacts
 .playwright-mcp/
 *.png
+
+# third-party skill bundle (local tooling, not product code)
+.agents/
+skills-lock.json

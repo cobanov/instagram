@@ -1,57 +1,141 @@
-/* contact.html + privacy.html — same column + type scale as site.css / home.
-   Shared components (.panel, main h1 typography) live in site.css. */
+/* ===========================================================================
+   security.html, privacy.html, contact.html
+
+   These are documents, not landing pages, so they use one narrow measure and
+   inherit every token from site.css. No cards unless a container is genuinely
+   holding a distinct object.
+   =========================================================================== */
+
 .page-doc main {
-  width: min(var(--content-width), calc(100% - var(--content-gutter)));
-  margin: 0 auto;
-  padding: var(--main-pad-y-top) 0 var(--main-pad-y-bottom);
+  padding-block: clamp(48px, 7vw, 88px) clamp(64px, 9vw, 120px);
 }
 
-.page-doc main h1 {
-  margin: 0 0 16px;
+.page-doc main > * {
+  max-width: var(--prose);
 }
 
-.page-doc main h1 + p[data-i18n="updated"] {
-  margin: 0 0 24px;
-  font-size: var(--type-body);
-  line-height: var(--leading-prose);
+.page-doc h1 {
+  font-size: var(--step-3);
 }
 
-.page-doc main h1 + p:not([data-i18n="updated"]) {
-  margin: 0 0 20px;
+.page-doc .lead {
+  margin: 20px 0 0;
+  max-width: 56ch;
   color: var(--muted);
-  font-size: var(--type-body);
-  line-height: var(--leading-prose);
+  font-size: var(--step-1);
+  line-height: 1.55;
+}
+
+.page-doc main h1 + p {
+  margin: 20px 0 0;
+  color: var(--muted);
 }
 
 .page-doc main h2 {
-  margin: 32px 0 8px;
-  font-size: var(--type-h2);
-  font-weight: 600;
-  letter-spacing: var(--h2-tracking);
-  color: var(--ink);
+  margin: 48px 0 12px;
+  font-size: var(--step-2);
 }
 
 .page-doc main p,
 .page-doc main li {
   color: var(--muted);
-  font-size: var(--type-body);
-  line-height: var(--leading-prose);
 }
 
 .page-doc main a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--accent-soft);
-  text-underline-offset: 3px;
-}
-
-.page-doc main a:hover {
+  color: var(--ink);
   text-decoration-color: var(--accent);
 }
 
+.page-doc main a:hover {
+  color: var(--accent);
+}
+
+.page-doc ul {
+  margin: 16px 0 0;
+  padding-left: 20px;
+}
+
+.page-doc li + li {
+  margin-top: 10px;
+}
+
+.page-doc code {
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 400 0.8125rem/1.5 "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* Sections on security.html */
+.page-doc section.block {
+  padding-block: 0;
+  border: none;
+  margin-top: 56px;
+}
+
+.page-doc section.block:first-of-type {
+  margin-top: 40px;
+}
+
+.page-doc .block-lead {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+/* The one place a container earns itself: it holds the signature object. */
 .page-doc .panel {
   display: grid;
   gap: 12px;
+  margin-top: 24px;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.page-doc .panel > span:first-child {
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.page-doc .hash {
+  display: block;
+  color: var(--ink);
+  font: 400 var(--step--1)/1.8 "JetBrains Mono", ui-monospace, monospace;
+  overflow-wrap: anywhere;
+}
+
+.page-doc .scan-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  font-size: var(--step--1);
+}
+
+.page-doc .scan-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+.page-doc .scan-badge img {
+  display: block;
+  height: 20px;
+}
+
+.page-doc .vt-summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.page-doc .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
 }
 
 .page-doc .contact-line {
@@ -61,7 +145,7 @@
 .page-doc .social-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 12px 20px;
 }
 
 .page-doc .social-list a {
@@ -70,7 +154,6 @@
   gap: 8px;
   color: var(--muted);
   text-decoration: none;
-  font-size: var(--type-body);
 }
 
 .page-doc .social-list a:hover {
@@ -81,4 +164,10 @@
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+}
+
+@media (max-width: 600px) {
+  .page-doc .actions .btn {
+    flex: 1 1 auto;
+  }
 }

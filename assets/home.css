@@ -1,591 +1,450 @@
-/* index.html only. Shared components (.btn, .lead, section.block, .note,
-   .scan-row, .vt-summary, .hash-line) live in site.css. */
+/* ===========================================================================
+   index.html only.
 
-/* ---------------------------------------------------------------------------
-   Hero: an oversized wordmark, a two-line statement, three facts, then a
-   single framed panel holding the call to action beside the product.
-   --------------------------------------------------------------------------- */
+   Every section uses a different layout family, so the page never settles into
+   one repeated rhythm:
+     hero      asymmetric split
+     support   single inline row
+     usage     sticky heading beside a numbered flow
+     changelog plain dated list
+     security  asymmetric bento (1 wide + 2 stacked, exactly 3 cells)
+     traffic   scaled figures on a hairline row
+     credit    single line
+   =========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Hero. Four text elements total: headline, subtext, CTA row, meta line.
+   -------------------------------------------------------------------------- */
+
 .hero {
-  padding: 72px 0 64px;
+  padding-block: clamp(48px, 6vw, 88px) var(--section-y);
 }
 
-.page-home .hero-sub {
-  margin: 18px 0 0;
-  max-width: 52ch;
-  color: var(--muted);
-  font-size: var(--type-body);
-  line-height: var(--leading-prose);
-}
-
-.page-home .facts {
+.hero-split {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 36px;
-}
-
-.page-home .fact {
-  padding: 16px 18px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.page-home .fact b {
-  display: block;
-  font-size: var(--type-body-sm);
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.page-home .fact span {
-  display: block;
-  margin-top: 4px;
-  color: var(--muted);
-  font: 400 var(--type-caption)/1.5 "JetBrains Mono", "SFMono-Regular", monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hero-frame {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
-  gap: 48px;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(40px, 6vw, 88px);
   align-items: center;
 }
 
-.page-home .hero-frame h2 {
-  margin: 0;
-  font-size: var(--type-h2);
-  font-weight: 600;
-  letter-spacing: var(--h2-tracking);
+.hero h1 {
+  max-width: 13ch;
 }
 
-.page-home .hero-frame > div > p:not(.eyebrow) {
-  margin: 10px 0 0;
-  max-width: 44ch;
+.hero-sub {
+  margin: 22px 0 0;
+  max-width: 46ch;
   color: var(--muted);
-  font-size: var(--type-body-sm);
-  line-height: var(--leading-prose);
+  font-size: var(--step-1);
+  line-height: 1.55;
 }
 
-/* Compact copy bar: the code is a means, not the headline. */
-.page-home .copybar {
+.hero-actions {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
-  margin-top: 24px;
-  padding: 8px 8px 8px 14px;
-  background: var(--code-bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  margin-top: 32px;
 }
 
-.page-home .copybar-code {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  color: var(--code-muted);
-  font: 400 var(--type-body-sm)/1.5 "JetBrains Mono", "SFMono-Regular", monospace;
-}
-
-.page-home .copybar .btn {
-  flex: 0 0 auto;
-}
-
-.page-home .status {
+.copy-status {
   min-height: 20px;
-  margin: 10px 0 0;
-  color: var(--muted);
-  font-size: var(--type-body-sm);
+  margin: 12px 0 0;
+  color: var(--accent);
+  font-size: var(--step--1);
 }
 
-.page-home .hero-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+/* Product shot. Hidden until a real screenshot exists, so the page never
+   ships a broken image frame. */
+.shot {
+  margin: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.9);
 }
 
-.hero-visual {
-  position: relative;
-  justify-self: center;
+.shot img {
+  display: block;
   width: 100%;
-  max-width: 400px;
 }
 
-/* ---------------------------------------------------------------------------
-   Product mock. A faithful replica of the injected panel built from markup, so
-   it cannot drift into being a stale screenshot and costs no extra bytes. The
-   gradient is a single edge along its top rather than a blurred orb behind it.
-   --------------------------------------------------------------------------- */
-.mock {
-  position: relative;
-  z-index: 1;
-  background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
-  overflow: hidden;
-  font-size: var(--type-body-sm);
-}
-
-.mock::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: var(--gradient);
-}
-
-.mock-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--line);
-}
-
-.mock-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--gradient);
-  flex: 0 0 auto;
-}
-
-.mock-title {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.mock-title strong {
-  display: block;
-  font-size: var(--type-body-sm);
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.mock-title span {
-  display: block;
-  font-size: var(--type-caption);
+.shot figcaption {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
   color: var(--muted);
+  font-size: var(--step--1);
 }
 
-.mock-icons {
-  display: flex;
-  gap: 5px;
-  flex: 0 0 auto;
-}
+/* --------------------------------------------------------------------------
+   Support: one inline row, no card
+   -------------------------------------------------------------------------- */
 
-.mock-icons i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--line-strong);
-}
-
-.mock-summary {
-  margin: 0;
-  padding: 12px 14px 6px;
-  color: var(--muted);
-  font-size: var(--type-caption);
-}
-
-.mock-chips {
+.support-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 0 14px 12px;
-}
-
-.mock-chips span {
-  padding: 3px 9px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--muted);
-  font-size: var(--type-caption);
-}
-
-/* Tints match the real panel (0.12 / 0.14). The mock should look like the
-   product, not a louder advertisement for it. */
-.mock-chips .on {
-  background: rgba(240, 80, 138, 0.12);
-  border-color: rgba(240, 80, 138, 0.5);
-  color: var(--accent-hover);
-}
-
-.mock-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--line);
-}
-
-.mock-list li {
-  display: grid;
-  grid-template-columns: 16px 30px minmax(0, 1fr);
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  border-bottom: 1px solid rgba(247, 244, 239, 0.05);
-}
-
-.mock-list li.is-selected {
-  background: rgba(240, 80, 138, 0.14);
-  box-shadow: inset 3px 0 0 var(--accent);
-}
-
-.mock-check {
-  width: 15px;
-  height: 15px;
-  border: 1px solid var(--line-strong);
-  border-radius: 4px;
-}
-
-.mock-check.on {
-  background: var(--accent);
-  border-color: var(--accent);
-  position: relative;
-}
-
-.mock-check.on::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  top: 1px;
-  width: 4px;
-  height: 8px;
-  border: solid var(--on-accent);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.mock-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--c, var(--surface-2));
-}
-
-.mock-name {
-  min-width: 0;
-}
-
-.mock-name b {
-  display: block;
-  font-size: var(--type-caption);
-  font-weight: 500;
-  color: var(--ink);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mock-name em {
-  display: block;
-  font-style: normal;
-  font-size: var(--type-caption);
-  color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mock-bar {
-  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 24px;
+  margin-top: 36px;
+  padding-top: 28px;
   border-top: 1px solid var(--line);
+}
+
+.support-row p {
+  margin: 0;
+  max-width: 44ch;
   color: var(--muted);
-  font-size: var(--type-caption);
+  font-size: var(--step--1);
 }
 
-.mock-action {
-  padding: 5px 10px;
-  border-radius: var(--radius);
-  background: #b3251c;
-  color: #fff;
-  font-weight: 500;
+.support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.mock-caption {
-  position: relative;
-  z-index: 1;
-  margin: 14px 0 0;
+.ad-slot {
+  margin-top: 40px;
   text-align: center;
-  color: var(--muted);
-  font-size: var(--type-caption);
 }
 
-/* ---------------------------------------------------------------------------
-   Sections
-   --------------------------------------------------------------------------- */
+.ad-slot:not(.is-filled) {
+  margin: 0;
+}
 
-/* Steps read as four parallel actions, not a ranked list, so they sit on a
-   grid instead of stacking into one more vertical run of text. */
-.page-home ol.steps {
+.ad-slot:not(.is-filled) .ad-tag {
+  display: none;
+}
+
+.ad-tag {
+  margin: 0 0 10px;
+  color: var(--code-muted);
+  font-size: var(--step--1);
+}
+
+/* --------------------------------------------------------------------------
+   Usage: heading holds its column, steps flow beside it
+   -------------------------------------------------------------------------- */
+
+.usage-split {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 48px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: clamp(32px, 5vw, 80px);
+  align-items: start;
+}
+
+.usage-aside {
+  position: sticky;
+  top: 40px;
+}
+
+.steps {
   margin: 0;
   padding: 0;
   list-style: none;
   counter-reset: step;
 }
 
-.page-home ol.steps li {
-  padding: 22px 0;
+.steps li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  gap: 4px 18px;
+  padding: 26px 0;
   border-top: 1px solid var(--line);
   counter-increment: step;
 }
 
-.page-home ol.steps h3 {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin: 0 0 6px;
-  font-size: var(--type-body);
-  font-weight: 600;
-  line-height: 1.4;
+.steps li:first-child {
+  border-top: none;
+  padding-top: 0;
 }
 
-.page-home ol.steps h3::before {
+.steps li::before {
   content: counter(step);
-  flex: 0 0 auto;
-  color: var(--muted);
-  font: 400 var(--type-body-sm)/1.4 "JetBrains Mono", monospace;
+  grid-row: span 2;
+  color: var(--accent);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--step--1);
+  line-height: 1.6;
 }
 
-.page-home ol.steps p {
-  margin: 0;
+.steps p {
+  margin: 6px 0 0;
   color: var(--muted);
-  font-size: var(--type-body-sm);
-  line-height: var(--leading-prose);
+  font-size: var(--step--1);
+  line-height: 1.65;
 }
 
-.page-home kbd {
+kbd {
   display: inline-block;
-  padding: 1px 6px;
-  background: var(--surface-2);
+  padding: 2px 7px;
   border: 1px solid var(--line-strong);
-  border-bottom-width: 2px;
   border-radius: 6px;
-  font: 500 var(--type-caption)/1.3 "JetBrains Mono", monospace;
+  background: var(--surface-2);
   color: var(--ink);
+  font: 500 0.75rem/1.4 "JetBrains Mono", ui-monospace, monospace;
 }
 
-/* Trust signals as a scannable row rather than a paragraph plus two buttons. */
-.page-home .trust-grid {
+/* --------------------------------------------------------------------------
+   Changelog: dated list, no containers
+   -------------------------------------------------------------------------- */
+
+.releases {
+  margin: 40px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.release {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 40px;
-  margin-top: 4px;
-}
-
-.page-home .trust-item {
-  padding: 22px 0;
+  grid-template-columns: minmax(0, 0.35fr) minmax(0, 1fr);
+  gap: 8px 40px;
+  padding-top: 28px;
   border-top: 1px solid var(--line);
 }
 
-.page-home .trust-item h3 {
-  margin: 0 0 10px;
-  color: var(--muted);
-  font-size: var(--type-caption);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.release-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.page-home .trust-item p {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--type-body-sm);
-  line-height: var(--leading-prose);
-  overflow-wrap: anywhere;
+.release-version {
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
-.page-home .trust-item .hash-line {
-  margin: 0;
-  font-size: var(--type-caption);
+.release-date {
+  color: var(--code-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
 }
 
-/* Changelog: latest release in full, the rest a click away. It used to take
-   more vertical space than the entire security section. */
-.page-home .changelog {
+.release-notes {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.page-home .changelog-entry {
-  padding: 22px 0 0;
-  border-top: 1px solid var(--line);
-}
-
-.page-home .changelog-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 12px;
-  margin-bottom: 10px;
-}
-
-.page-home .changelog-version {
-  font-size: var(--type-h3);
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.page-home .changelog-date {
+.release-notes li {
+  position: relative;
+  padding-left: 20px;
   color: var(--muted);
-  font: 400 var(--type-caption)/1 "JetBrains Mono", monospace;
+  font-size: var(--step--1);
+  line-height: 1.7;
 }
 
-.page-home .changelog-list {
-  margin: 0;
-  padding-left: 18px;
+.release-notes li + li {
+  margin-top: 10px;
 }
 
-.page-home .changelog-list li {
-  color: var(--muted);
-  font-size: var(--type-body-sm);
-  line-height: var(--leading-prose);
+.release-notes li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 1px;
+  background: var(--line-strong);
 }
 
-.page-home .changelog-list li + li {
-  margin-top: 6px;
-}
+/* --------------------------------------------------------------------------
+   Security: asymmetric bento, exactly three cells for three facts
+   -------------------------------------------------------------------------- */
 
-.page-home .changelog-list li::marker {
-  color: var(--line-strong);
-}
-
-/* Support */
-.page-home .support-card {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 24px 0 0;
-  border-top: 1px solid var(--line);
-}
-
-.page-home .support-card .actions {
-  margin-top: 0;
-}
-
-.page-home .support-note {
-  flex: 1 1 240px;
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--type-body-sm);
-  line-height: var(--leading-prose);
-}
-
-/* Numbers earn their size */
-.page-home .stats {
+.trust-bento {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0 40px;
-  margin: 0;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-areas:
+    "signature virustotal"
+    "signature analysis";
+  gap: 1px;
+  margin-top: 40px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
-.page-home .stat {
-  padding: 24px 0;
-  border-top: 1px solid var(--line);
+.trust-cell {
+  padding: 28px;
+  background: var(--bg);
 }
 
-.page-home .stat .num {
-  display: block;
-  font-size: 2.5rem;
+.trust-cell:first-child {
+  grid-area: signature;
+  background: var(--surface);
+}
+
+.trust-cell h3 {
+  margin: 0 0 12px;
+  font-size: var(--step--1);
   font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--ink);
+  color: var(--muted);
 }
 
-.page-home .stat .label {
+.trust-cell p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+  line-height: 1.7;
+}
+
+.trust-hash {
+  color: var(--ink);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.trust-cell a {
+  color: var(--accent);
+  text-decoration-color: var(--accent-quiet);
+}
+
+.trust-cell img {
+  display: block;
+  margin-top: 4px;
+}
+
+.security-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+/* --------------------------------------------------------------------------
+   Traffic: scaled figures, not three equal tiles
+   -------------------------------------------------------------------------- */
+
+.figures {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  margin-top: 44px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  align-items: baseline;
+}
+
+.figure-value {
+  display: block;
+  font-size: clamp(2rem, 1rem + 3.2vw, 3.25rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.figures > div:not(:first-child) .figure-value {
+  font-size: clamp(1.5rem, 0.9rem + 1.8vw, 2rem);
+  color: var(--muted);
+}
+
+.figure-label {
+  display: block;
   margin-top: 10px;
   color: var(--muted);
-  font-size: var(--type-body-sm);
+  font-size: var(--step--1);
 }
 
-.page-home .stats-period {
-  margin: 16px 0 0;
-  color: var(--muted);
-  font: 400 var(--type-caption)/1.5 "JetBrains Mono", monospace;
+.figures-period {
+  margin: 24px 0 0;
+  color: var(--code-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
 }
 
-/* Hidden until the ad actually fills, so a blocked or unfilled slot does not
-   leave a labelled empty band that reads as a broken element. */
-.page-home .ad-wrap {
-  margin: 28px 0 0;
-  padding: 18px 0;
-  border-top: 1px solid var(--line);
-  text-align: center;
+/* --------------------------------------------------------------------------
+   Copy bar
+   -------------------------------------------------------------------------- */
+
+.copy-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 8px 8px 8px 18px;
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: var(--pill);
 }
 
-/* The <ins> stays in the layout so AdSense can measure it; only the chrome
-   collapses, which keeps the slot from ever showing as an empty framed band. */
-.page-home .ad-wrap:not(.is-filled) {
-  margin: 0;
-  padding: 0;
-  border-top: none;
+.copy-bar code {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--code-muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
 }
 
-.page-home .ad-wrap:not(.is-filled) .ad-label {
-  display: none;
-}
-
-.page-home .ad-label {
-  margin: 0 0 10px;
-  color: var(--muted);
-  font: 500 var(--type-caption)/1 "JetBrains Mono", monospace;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
+/* --------------------------------------------------------------------------
+   Mobile collapse, declared explicitly per layout
+   -------------------------------------------------------------------------- */
 
 @media (max-width: 900px) {
-  .hero-frame {
+  .hero-split,
+  .usage-split {
     grid-template-columns: minmax(0, 1fr);
-    gap: 40px;
   }
 
-  .page-home .facts,
-  .page-home .trust-grid,
-  .page-home .stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .usage-aside {
+    position: static;
+  }
+
+  .trust-bento {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "signature"
+      "virustotal"
+      "analysis";
+  }
+
+  .figures {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  .figures > div:first-child {
+    grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 600px) {
-  .hero {
-    padding: 40px 0;
+  .hero h1 {
+    max-width: none;
   }
 
-  .framed {
-    padding: 22px;
+  .release {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
   }
 
-  .page-home ol.steps,
-  .page-home .facts,
-  .page-home .trust-grid,
-  .page-home .stats {
+  .release-meta {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .figures {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .page-home .copybar {
+  .copy-bar {
     flex-wrap: wrap;
+    border-radius: var(--radius);
   }
 
-  .page-home .copybar .btn {
+  .copy-bar .btn {
     flex: 1 1 auto;
   }
 }
