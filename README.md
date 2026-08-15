@@ -30,7 +30,8 @@ If Chrome blocks pasting, type `allow pasting` in the console first.
 The project receives about **53.8k unique visitors per 30 days** based on the
 March 26 - April 25, 2026 Cloudflare Analytics snapshot.
 
-For sponsorships, contact [mertcobanov@gmail.com](mailto:mertcobanov@gmail.com).
+If this project is useful to you, you can sponsor it at
+[github.com/sponsors/cobanov](https://github.com/sponsors/cobanov).
 
 ## Credits
 
