@@ -113,6 +113,102 @@
               <a class="btn" href="mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship" data-i18n="supportEmailCta">Kurumsal sponsorluk</a>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="usage">
+        <div class="shell">
+          <div class="usage-split">
+          <div class="usage-aside">
+            <h2 data-i18n="usageTitle">Nasıl kullanılır</h2>
+            <p class="section-intro" data-i18n="usageBody">
+              Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
+            </p>
+            <p class="note" data-i18n="note">
+              Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.
+            </p>
+          </div>
+          <ol class="steps">
+            <li class="reveal">
+              <h3 data-i18n="step1Title">Instagram'a giriş yapın</h3>
+              <p data-i18n-html="step1Body">
+                Önce <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a> üzerinde hesabınızla giriş yapın.
+              </p>
+            </li>
+            <li class="reveal">
+              <h3 data-i18n="step2Title">Konsolu açın</h3>
+              <p data-i18n-html="step2Body">
+                Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.
+              </p>
+            </li>
+            <li class="reveal">
+              <h3 data-i18n="step3Title">Kodu yapıştırın</h3>
+              <p data-i18n-html="step3Body">
+                Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce <kbd>allow pasting</kbd> yazın.
+              </p>
+            </li>
+            <li class="reveal">
+              <h3 data-i18n="step4Title">"Taramayı başlat"a basın</h3>
+              <p data-i18n="step4Body">
+                Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
+              </p>
+            </li>
+          </ol>
+          </div>
+
+          <figure class="shot" data-shot hidden>
+            <img
+              src="assets/panel.png"
+              alt="Tarama panelinin ekran görüntüsü: geri takip etmeyen hesapların listesi"
+              width="1200"
+              height="750"
+              loading="lazy"
+              decoding="async"
+              onload="this.closest('[data-shot]').hidden = false"
+            />
+            <figcaption data-i18n="shotCaption">Panel, Instagram sekmende bu şekilde açılır.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section id="changelog">
+        <div class="shell">
+          <h2 data-i18n="changelogTitle">Değişiklikler</h2>
+          <p class="section-intro" data-i18n="changelogBody">
+            Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
+          </p>
+          <p class="figures-period" data-last-updated hidden></p>
+          <ol class="releases" data-changelog></ol>
+          <p class="section-intro" data-changelog-status hidden></p>
+          <div class="security-actions">
+            <a class="btn" href="https://github.com/cobanov/instagram/commits/main" rel="noreferrer" data-i18n="changelogAll">Tüm geçmiş</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="security">
+        <div class="shell">
+          <h2 data-i18n="securityTitle">Güvenlik</h2>
+          <p class="section-intro" data-i18n="securityBody">
+            Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
+          </p>
+
+          <div class="trust-bento reveal">
+            <div class="trust-cell">
+              <h3 data-i18n="trustHash">Dosya imzası</h3>
+              <p class="trust-hash" data-script-hash>SHA-256</p>
+            </div>
+            <div class="trust-cell">
+              <h3 data-i18n="trustVt">VirusTotal</h3>
+              <p data-vt-summary data-i18n="vtLoading">VirusTotal sonucu yükleniyor...</p>
+              <p><a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="securityVirusTotal">VirusTotal raporu</a></p>
+            </div>
+            <div class="trust-cell">
+              <h3 data-i18n="trustStatic">Statik analiz</h3>
+              <a href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer">
+                <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep workflow durumu" height="20" />
+              </a>
+            </div>
           </div>
 
           <div class="security-actions">
@@ -599,7 +695,6 @@
           });
         }, 3000);
       }
-
 
       applyLanguage(currentLanguage);
       loadSnippet();
