@@ -50,7 +50,7 @@
   --pill: 999px;
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --section-y: clamp(72px, 10vw, 128px);
+  --section-y: clamp(48px, 5vw, 76px);
 
   --z-grain: 60;
   --z-header: 20;
@@ -287,7 +287,7 @@ body::after {
    -------------------------------------------------------------------------- */
 
 main section {
-  padding-block: var(--section-y) calc(var(--section-y) * 1.15);
+  padding-block: var(--section-y) calc(var(--section-y) * 1.05);
 }
 
 main section + section {
@@ -380,15 +380,18 @@ h3 {
    Driven by IntersectionObserver, never a scroll listener.
    -------------------------------------------------------------------------- */
 
+/* Gated on .js so the content is never hidden when the script does not run.
+   Hiding content in CSS and revealing it in JS loses the page if either the
+   observer or the script fails. */
 @media (prefers-reduced-motion: no-preference) {
-  .reveal {
+  .js .reveal {
     opacity: 0;
     transform: translateY(18px);
     transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
     transition-delay: var(--reveal-delay, 0ms);
   }
 
-  .reveal.is-visible {
+  .js .reveal.is-visible {
     opacity: 1;
     transform: none;
   }

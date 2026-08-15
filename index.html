@@ -8,6 +8,7 @@
       content="Instagram'da sizi geri takip etmeyenleri bulan, sade arayüzlü ve optimize edilmiş console aracı."
     />
     <meta name="theme-color" content="#141210" />
+    <script>document.documentElement.classList.add("js");</script>
     <title>Cobanov Instagram Unfollowers</title>
 
     <link rel="canonical" href="https://cobanov.github.io/instagram/" />
@@ -631,6 +632,14 @@
         document
           .querySelectorAll(".reveal:not(.is-visible)")
           .forEach((node) => revealObserver.observe(node));
+
+        /* Safety net: whatever happens to the observer, nothing stays hidden. */
+        clearTimeout(observeReveals.failsafe);
+        observeReveals.failsafe = setTimeout(() => {
+          document.querySelectorAll(".reveal:not(.is-visible)").forEach((node) => {
+            node.classList.add("is-visible");
+          });
+        }, 3000);
       }
 
       (function initAds() {

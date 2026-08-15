@@ -17,7 +17,7 @@
    -------------------------------------------------------------------------- */
 
 .hero {
-  padding-block: clamp(48px, 6vw, 88px) var(--section-y);
+  padding-block: clamp(28px, 3vw, 44px) var(--section-y);
 }
 
 .hero-split {
@@ -86,8 +86,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 36px;
-  padding-top: 28px;
+  margin-top: 26px;
+  padding-top: 22px;
   border-top: 1px solid var(--line);
 }
 
@@ -150,7 +150,7 @@
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
   gap: 4px 18px;
-  padding: 26px 0;
+  padding: 20px 0;
   border-top: 1px solid var(--line);
   counter-increment: step;
 }
@@ -192,7 +192,7 @@ kbd {
    -------------------------------------------------------------------------- */
 
 .releases {
-  margin: 40px 0 0;
+  margin: 28px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -263,7 +263,7 @@ kbd {
     "signature virustotal"
     "signature analysis";
   gap: 1px;
-  margin-top: 40px;
+  margin-top: 28px;
   background: var(--line);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -327,8 +327,8 @@ kbd {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 32px;
-  margin-top: 44px;
-  padding-top: 32px;
+  margin-top: 30px;
+  padding-top: 26px;
   border-top: 1px solid var(--line);
   align-items: baseline;
 }
