@@ -78,8 +78,7 @@
               Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz.
             </p>
 
-            <div class="copy-bar">
-              <code data-preview>instagram-unfollower.js</code>
+            <div class="hero-actions">
               <button class="btn btn-primary" type="button" data-copy>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -87,26 +86,18 @@
                 </svg>
                 <span data-i18n="copyCode">Kodu kopyala</span>
               </button>
-            </div>
-            <p class="copy-status" data-status aria-live="polite"></p>
-
-            <div class="hero-actions">
               <a class="btn" href="dist/instagram-unfollower.one-line.js" data-i18n="openCode">Dosyayı aç</a>
             </div>
+            <p class="copy-status" data-status aria-live="polite"></p>
           </div>
 
-          <figure class="shot" data-shot hidden>
-            <img
-              src="assets/panel.png"
-              alt="Tarama panelinin ekran görüntüsü: geri takip etmeyen hesapların listesi"
-              width="1200"
-              height="900"
-              loading="eager"
-              decoding="async"
-              onload="this.closest('[data-shot]').hidden = false"
-            />
-            <figcaption data-i18n="shotCaption">Panel, Instagram sekmende bu şekilde açılır.</figcaption>
-          </figure>
+          <div class="code-window">
+            <div class="code-window-bar">
+              <span class="code-window-name mono">instagram-unfollower.js</span>
+              <span class="code-window-size mono" data-code-size></span>
+            </div>
+            <pre><code data-preview>...</code></pre>
+          </div>
         </div>
       </section>
 
@@ -140,7 +131,8 @@
       </section>
 
       <section id="usage">
-        <div class="shell usage-split">
+        <div class="shell">
+          <div class="usage-split">
           <div class="usage-aside">
             <h2 data-i18n="usageTitle">Nasıl kullanılır</h2>
             <p class="section-intro" data-i18n="usageBody">
@@ -176,6 +168,20 @@
               </p>
             </li>
           </ol>
+          </div>
+
+          <figure class="shot" data-shot hidden>
+            <img
+              src="assets/panel.png"
+              alt="Tarama panelinin ekran görüntüsü: geri takip etmeyen hesapların listesi"
+              width="1200"
+              height="750"
+              loading="lazy"
+              decoding="async"
+              onload="this.closest('[data-shot]').hidden = false"
+            />
+            <figcaption data-i18n="shotCaption">Panel, Instagram sekmende bu şekilde açılır.</figcaption>
+          </figure>
         </div>
       </section>
 
@@ -568,7 +574,11 @@
           const response = await fetch(scriptUrl, { cache: "no-store" });
           if (!response.ok) throw new Error(translations[currentLanguage].loadError);
           snippet = await response.text();
-          preview.textContent = snippet.slice(0, 120) + (snippet.length > 120 ? "..." : "");
+          /* Enough to overflow the window; the mask fades the cut, so the exact
+             length only has to be more than fits. */
+          preview.textContent = snippet.slice(0, 1200);
+          const sizeNode = document.querySelector("[data-code-size]");
+          if (sizeNode) sizeNode.textContent = `${Math.round(snippet.length / 1024)} KB`;
           applyScriptHash(await sha256Hex(snippet), true);
         } catch (error) {
           preview.textContent = translations[currentLanguage].loadError;

@@ -56,7 +56,7 @@
 /* Product shot. Hidden until a real screenshot exists, so the page never
    ships a broken image frame. */
 .shot {
-  margin: 0;
+  margin: 48px 0 0;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--line);
@@ -362,29 +362,42 @@ kbd {
 }
 
 /* --------------------------------------------------------------------------
-   Copy bar
+   Code window. The one-line build is real content, not a mock, so it is shown
+   soft-wrapped and faded at the cut rather than truncated to a single line.
    -------------------------------------------------------------------------- */
 
-.copy-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
-  padding: 8px 8px 8px 18px;
-  background: var(--code-bg);
+.code-window {
   border: 1px solid var(--line);
-  border-radius: var(--pill);
+  border-radius: var(--radius);
+  background: var(--code-bg);
+  overflow: hidden;
+  box-shadow: 0 40px 80px -48px rgba(0, 0, 0, 0.9);
 }
 
-.copy-bar code {
-  flex: 1 1 auto;
-  min-width: 0;
+.code-window-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--line);
+  color: var(--code-muted);
+  font-size: var(--step--1);
+}
+
+.code-window pre {
+  margin: 0;
+  padding: 18px;
+  max-height: 300px;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  white-space: pre-wrap;
+  word-break: break-word;
   color: var(--code-muted);
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
+  font-size: 0.75rem;
+  line-height: 1.85;
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
 }
 
 /* --------------------------------------------------------------------------
@@ -439,12 +452,11 @@ kbd {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .copy-bar {
-    flex-wrap: wrap;
-    border-radius: var(--radius);
+  .hero-actions .btn {
+    flex: 1 1 auto;
   }
 
-  .copy-bar .btn {
-    flex: 1 1 auto;
+  .code-window pre {
+    max-height: 220px;
   }
 }
