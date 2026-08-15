@@ -48,10 +48,6 @@
   text-overflow: ellipsis;
 }
 
-.page-home .fact .accent {
-  color: var(--accent);
-}
-
 .hero-frame {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
