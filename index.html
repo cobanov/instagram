@@ -167,7 +167,7 @@
           </ol>
           </div>
 
-          <figure class="shot" data-shot hidden>
+          <figure class="shot" data-shot>
             <img
               src="assets/panel.png"
               alt="Tarama paneli çalışırken: takip edilen hesaplar yükleniyor, 718 hesabın 296'sı tarandı"
@@ -175,7 +175,7 @@
               height="576"
               loading="lazy"
               decoding="async"
-              onload="this.closest('[data-shot]').hidden = false"
+              onerror="this.closest('[data-shot]').hidden = true"
             />
             <figcaption data-i18n="shotCaption">Panel tararken böyle görünür. Tarama sırasında hesabında hiçbir şey değişmez.</figcaption>
           </figure>
