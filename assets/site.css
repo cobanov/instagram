@@ -32,6 +32,14 @@
 
   --code-bg: #0d0b0a;
   --code-muted: #8f887d;
+  --code-line: #6b655c;
+  /* Syntax palette, all verified on --code-bg: 6.0:1 and up. */
+  --tok-kw: #e56192;
+  --tok-str: #7fc98a;
+  --tok-num: #e0a458;
+  --tok-fn: #f5f2ed;
+  --tok-punct: #8f887d;
+  --ok: #7fc98a;
   --warn: #d9a441;
 
   --gutter: clamp(20px, 5vw, 64px);

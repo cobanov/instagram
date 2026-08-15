@@ -362,8 +362,8 @@ kbd {
 }
 
 /* --------------------------------------------------------------------------
-   Code window. The one-line build is real content, not a mock, so it is shown
-   soft-wrapped and faded at the cut rather than truncated to a single line.
+   Code window. Shows the real source, tokenised at runtime so it can never
+   drift from the file, with the built one-liner behind the copy button.
    -------------------------------------------------------------------------- */
 
 .code-window {
@@ -379,33 +379,127 @@ kbd {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 13px 18px;
+  padding: 11px 12px 11px 16px;
   border-bottom: 1px solid var(--line);
-  color: var(--code-muted);
-  font-size: var(--step--1);
+}
+
+.code-window-title {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  min-width: 0;
 }
 
 .code-window-name {
-  color: var(--muted);
+  color: var(--ink);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
-.code-window-size {
-  flex: 0 0 auto;
+.code-window-lang {
+  color: var(--code-line);
+  font-size: 0.7rem;
+  white-space: nowrap;
 }
 
-.code-window pre {
+.code-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--code-muted);
+  font: 500 0.7rem/1 Geist, ui-sans-serif, sans-serif;
+  cursor: pointer;
+  transition: color 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.code-copy:hover {
+  color: var(--ink);
+  background: rgba(245, 242, 237, 0.06);
+}
+
+.code-copy svg {
+  width: 12px;
+  height: 12px;
+}
+
+.code-copy.is-copied {
+  color: var(--ok);
+}
+
+.code-body {
   margin: 0;
-  padding: 18px;
-  max-height: 300px;
+  padding: 14px 0 18px;
+  min-height: 232px;
   overflow: hidden;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.85;
+}
+
+.code-line {
+  display: flex;
+  padding: 0 16px;
+}
+
+.code-num {
+  flex: 0 0 1.9rem;
+  text-align: right;
+  color: var(--code-line);
+  font-size: 0.66rem;
+  user-select: none;
+}
+
+.code-text {
+  padding-left: 14px;
   white-space: pre-wrap;
   word-break: break-word;
   color: var(--code-muted);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.75rem;
-  line-height: 1.85;
-  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.tok-kw { color: var(--tok-kw); }
+.tok-str { color: var(--tok-str); }
+.tok-num { color: var(--tok-num); }
+.tok-fn { color: var(--tok-fn); }
+.tok-punct { color: var(--tok-punct); }
+.tok-com { color: var(--code-line); font-style: italic; }
+
+.code-caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .code-line {
+    animation: code-line-in 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  .code-caret {
+    animation: code-caret 1s steps(2, start) infinite;
+  }
+}
+
+@keyframes code-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes code-caret {
+  50% {
+    opacity: 0;
+  }
 }
 
 /* --------------------------------------------------------------------------

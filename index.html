@@ -93,10 +93,19 @@
 
           <div class="code-window">
             <div class="code-window-bar">
-              <span class="code-window-name mono">instagram-unfollower.js</span>
-              <span class="code-window-size mono" data-code-size></span>
+              <span class="code-window-title">
+                <span class="code-window-name">instagram-unfollower.js</span>
+                <span class="code-window-lang">JavaScript</span>
+              </span>
+              <button class="code-copy" type="button" data-copy>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-copy-icon>
+                  <rect x="9" y="9" width="12" height="12" rx="2.5" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                <span data-copy-label data-i18n="copyShort">Kopyala</span>
+              </button>
             </div>
-            <pre><code data-preview>...</code></pre>
+            <div class="code-body" data-code></div>
           </div>
         </div>
       </section>
@@ -283,9 +292,8 @@
 
     <script>
       const scriptUrl = "dist/instagram-unfollower.one-line.js";
-      const preview = document.querySelector("[data-preview]");
       const status = document.querySelector("[data-status]");
-      const copyButton = document.querySelector("[data-copy]");
+      const copyButtons = document.querySelectorAll("[data-copy]");
       const languageToggle = document.querySelector("[data-language-toggle]");
       const vtSummary = document.querySelector("[data-vt-summary]");
 
@@ -309,9 +317,10 @@
           headline: "Seni geri takip etmeyenleri gör",
           lead: "Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz.",
           copyCode: "Kodu kopyala",
+          copyShort: "Kopyala",
+          copiedShort: "Kopyalandı",
           openCode: "Dosyayı aç",
           shotCaption: "Panel, Instagram sekmende bu şekilde açılır.",
-          loadingPreview: "Yükleniyor...",
           supportTitle: "Destek",
           supportBody:
             "Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan geliştirilmesine destek olabilirsin.",
@@ -378,9 +387,10 @@
           headline: "See who does not follow you back",
           lead: "It scans the accounts you follow and lists the ones that do not follow back. Your data stays in the browser.",
           copyCode: "Copy code",
+          copyShort: "Copy",
+          copiedShort: "Copied",
           openCode: "Open the file",
           shotCaption: "This is how the panel opens on your Instagram tab.",
-          loadingPreview: "Loading...",
           supportTitle: "Support",
           supportBody:
             "This project is maintained as a hobby and it is free. If you find it useful, you can help keep it going.",
@@ -470,7 +480,6 @@
           currentLanguage === "tr" ? "Switch to English" : "Türkçeye geç"
         );
         localStorage.setItem("cobanov_iu_language", currentLanguage);
-        if (!snippet) preview.textContent = dict.loadingPreview;
         applyScriptHash(scriptHash, true);
         renderVirusTotalSummary();
         renderChangelog();
@@ -574,14 +583,8 @@
           const response = await fetch(scriptUrl, { cache: "no-store" });
           if (!response.ok) throw new Error(translations[currentLanguage].loadError);
           snippet = await response.text();
-          /* Enough to overflow the window; the mask fades the cut, so the exact
-             length only has to be more than fits. */
-          preview.textContent = snippet.slice(0, 1200);
-          const sizeNode = document.querySelector("[data-code-size]");
-          if (sizeNode) sizeNode.textContent = `${Math.round(snippet.length / 1024)} KB`;
           applyScriptHash(await sha256Hex(snippet), true);
         } catch (error) {
-          preview.textContent = translations[currentLanguage].loadError;
           status.textContent = error.message || translations[currentLanguage].loadError;
         }
       }
@@ -607,14 +610,114 @@
         renderChangelog();
       }
 
-      copyButton.addEventListener("click", async () => {
-        try {
-          if (!snippet) await loadSnippet();
-          await navigator.clipboard.writeText(snippet);
-          status.textContent = translations[currentLanguage].copied;
-        } catch {
-          status.textContent = translations[currentLanguage].copyFailed;
+      /* A small JS tokeniser. The window shows the real source fetched at
+         runtime, so what is on screen can never drift from the file, and the
+         page still needs no build step. */
+      const JS_KEYWORDS = new Set([
+        "const", "let", "var", "function", "return", "if", "else", "for", "while",
+        "await", "async", "new", "try", "catch", "typeof", "class", "export",
+        "import", "of", "in", "delete", "instanceof", "do", "switch", "case",
+        "break", "continue", "default", "throw", "this", "null", "true", "false",
+        "undefined", "void"
+      ]);
+
+      const TOKEN_RE =
+        /(\/\/.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)|(\s+)|([^\s\w])/g;
+
+      function highlightInto(line, target) {
+        TOKEN_RE.lastIndex = 0;
+        let match;
+        while ((match = TOKEN_RE.exec(line)) !== null) {
+          const [text, comment, str, num, word, , punct] = match;
+          let cls = "";
+          if (comment) cls = "tok-com";
+          else if (str) cls = "tok-str";
+          else if (num) cls = "tok-num";
+          else if (word) {
+            if (JS_KEYWORDS.has(word)) cls = "tok-kw";
+            else if (line[match.index + word.length] === "(") cls = "tok-fn";
+          } else if (punct) cls = "tok-punct";
+
+          if (cls) {
+            const span = document.createElement("span");
+            span.className = cls;
+            span.textContent = text;
+            target.appendChild(span);
+          } else {
+            target.appendChild(document.createTextNode(text));
+          }
         }
+      }
+
+      async function loadSource() {
+        const host = document.querySelector("[data-code]");
+        if (!host) return;
+        let lines;
+        try {
+          const response = await fetch("src/instagram-unfollower.js", { cache: "no-store" });
+          if (!response.ok) return;
+          lines = (await response.text()).split("\n").slice(0, 11);
+        } catch {
+          return;
+        }
+        while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        host.replaceChildren();
+
+        lines.forEach((line, index) => {
+          const row = document.createElement("div");
+          row.className = "code-line";
+          if (!reduce) row.style.animationDelay = `${index * 85}ms`;
+
+          const gutter = document.createElement("span");
+          gutter.className = "code-num";
+          gutter.textContent = String(index + 1);
+
+          const text = document.createElement("span");
+          text.className = "code-text";
+          highlightInto(line, text);
+
+          if (index === lines.length - 1) {
+            const caret = document.createElement("span");
+            caret.className = "code-caret";
+            text.appendChild(caret);
+          }
+
+          row.append(gutter, text);
+          host.appendChild(row);
+        });
+      }
+
+      const CHECK_PATH = "M20 6L9 17l-5-5";
+      function flashCopied(button) {
+        const label = button.querySelector("[data-copy-label]");
+        const icon = button.querySelector("[data-copy-icon]");
+        if (!label || !icon) return;
+        const originalLabel = label.textContent;
+        const originalIcon = icon.innerHTML;
+        label.textContent = translations[currentLanguage].copiedShort;
+        icon.innerHTML = `<path d="${CHECK_PATH}" />`;
+        button.classList.add("is-copied");
+        clearTimeout(button.resetTimer);
+        button.resetTimer = setTimeout(() => {
+          label.textContent = originalLabel;
+          icon.innerHTML = originalIcon;
+          button.classList.remove("is-copied");
+        }, 1600);
+      }
+
+      copyButtons.forEach((button) => {
+        button.addEventListener("click", async () => {
+          try {
+            if (!snippet) await loadSnippet();
+            await navigator.clipboard.writeText(snippet);
+            status.textContent = translations[currentLanguage].copied;
+            flashCopied(button);
+          } catch {
+            status.textContent = translations[currentLanguage].copyFailed;
+          }
+        });
       });
 
       languageToggle.addEventListener("click", () => {
@@ -674,6 +777,7 @@
 
       applyLanguage(currentLanguage);
       loadSnippet();
+      loadSource();
       loadVirusTotalSummary();
       loadChangelog();
       observeReveals();
