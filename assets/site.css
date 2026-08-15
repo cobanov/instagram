@@ -22,7 +22,6 @@
   --gradient: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
   --code-bg: #0f0e0c;
   --code-muted: #8b8578;
-  --warn-bg: #241d12;
   --warn-line: #b37a1f;
   --warn-ink: #f3c98b;
 
@@ -384,12 +383,12 @@ section.block h2 {
   border-radius: var(--radius-lg);
 }
 
+/* Left rule only. With every other block reduced to hairlines, a filled box
+   here would be the one piece of chrome left on the page. */
 .note {
-  margin-top: 18px;
-  padding: 12px 14px;
-  background: var(--warn-bg);
-  border-left: 3px solid var(--warn-line);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-top: 24px;
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid var(--warn-line);
   color: var(--warn-ink);
   font-size: var(--type-body-sm);
   line-height: var(--leading-prose);
