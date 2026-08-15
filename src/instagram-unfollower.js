@@ -1349,9 +1349,10 @@
       --iu-line-strong: rgba(247,244,239,0.20);
       --iu-text: #f7f4ef;
       --iu-muted: #9a948a;
-      --iu-accent: #4f8cff;
-      --iu-accent-2: #7fb0ff;
-      --iu-danger: #d92d20;
+      --iu-accent: #f0508a;
+      --iu-accent-2: #ff6b9d;
+      --iu-gradient: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+      --iu-danger: #b3251c;
       --iu-danger-text: #f06a5d;
       --iu-success: #22c55e;
       position: fixed;
@@ -1406,7 +1407,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--iu-accent), var(--iu-success));
+      background: var(--iu-gradient);
       flex-shrink: 0;
     }
     #${APP_ID} .iu-brand-text { min-width: 0; }
@@ -1451,7 +1452,7 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      background: rgba(79,140,255,0.15);
+      background: rgba(240,80,138,0.15);
       color: var(--iu-accent);
       margin-bottom: 4px;
     }
@@ -1475,7 +1476,7 @@
     #${APP_ID} .iu-btn--primary { background: var(--iu-accent); border-color: var(--iu-accent); color: var(--iu-bg); }
     #${APP_ID} .iu-btn--primary:hover:not(:disabled) { background: var(--iu-accent-2); border-color: var(--iu-accent-2); }
     #${APP_ID} .iu-btn--danger { background: var(--iu-danger); border-color: var(--iu-danger); color: #fff; }
-    #${APP_ID} .iu-btn--danger:hover:not(:disabled) { background: #b81f14; border-color: #b81f14; }
+    #${APP_ID} .iu-btn--danger:hover:not(:disabled) { background: #8f1d16; border-color: #8f1d16; }
     #${APP_ID} .iu-btn--ghost { background: transparent; }
     #${APP_ID} .iu-btn--lg { padding: 10px 20px; font-size: 14px; margin-top: 8px; }
     #${APP_ID} .iu-btn--small { padding: 6px 10px; font-size: 12px; }
@@ -1492,7 +1493,7 @@
     #${APP_ID} .iu-bar > span {
       display: block;
       height: 100%;
-      background: linear-gradient(90deg, var(--iu-accent), var(--iu-success));
+      background: var(--iu-gradient);
       transition: width 0.3s ease;
     }
     #${APP_ID} .iu-progress-meta {
@@ -1569,7 +1570,7 @@
       transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
     #${APP_ID} .iu-chip:hover { border-color: var(--iu-line-strong); color: var(--iu-text); }
-    #${APP_ID} .iu-chip--on { background: rgba(79,140,255,0.12); border-color: rgba(79,140,255,0.5); color: var(--iu-accent-2); }
+    #${APP_ID} .iu-chip--on { background: rgba(240,80,138,0.12); border-color: rgba(240,80,138,0.5); color: var(--iu-accent-2); }
     #${APP_ID} .iu-chip-tick { display: inline-grid; place-items: center; width: 12px; height: 12px; }
     #${APP_ID} .iu-chip-tick svg { width: 12px; height: 12px; }
 
@@ -1600,8 +1601,8 @@
     }
     #${APP_ID} .iu-row:hover { background: rgba(247,244,239,0.04); }
     #${APP_ID} .iu-row:focus-visible { outline: 2px solid var(--iu-accent); outline-offset: -2px; }
-    #${APP_ID} .iu-row--selected { background: rgba(79,140,255,0.14); box-shadow: inset 3px 0 0 var(--iu-accent); }
-    #${APP_ID} .iu-row--selected:hover { background: rgba(79,140,255,0.2); }
+    #${APP_ID} .iu-row--selected { background: rgba(240,80,138,0.14); box-shadow: inset 3px 0 0 var(--iu-accent); }
+    #${APP_ID} .iu-row--selected:hover { background: rgba(240,80,138,0.2); }
     #${APP_ID} .iu-row:last-child { border-bottom: none; }
     #${APP_ID} .iu-row--hidden { opacity: 0.55; }
     #${APP_ID} .iu-row-check {
@@ -1673,7 +1674,7 @@
       letter-spacing: 0.02em;
       text-transform: uppercase;
     }
-    #${APP_ID} .iu-tag--blue { background: rgba(79,140,255,0.15); color: var(--iu-accent-2); }
+    #${APP_ID} .iu-tag--blue { background: rgba(240,80,138,0.15); color: var(--iu-accent-2); }
     #${APP_ID} .iu-tag--green { background: rgba(34,197,94,0.15); color: var(--iu-success); }
     #${APP_ID} .iu-tag--red { background: rgba(240,106,93,0.15); color: var(--iu-danger-text); }
 
