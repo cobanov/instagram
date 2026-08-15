@@ -3,7 +3,7 @@
 A lightweight GitHub Pages site and browser-console snippet for finding Instagram
 accounts that do not follow you back.
 
-[Open the site](https://cobanov.dev/instagram)
+[Open the site](https://instagram.cobanov.dev)
 
 ## Features
 
@@ -19,7 +19,7 @@ accounts that do not follow you back.
 
 1. Sign in at `https://www.instagram.com`.
 2. Open DevTools Console.
-3. Copy the snippet from [cobanov.dev/instagram](https://cobanov.dev/instagram).
+3. Copy the snippet from [instagram.cobanov.dev](https://instagram.cobanov.dev).
 4. Paste it into the console and press Enter.
 5. Click **Scan now**.
 
