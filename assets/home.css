@@ -336,11 +336,16 @@ kbd {
   font-size: var(--step--1);
 }
 
-.figures-period {
-  margin: 24px 0 0;
+.meta-line {
+  margin: 22px 0 0;
   color: var(--code-muted);
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-line--figures {
+  margin-top: 24px;
 }
 
 /* --------------------------------------------------------------------------
