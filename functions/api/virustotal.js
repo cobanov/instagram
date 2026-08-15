@@ -17,7 +17,7 @@ export async function onRequestGet({ env }) {
      answers 404 for an unknown hash. That is a normal state, not a failure. */
   if (response.status === 404) {
     return json({ ok: false, hash: FILE_HASH, error: "unscanned" }, 200, {
-      "Cache-Control": "public, max-age=300"
+      "Cache-Control": "private, no-store"
     });
   }
 
@@ -43,7 +43,7 @@ export async function onRequestGet({ env }) {
     lastAnalysisDate: attributes.last_analysis_date || null,
     permalink: `https://www.virustotal.com/gui/file/${FILE_HASH}/detection`
   }, 200, {
-    "Cache-Control": "public, max-age=1800"
+    "Cache-Control": "private, no-store"
   });
 }
 
