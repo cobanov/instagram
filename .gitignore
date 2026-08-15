@@ -9,9 +9,9 @@ yarn-error.log*
 
 .claude/
 
-# local review artefacts
+# local review artefacts (site images under assets/ are tracked)
 .playwright-mcp/
-*.png
+/*.png
 
 # third-party skill bundle (local tooling, not product code)
 .agents/
