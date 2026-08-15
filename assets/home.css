@@ -104,24 +104,6 @@
   gap: 10px;
 }
 
-.ad-slot {
-  margin-top: 40px;
-  text-align: center;
-}
-
-.ad-slot:not(.is-filled) {
-  margin: 0;
-}
-
-.ad-slot:not(.is-filled) .ad-tag {
-  display: none;
-}
-
-.ad-tag {
-  margin: 0 0 10px;
-  color: var(--code-muted);
-  font-size: var(--step--1);
-}
 
 /* --------------------------------------------------------------------------
    Usage: heading holds its column, steps flow beside it
@@ -403,34 +385,6 @@ kbd {
   white-space: nowrap;
 }
 
-.code-copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  border: 0;
-  border-radius: var(--pill);
-  background: transparent;
-  color: var(--code-muted);
-  font: 500 0.7rem/1 Geist, ui-sans-serif, sans-serif;
-  cursor: pointer;
-  transition: color 0.15s var(--ease), background 0.15s var(--ease);
-}
-
-.code-copy:hover {
-  color: var(--ink);
-  background: rgba(245, 242, 237, 0.06);
-}
-
-.code-copy svg {
-  width: 12px;
-  height: 12px;
-}
-
-.code-copy.is-copied {
-  color: var(--ok);
-}
 
 .code-body {
   margin: 0;
