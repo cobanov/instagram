@@ -385,6 +385,14 @@ kbd {
   font-size: var(--step--1);
 }
 
+.code-window-name {
+  color: var(--muted);
+}
+
+.code-window-size {
+  flex: 0 0 auto;
+}
+
 .code-window pre {
   margin: 0;
   padding: 18px;
