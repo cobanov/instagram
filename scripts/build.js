@@ -42,6 +42,36 @@ fs.writeFileSync(
   "utf8"
 );
 
+/* The site reads changelog.json straight from the repo root, so a typo here
+   would surface as a silently missing section. Fail the build instead. */
+const changelogPath = path.join(root, "changelog.json");
+const entries = JSON.parse(fs.readFileSync(changelogPath, "utf8"));
+if (!Array.isArray(entries) || entries.length === 0) {
+  throw new Error("changelog.json must be a non-empty array");
+}
+entries.forEach((entry, index) => {
+  const where = `changelog.json[${index}]`;
+  if (!/^\d+\.\d+\.\d+$/.test(entry.version || "")) {
+    throw new Error(`${where}: version must look like 1.2.3`);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date || "")) {
+    throw new Error(`${where}: date must be YYYY-MM-DD`);
+  }
+  for (const lang of ["tr", "en"]) {
+    if (!Array.isArray(entry[lang]) || entry[lang].length === 0) {
+      throw new Error(`${where}: "${lang}" must be a non-empty array of strings`);
+    }
+    if (entry[lang].some((line) => typeof line !== "string" || !line.trim())) {
+      throw new Error(`${where}: every "${lang}" entry must be a non-empty string`);
+    }
+  }
+});
+const sorted = entries.every((entry, i) => i === 0 || entries[i - 1].date >= entry.date);
+if (!sorted) {
+  throw new Error("changelog.json must be ordered newest first");
+}
+
 console.log(`Built ${path.relative(root, distPath)}`);
 console.log(`${oneLine.length.toLocaleString()} characters`);
 console.log(`SHA-256 ${fileHash}`);
+console.log(`Changelog ${entries.length} entries, latest ${entries[0].version} (${entries[0].date})`);

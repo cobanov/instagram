@@ -1,19 +1,31 @@
 /* Shared tokens, layout, header, footer, mobile nav */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* Ink on paper. The injected panel inverts these two, which is what ties the
-     site and the tool together without introducing a second palette. */
-  --bg: #f7f4ef;
-  --paper: #fbf8f2;
-  --ink: #161513;
-  --muted: #6f6a62;
-  --line: #e3dccf;
-  --accent: #1f5fd4;
-  --accent-soft: rgba(31, 95, 212, 0.35);
-  --code-bg: #15161a;
+  /* The site now sits on the same surfaces as the injected panel, so copying
+     from this page into the tool is one continuous space.
+
+     The Instagram gradient is the identity mark and never carries text: its
+     own colours land at 3.0-3.9:1 on this background. The readable accent is
+     that same pink lifted to a passing luminance (5.4:1). */
+  --bg: #161513;
+  --paper: #201e1a;
+  --surface-2: #2b2823;
+  --ink: #f7f4ef;
+  --muted: #9a948a;
+  --line: rgba(247, 244, 239, 0.10);
+  --line-strong: rgba(247, 244, 239, 0.20);
+  --accent: #f0508a;
+  --accent-hover: #ff6b9d;
+  --accent-soft: rgba(240, 80, 138, 0.40);
+  --on-accent: #161513;
+  --gradient: linear-gradient(135deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+  --code-bg: #0f0e0c;
   --code-ink: #e8e3d6;
   --code-muted: #8b8578;
+  --warn-bg: #241d12;
+  --warn-line: #b37a1f;
+  --warn-ink: #f3c98b;
 
   /* One column width and type scale for every page. All rem so a reader's
      browser font size scales the whole hierarchy, not just parts of it. */
@@ -32,8 +44,8 @@
   --block-pad-y: 48px;
   --h1-tracking: -0.02em;
   --h2-tracking: -0.012em;
-  --radius: 8px;
-  --radius-lg: 10px;
+  --radius: 12px;
+  --radius-lg: 16px;
 }
 
 * {
@@ -58,7 +70,7 @@ body {
 a {
   color: var(--ink);
   text-decoration: underline;
-  text-decoration-color: rgba(22, 21, 19, 0.25);
+  text-decoration-color: rgba(247, 244, 239, 0.28);
   text-underline-offset: 3px;
 }
 
@@ -98,11 +110,13 @@ header.top {
   flex-shrink: 0;
 }
 
+/* The gradient appears in exactly two places: this mark and the hero code
+   block. Both are identity, not decoration. */
 .brand-mark {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--ink);
+  background: var(--gradient);
   flex: 0 0 auto;
 }
 
@@ -161,7 +175,7 @@ nav.top-nav a:hover {
 }
 
 .icon-link:hover {
-  background: rgba(25, 24, 22, 0.05);
+  background: rgba(247, 244, 239, 0.07);
   color: var(--ink);
 }
 
@@ -222,6 +236,14 @@ footer a:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 18px;
+}
+
+/* Its own line: this is a legal distinction, not a nav item. */
+.footer-note {
+  flex: 1 0 100%;
+  order: 1;
+  color: var(--muted);
+  font-size: var(--type-caption);
 }
 
 @media (min-width: 601px) {
@@ -336,14 +358,14 @@ section.block h2 {
 }
 
 .btn-primary {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
 }
 
 .btn-primary:hover {
-  background: #000;
-  border-color: #000;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .panel {
@@ -356,10 +378,10 @@ section.block h2 {
 .note {
   margin-top: 18px;
   padding: 12px 14px;
-  background: rgba(207, 132, 30, 0.08);
-  border-left: 3px solid #cf841e;
-  border-radius: 0 6px 6px 0;
-  color: #5b3a10;
+  background: var(--warn-bg);
+  border-left: 3px solid var(--warn-line);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  color: var(--warn-ink);
   font-size: var(--type-body-sm);
   line-height: var(--leading-prose);
 }

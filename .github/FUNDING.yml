@@ -1,0 +1,3 @@
+# Shows the "Sponsor" button on the repository page.
+# Only takes effect once GitHub Sponsors is enabled for the account.
+github: [cobanov]

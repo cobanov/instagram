@@ -1,0 +1,36 @@
+[
+  {
+    "version": "2.1.0",
+    "date": "2026-08-15",
+    "tr": [
+      "Takipten çıkarma artık başarısız işlemleri başarılı diye raporlamıyor. Instagram işlemi engellediğinde tarama durur ve nedenini gösterir.",
+      "Filtreyi değiştirdiğinde görünmez olan kişiler seçili kalmıyor; artık yalnızca gördüğün kişiler takipten çıkarılıyor.",
+      "Duraklat sırasında bekleme süresi sessizce atlanıyordu, düzeltildi. Hız sınırı koruması artık gerçekten bekliyor.",
+      "Klavyeyle gezinirken odak görünür oldu, hareket azaltma tercihi destekleniyor, onay penceresi Escape ile kapanıyor.",
+      "Site ve panel tek renk paletine ve tek tipografi ölçeğine geçti.",
+      "Site koyu bir görünüme geçti; kod bloğu artık sayfanın merkezinde ve kopyala butonu içinde.",
+      "Bu değişiklik listesi eklendi, son güncelleme tarihi ana sayfada görünüyor.",
+      "Sitede gösterilen SHA-256 artık indirdiğin dosyadan hesaplanıyor, elle yazılmıyor."
+    ],
+    "en": [
+      "Unfollow no longer reports failed requests as successes. When Instagram blocks the action the run stops and shows why.",
+      "Changing a filter no longer leaves hidden people selected, so only the people you can see get unfollowed.",
+      "Pausing during a cooldown silently skipped the wait. Rate-limit protection now actually waits.",
+      "Keyboard focus is visible again, reduced-motion is respected, and the confirm dialog closes on Escape.",
+      "The site and the panel now share one palette and one type scale.",
+      "The site moved to a dark look, with the code block at the centre of the page and the copy button inside it.",
+      "Added this changelog, and the last updated date now appears on the home page.",
+      "The SHA-256 shown on the site is computed from the file you download instead of being written by hand."
+    ]
+  },
+  {
+    "version": "2.0.0",
+    "date": "2026-04-25",
+    "tr": [
+      "İlk sürüm: tek satırlık konsol aracı, tarama paneli ve güvenlik sayfası."
+    ],
+    "en": [
+      "Initial release: the one-line console tool, the scanning panel and the security page."
+    ]
+  }
+]
