@@ -88,26 +88,26 @@
   max-width: 400px;
 }
 
-.hero-visual::before {
-  content: "";
-  position: absolute;
-  inset: 6% -10% -8%;
-  background: var(--gradient);
-  filter: blur(70px);
-  opacity: 0.22;
-  border-radius: 50%;
-  z-index: 0;
-}
-
+/* A blurred gradient orb behind a UI shot is the most over-used flourish on
+   the web right now. The gradient earns more as a single hairline along the
+   top edge of the panel: same identity, none of the haze. */
 .mock {
   position: relative;
   z-index: 1;
   background: var(--bg);
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
   font-size: var(--type-body-sm);
+}
+
+.mock::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: var(--gradient);
 }
 
 .mock-head {
@@ -311,7 +311,7 @@
 .page-home ol.steps {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 0 48px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -319,35 +319,26 @@
 }
 
 .page-home ol.steps li {
-  padding: 18px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
   counter-increment: step;
 }
 
 .page-home ol.steps h3 {
   display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 0 8px;
-  font-size: var(--type-h3);
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 6px;
+  font-size: var(--type-body);
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .page-home ol.steps h3::before {
   content: counter(step);
-  display: grid;
-  place-items: center;
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: var(--type-caption);
-  font-weight: 600;
+  color: var(--muted);
+  font: 400 var(--type-body-sm)/1.4 "JetBrains Mono", monospace;
 }
 
 .page-home ol.steps p {
@@ -372,21 +363,22 @@
 .page-home .trust-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 0 40px;
   margin-top: 4px;
 }
 
 .page-home .trust-item {
-  padding: 18px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
 }
 
 .page-home .trust-item h3 {
-  margin: 0 0 6px;
-  font-size: var(--type-body);
-  font-weight: 600;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .page-home .trust-item p {
@@ -411,14 +403,8 @@
 }
 
 .page-home .changelog-entry {
-  padding: 18px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-}
-
-.page-home .changelog-entry + .changelog-entry {
-  margin-top: 12px;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
 }
 
 .page-home .changelog-head {
@@ -456,7 +442,7 @@
 }
 
 .page-home .changelog-list li::marker {
-  color: var(--accent);
+  color: var(--line-strong);
 }
 
 /* Support */
@@ -465,11 +451,9 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 20px 22px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  gap: 20px;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--line);
 }
 
 .page-home .support-card .actions {
@@ -488,28 +472,26 @@
 .page-home .stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
+  gap: 0 40px;
   margin: 0;
 }
 
 .page-home .stat {
-  padding: 20px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
 }
 
 .page-home .stat .num {
   display: block;
-  font-size: 2.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  font-size: 2.5rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
   color: var(--ink);
 }
 
 .page-home .stat .label {
-  margin-top: 6px;
+  margin-top: 10px;
   color: var(--muted);
   font-size: var(--type-body-sm);
 }

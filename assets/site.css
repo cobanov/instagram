@@ -43,11 +43,11 @@
   --leading-prose: 1.65;
   --main-pad-y-top: 56px;
   --main-pad-y-bottom: 64px;
-  --block-pad-y: 48px;
+  --block-pad-y: 72px;
   --h1-tracking: -0.02em;
   --h2-tracking: -0.012em;
-  --radius: 12px;
-  --radius-lg: 16px;
+  --radius: 8px;
+  --radius-lg: 10px;
 }
 
 * {
