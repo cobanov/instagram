@@ -92,6 +92,8 @@ a:hover {
 
 /* Top bar */
 header.top {
+  position: relative;
+  z-index: 2;
   padding: 22px 0;
   border-bottom: 1px solid var(--line);
   background: var(--bg);

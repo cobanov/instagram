@@ -658,9 +658,25 @@
       loadSnippet();
       loadVirusTotalSummary();
       loadChangelog();
-      document.querySelectorAll("ins.adsbygoogle").forEach(() => {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      });
+      (function initAds() {
+        const wrap = document.querySelector(".ad-wrap");
+        const slot = wrap && wrap.querySelector("ins.adsbygoogle");
+        if (!slot) return;
+        try {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch {
+          return;
+        }
+        let tries = 0;
+        const reveal = () => {
+          if (slot.getAttribute("data-ad-status") === "filled" || slot.offsetHeight > 20) {
+            wrap.classList.add("is-filled");
+            return;
+          }
+          if ((tries += 1) < 12) setTimeout(reveal, 500);
+        };
+        reveal();
+      })();
     </script>
   </body>
 </html>

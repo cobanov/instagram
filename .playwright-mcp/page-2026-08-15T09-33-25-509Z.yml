@@ -1,0 +1,188 @@
+- generic [active] [ref=f3e1]:
+  - banner [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - link "cobanov" [ref=f3e4] [cursor=pointer]:
+        - /url: index.html
+      - navigation "Primary" [ref=f3e7]:
+        - link "Güvenlik" [ref=f3e8] [cursor=pointer]:
+          - /url: security.html
+        - link "GitHub" [ref=f3e9] [cursor=pointer]:
+          - /url: https://github.com/cobanov/instagram
+        - link "Instagram" [ref=f3e12] [cursor=pointer]:
+          - /url: https://www.instagram.com/mertcobanov/
+        - link "Twitter" [ref=f3e17] [cursor=pointer]:
+          - /url: https://twitter.com/cobanov
+        - button "Switch to English" [ref=f3e20] [cursor=pointer]: TR
+  - main [ref=f3e21]:
+    - generic [ref=f3e23]:
+      - generic [ref=f3e24]:
+        - heading "Seni geri takip etmeyenleri gör" [level=1] [ref=f3e25]
+        - paragraph [ref=f3e26]: Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya gitmez, her şey kendi tarayıcında çalışır.
+        - generic [ref=f3e27]:
+          - code [ref=f3e28]: "(() => { \"use strict\"; if (location.hostname !== \"www.instagram.com\") { alert(\"Open https://www.instagram.com first, the…"
+          - button "Kodu kopyala" [ref=f3e29] [cursor=pointer]
+        - paragraph [ref=f3e34]
+        - generic [ref=f3e35]:
+          - link "Kod dosyasını aç" [ref=f3e36] [cursor=pointer]:
+            - /url: dist/instagram-unfollower.one-line.js
+          - link "GitHub" [ref=f3e37] [cursor=pointer]:
+            - /url: https://github.com/cobanov/instagram
+        - paragraph [ref=f3e41]:
+          - generic [ref=f3e42]: SHA-256 AB709F189F0E57C66CEA9FCB82D917D4DB8AF2B1C65A4DCDCE42FA8317ACADEA
+          - generic [ref=f3e43]: Son güncelleme 15 Ağustos 2026
+      - generic [ref=f3e44]:
+        - generic [ref=f3e45]:
+          - generic [ref=f3e48]:
+            - strong [ref=f3e49]: Takip Etmeyenler
+            - generic [ref=f3e50]: 128 hesap tarandı
+          - paragraph [ref=f3e55]: 37 kişi geri takip etmiyor
+          - generic [ref=f3e56]: Ada veya kullanıcı adına göre ara
+          - generic [ref=f3e57]:
+            - generic [ref=f3e58]: Onaylı
+            - generic [ref=f3e59]: Gizli
+            - generic [ref=f3e60]: Fotoğrafsız
+          - list [ref=f3e61]:
+            - listitem [ref=f3e62]:
+              - generic [ref=f3e65]:
+                - generic [ref=f3e66]: "@ornek.hesap"
+                - emphasis [ref=f3e67]: Örnek Hesap
+            - listitem [ref=f3e68]:
+              - generic [ref=f3e71]:
+                - generic [ref=f3e72]: "@demo.kullanici"
+                - emphasis [ref=f3e73]: Demo Kullanıcı
+            - listitem [ref=f3e74]:
+              - generic [ref=f3e77]:
+                - generic [ref=f3e78]: "@test.profil"
+                - emphasis [ref=f3e79]: Test Profil
+            - listitem [ref=f3e80]:
+              - generic [ref=f3e83]:
+                - generic [ref=f3e84]: "@deneme.adi"
+                - emphasis [ref=f3e85]: Deneme Adı
+          - generic [ref=f3e86]:
+            - generic [ref=f3e87]: 2 seçili
+            - generic [ref=f3e88]: Takipten çıkar
+        - paragraph [ref=f3e89]: Örnek görünüm — veriler temsilidir
+    - generic [ref=f3e91]:
+      - heading "Destek" [level=2] [ref=f3e92]
+      - paragraph [ref=f3e93]: Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan geliştirilmesine destek olabilirsin.
+      - generic [ref=f3e94]:
+        - paragraph [ref=f3e95]: Kurumsal destek olmak istersen sayfada ve README'de teşekkür yerleştirebilirim.
+        - generic [ref=f3e96]:
+          - link "GitHub Sponsors" [ref=f3e97] [cursor=pointer]:
+            - /url: https://github.com/sponsors/cobanov
+          - link "Kurumsal sponsorluk" [ref=f3e98] [cursor=pointer]:
+            - /url: mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship
+      - generic [ref=f3e99]:
+        - paragraph [ref=f3e100]: Reklam
+        - insertion
+    - generic [ref=f3e102]:
+      - heading "Nasıl kullanılır" [level=2] [ref=f3e103]
+      - paragraph [ref=f3e104]: Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
+      - list [ref=f3e105]:
+        - listitem [ref=f3e106]:
+          - heading "Instagram'a giriş yapın" [level=3] [ref=f3e107]
+          - paragraph [ref=f3e108]:
+            - text: Önce
+            - link "instagram.com" [ref=f3e109] [cursor=pointer]:
+              - /url: https://www.instagram.com/
+            - text: üzerinde hesabınızla giriş yapın.
+        - listitem [ref=f3e110]:
+          - heading "Konsolu açın" [level=3] [ref=f3e111]
+          - paragraph [ref=f3e112]:
+            - text: "Windows/Linux:"
+            - generic [ref=f3e113]: Ctrl
+            - text: +
+            - generic [ref=f3e114]: Shift
+            - text: +
+            - generic [ref=f3e115]: J
+            - text: "· macOS:"
+            - generic [ref=f3e116]: ⌘
+            - text: +
+            - generic [ref=f3e117]: ⌥
+            - text: +
+            - generic [ref=f3e118]: I
+            - text: .
+        - listitem [ref=f3e119]:
+          - heading "Kodu yapıştırın" [level=3] [ref=f3e120]
+          - paragraph [ref=f3e121]:
+            - text: Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce
+            - generic [ref=f3e122]: allow pasting
+            - text: yazın.
+        - listitem [ref=f3e123]:
+          - heading "\"Taramayı başlat\"a basın" [level=3] [ref=f3e124]
+          - paragraph [ref=f3e125]: Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
+      - paragraph [ref=f3e126]: Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.
+    - generic [ref=f3e128]:
+      - heading "Değişiklikler" [level=2] [ref=f3e129]
+      - paragraph [ref=f3e130]: Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
+      - list [ref=f3e131]:
+        - listitem [ref=f3e132]:
+          - generic [ref=f3e133]:
+            - generic [ref=f3e134]: v2.1.0
+            - generic [ref=f3e135]: 15 Ağustos 2026
+          - list [ref=f3e136]:
+            - listitem [ref=f3e137]: Takipten çıkarma artık başarısız işlemleri başarılı diye raporlamıyor. Instagram işlemi engellediğinde tarama durur ve nedenini gösterir.
+            - listitem [ref=f3e138]: Filtreyi değiştirdiğinde görünmez olan kişiler seçili kalmıyor; artık yalnızca gördüğün kişiler takipten çıkarılıyor.
+            - listitem [ref=f3e139]: Duraklat sırasında bekleme süresi sessizce atlanıyordu, düzeltildi. Hız sınırı koruması artık gerçekten bekliyor.
+            - listitem [ref=f3e140]: Klavyeyle gezinirken odak görünür oldu, hareket azaltma tercihi destekleniyor, onay penceresi Escape ile kapanıyor.
+            - listitem [ref=f3e141]: Site ve panel tek renk paletine ve tek tipografi ölçeğine geçti.
+            - listitem [ref=f3e142]: Site koyu bir görünüme geçti; kod bloğu artık sayfanın merkezinde ve kopyala butonu içinde.
+            - listitem [ref=f3e143]: Bu değişiklik listesi eklendi, son güncelleme tarihi ana sayfada görünüyor.
+            - listitem [ref=f3e144]: Sitede gösterilen SHA-256 artık indirdiğin dosyadan hesaplanıyor, elle yazılmıyor.
+      - link "Tüm geçmiş" [ref=f3e146] [cursor=pointer]:
+        - /url: https://github.com/cobanov/instagram/commits/main
+    - generic [ref=f3e148]:
+      - heading "Güvenlik" [level=2] [ref=f3e149]
+      - paragraph [ref=f3e150]: Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
+      - generic [ref=f3e151]:
+        - generic [ref=f3e152]:
+          - heading "Dosya imzası" [level=3] [ref=f3e153]
+          - paragraph [ref=f3e154]: SHA-256 AB709F189F0E57C66CEA9FCB82D917D4DB8AF2B1C65A4DCDCE42FA8317ACADEA
+        - generic [ref=f3e155]:
+          - heading "VirusTotal" [level=3] [ref=f3e156]
+          - paragraph [ref=f3e157]: VirusTotal canlı özeti şu anda yüklenemedi.
+          - link "VirusTotal raporu" [ref=f3e159] [cursor=pointer]:
+            - /url: https://www.virustotal.com/gui/file/ab709f189f0e57c66cea9fcb82d917d4db8af2b1c65a4dcdce42fa8317acadea/detection
+        - generic [ref=f3e160]:
+          - heading "Statik analiz" [level=3] [ref=f3e161]
+          - link "Semgrep status" [ref=f3e163] [cursor=pointer]:
+            - /url: https://github.com/cobanov/instagram/actions/workflows/semgrep.yml
+            - img "Semgrep status" [ref=f3e164]
+      - generic [ref=f3e165]:
+        - link "Detayları gör" [ref=f3e166] [cursor=pointer]:
+          - /url: security.html
+        - link "Kodu incele" [ref=f3e167] [cursor=pointer]:
+          - /url: https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js
+    - generic [ref=f3e169]:
+      - heading "Trafik" [level=2] [ref=f3e170]
+      - paragraph [ref=f3e171]: Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.
+      - generic [ref=f3e172]:
+        - generic [ref=f3e173]:
+          - generic [ref=f3e174]: 53.8k
+          - text: tekil ziyaretçi
+        - generic [ref=f3e175]:
+          - generic [ref=f3e176]: 599k
+          - text: toplam request
+        - generic [ref=f3e177]:
+          - generic [ref=f3e178]: 1 GB
+          - text: veri trafiği
+      - paragraph [ref=f3e179]: 26 Mart — 25 Nisan 2026 · Cloudflare
+    - generic [ref=f3e181]:
+      - heading "Kaynak" [level=2] [ref=f3e182]
+      - paragraph [ref=f3e183]:
+        - text: Yeni sürüm; eski kullanım fikri
+        - link "davidarroyo1234/InstagramUnfollowers" [ref=f3e184] [cursor=pointer]:
+          - /url: https://github.com/davidarroyo1234/InstagramUnfollowers
+        - text: projesinden geliyor.
+  - contentinfo [ref=f3e185]:
+    - generic [ref=f3e186]: © 2026 Mert Cobanov.
+    - generic [ref=f3e187]: Instagram ve Meta ile ilişkili değildir.
+    - generic [ref=f3e188]:
+      - link "Gizlilik" [ref=f3e189] [cursor=pointer]:
+        - /url: privacy.html
+      - link "İletişim" [ref=f3e190] [cursor=pointer]:
+        - /url: contact.html
+      - link "Güvenlik" [ref=f3e191] [cursor=pointer]:
+        - /url: security.html
+      - link "GitHub" [ref=f3e192] [cursor=pointer]:
+        - /url: https://github.com/cobanov/instagram

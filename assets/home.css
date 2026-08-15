@@ -91,10 +91,10 @@
 .hero-visual::before {
   content: "";
   position: absolute;
-  inset: -18% -12% -12%;
+  inset: 6% -10% -8%;
   background: var(--gradient);
-  filter: blur(60px);
-  opacity: 0.28;
+  filter: blur(70px);
+  opacity: 0.22;
   border-radius: 50%;
   z-index: 0;
 }
@@ -189,10 +189,12 @@
   font-size: var(--type-caption);
 }
 
+/* Tints match the real panel (0.12 / 0.14). The mock should look like the
+   product, not a louder advertisement for it. */
 .mock-chips .on {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--ink);
+  background: rgba(240, 80, 138, 0.12);
+  border-color: rgba(240, 80, 138, 0.5);
+  color: var(--accent-hover);
 }
 
 .mock-list {
@@ -212,7 +214,7 @@
 }
 
 .mock-list li.is-selected {
-  background: var(--accent-soft);
+  background: rgba(240, 80, 138, 0.14);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
@@ -518,11 +520,25 @@
   font: 400 var(--type-caption)/1.5 "JetBrains Mono", monospace;
 }
 
+/* Hidden until the ad actually fills, so a blocked or unfilled slot does not
+   leave a labelled empty band that reads as a broken element. */
 .page-home .ad-wrap {
   margin: 28px 0 0;
   padding: 18px 0;
   border-top: 1px solid var(--line);
   text-align: center;
+}
+
+/* The <ins> stays in the layout so AdSense can measure it; only the chrome
+   collapses, which keeps the slot from ever showing as an empty framed band. */
+.page-home .ad-wrap:not(.is-filled) {
+  margin: 0;
+  padding: 0;
+  border-top: none;
+}
+
+.page-home .ad-wrap:not(.is-filled) .ad-label {
+  display: none;
 }
 
 .page-home .ad-label {
