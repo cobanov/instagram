@@ -1,4 +1,5 @@
-/* contact.html + privacy.html — same column + type scale as site.css / home */
+/* contact.html + privacy.html — same column + type scale as site.css / home.
+   Shared components (.panel, main h1 typography) live in site.css. */
 .page-doc main {
   width: min(var(--content-width), calc(100% - var(--content-gutter)));
   margin: 0 auto;
@@ -7,11 +8,6 @@
 
 .page-doc main h1 {
   margin: 0 0 16px;
-  font-size: var(--type-h1);
-  line-height: 1.15;
-  font-weight: 600;
-  letter-spacing: var(--h1-tracking);
-  color: var(--ink);
 }
 
 .page-doc main h1 + p[data-i18n="updated"] {
@@ -45,7 +41,7 @@
 .page-doc main a {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: rgba(38, 109, 240, 0.35);
+  text-decoration-color: var(--accent-soft);
   text-underline-offset: 3px;
 }
 
@@ -56,10 +52,6 @@
 .page-doc .panel {
   display: grid;
   gap: 12px;
-  padding: 18px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: 10px;
 }
 
 .page-doc .contact-line {

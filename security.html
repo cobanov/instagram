@@ -62,9 +62,9 @@
         </p>
         <div class="panel">
           <span>SHA-256</span>
-          <code class="hash">048D5406CBE26E88EE08F5D867C2DE6F074A1BEDA8DAC36F17628EB495659D7D</code>
+          <code class="hash" data-script-hash>&hellip;</code>
           <div class="scan-row">
-            <a href="https://www.virustotal.com/gui/file/048d5406cbe26e88ee08f5d867c2de6f074a1beda8dac36f17628eb495659d7d/detection" rel="noreferrer" data-i18n="virusTotalReport">
+            <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="virusTotalReport">
               VirusTotal raporu
             </a>
             <a class="scan-badge" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer" aria-label="Semgrep status">
@@ -96,7 +96,7 @@
           <a class="btn btn-primary" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer" data-i18n="sourceCta">
             Kaynağı incele
           </a>
-          <a class="btn" href="https://www.virustotal.com/gui/file/048d5406cbe26e88ee08f5d867c2de6f074a1beda8dac36f17628eb495659d7d/detection" rel="noreferrer" data-i18n="virusTotalReport">VirusTotal raporu</a>
+          <a class="btn" href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="virusTotalReport">VirusTotal raporu</a>
           <a class="btn" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer">Semgrep</a>
         </div>
         <p class="note" data-i18n="note">
@@ -119,7 +119,9 @@
       const languageToggle = document.querySelector("[data-language-toggle]");
       const vtSummary = document.querySelector("[data-vt-summary]");
       let vtResult = null;
-      let currentLanguage = localStorage.getItem("cobanov_iu_language") || "tr";
+      let scriptHash = "";
+      let currentLanguage = localStorage.getItem("cobanov_iu_language")
+        || (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
 
       const translations = {
         tr: {
@@ -147,6 +149,7 @@
           vtClean: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
           vtFlagged: "VirusTotal uyarısı: {malicious} malicious / {suspicious} suspicious.",
           vtUnavailable: "VirusTotal canlı özeti şu anda yüklenemedi.",
+          vtUnscanned: "Bu sürüm henüz VirusTotal'a gönderilmemiş. Yukarıdaki hash ile kendin doğrulayabilirsin.",
           note: "Hiçbir tarama aracı kesin güvenlik garantisi vermez. Güvenmediğiniz kodu konsola yapıştırmayın.",
           copyright: "© 2026 Mert Cobanov."
         },
@@ -175,6 +178,7 @@
           vtClean: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
           vtFlagged: "VirusTotal warning: {malicious} malicious / {suspicious} suspicious.",
           vtUnavailable: "Live VirusTotal summary could not be loaded right now.",
+          vtUnscanned: "This build has not been submitted to VirusTotal yet. Verify it yourself with the hash above.",
           note: "No third-party scanner can guarantee that code is safe. Do not paste code you do not trust into DevTools.",
           copyright: "© 2026 Mert Cobanov."
         }
@@ -211,7 +215,7 @@
           return;
         }
         if (!vtResult.ok) {
-          vtSummary.textContent = dict.vtUnavailable;
+          vtSummary.textContent = vtResult.error === "unscanned" ? dict.vtUnscanned : dict.vtUnavailable;
           return;
         }
         const stats = vtResult.stats || {};
@@ -223,6 +227,37 @@
         vtSummary.textContent = format(dict[key], values);
       }
 
+      async function sha256Hex(text) {
+        if (!globalThis.crypto || !globalThis.crypto.subtle) return "";
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+        return Array.from(new Uint8Array(digest))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      /* Hash the file the site actually serves rather than trusting a checked-in
+         constant, so this page cannot vouch for bytes nobody is downloading. */
+      function applyScriptHash(hash, authoritative) {
+        if (!hash || (scriptHash && !authoritative)) return;
+        scriptHash = hash;
+        document.querySelectorAll("[data-script-hash]").forEach((node) => {
+          node.textContent = hash.toUpperCase();
+        });
+        document.querySelectorAll("[data-vt-link]").forEach((node) => {
+          node.href = `https://www.virustotal.com/gui/file/${hash}/detection`;
+        });
+      }
+
+      async function loadScriptHash() {
+        try {
+          const response = await fetch("dist/instagram-unfollower.one-line.js", { cache: "no-store" });
+          if (!response.ok) return;
+          applyScriptHash(await sha256Hex(await response.text()), true);
+        } catch {
+          /* fall back to the hash reported by the API */
+        }
+      }
+
       async function loadVirusTotalSummary() {
         if (!vtSummary) return;
         try {
@@ -231,6 +266,7 @@
         } catch {
           vtResult = { ok: false };
         }
+        applyScriptHash(vtResult && vtResult.hash, false);
         renderVirusTotalSummary();
       }
 
@@ -239,6 +275,7 @@
       });
 
       applyLanguage(currentLanguage);
+      loadScriptHash();
       loadVirusTotalSummary();
     </script>
   </body>

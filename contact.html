@@ -110,7 +110,8 @@
 
     <script>
       const languageToggle = document.querySelector("[data-language-toggle]");
-      let currentLanguage = localStorage.getItem("cobanov_iu_language") || "tr";
+      let currentLanguage = localStorage.getItem("cobanov_iu_language")
+        || (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
 
       const translations = {
         tr: {

@@ -58,12 +58,11 @@
 
       <!-- HERO -->
       <section class="hero wrap">
-        <h1 data-i18n="headline">Cobanov Instagram Unfollowers</h1>
+        <h1 data-i18n="headline">Seni geri takip etmeyenleri gör</h1>
         <p class="lead" data-i18n="lead">
-          David Arroyo'nun projesinden kalan pratik akışı koruyup aracı daha temiz
-          bir arayüzle yeniden yazdım. Yeni sürüm sadece takip ettiğiniz hesapları
-          tarar ve Instagram'ın geri takip bilgisini kullanarak sonucu çok daha
-          hızlı çıkarır.
+          Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık
+          kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya
+          gitmez, her şey kendi tarayıcında çalışır.
         </p>
         <div class="actions">
           <button class="btn btn-primary" type="button" data-copy>
@@ -119,7 +118,7 @@
               </p>
             </li>
             <li>
-              <h3 data-i18n="step4Title">"Scan now" ile başlatın</h3>
+              <h3 data-i18n="step4Title">"Taramayı başlat"a basın</h3>
               <p data-i18n="step4Body">
                 Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
               </p>
@@ -143,10 +142,10 @@
             VirusTotal raporu ve Semgrep sonucu burada gösterilir. Kod açık kaynaklıdır.
           </p>
           <p class="hash-line">
-            SHA-256: 048D5406CBE26E88EE08F5D867C2DE6F074A1BEDA8DAC36F17628EB495659D7D
+            SHA-256: <span data-script-hash>&hellip;</span>
           </p>
           <div class="scan-row">
-            <a href="https://www.virustotal.com/gui/file/048d5406cbe26e88ee08f5d867c2de6f074a1beda8dac36f17628eb495659d7d/detection" rel="noreferrer" data-i18n="securityVirusTotal">
+            <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="securityVirusTotal">
               VirusTotal raporu
             </a>
             <a class="scan-badge" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer" aria-label="Semgrep status">
@@ -253,7 +252,9 @@
       const vtSummary = document.querySelector("[data-vt-summary]");
       let snippet = "";
       let vtResult = null;
-      let currentLanguage = localStorage.getItem("cobanov_iu_language") || "tr";
+      let scriptHash = "";
+      let currentLanguage = localStorage.getItem("cobanov_iu_language")
+        || (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
 
       const translations = {
         tr: {
@@ -263,8 +264,8 @@
           navSecurity: "Güvenlik",
           navPrivacy: "Gizlilik",
           navContact: "İletişim",
-          headline: "Cobanov Instagram Unfollowers",
-          lead: "David Arroyo'nun projesinden kalan pratik akışı koruyup aracı daha temiz bir arayüzle yeniden yazdım. Yeni sürüm sadece takip ettiğiniz hesapları tarar ve Instagram'ın geri takip bilgisini kullanarak sonucu çok daha hızlı çıkarır.",
+          headline: "Seni geri takip etmeyenleri gör",
+          lead: "Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Tek satırlık kodu tarayıcı konsoluna yapıştırman yeterli; hesap verilerin hiçbir sunucuya gitmez, her şey kendi tarayıcında çalışır.",
           copyCode: "Kodu kopyala",
           openCode: "Kod dosyasını aç",
           githubProject: "GitHub",
@@ -278,7 +279,7 @@
           step2Body: 'Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.',
           step3Title: "Kodu yapıştırın",
           step3Body: 'Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce <kbd>allow pasting</kbd> yazın.',
-          step4Title: '"Scan now" ile başlatın',
+          step4Title: '"Taramayı başlat"a basın',
           step4Body: "Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.",
           note: "Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.",
           securityTitle: "Güvenlik",
@@ -289,6 +290,7 @@
           vtClean: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
           vtFlagged: "VirusTotal uyarısı: {malicious} malicious / {suspicious} suspicious.",
           vtUnavailable: "VirusTotal canlı özeti şu anda yüklenemedi.",
+          vtUnscanned: "Bu sürüm henüz VirusTotal'a gönderilmemiş. Yukarıdaki hash ile kendin doğrulayabilirsin.",
           securityPageCta: "Detayları gör",
           securitySourceCta: "Kodu incele",
           numbersTitle: "Trafik",
@@ -315,8 +317,8 @@
           navSecurity: "Security",
           navPrivacy: "Privacy",
           navContact: "Contact",
-          headline: "Cobanov Instagram Unfollowers",
-          lead: "I kept the practical workflow from David Arroyo's project and rewrote the tool with a cleaner interface. The new version scans only the accounts you follow and uses Instagram's follow-back status to return results much faster.",
+          headline: "See who does not follow you back",
+          lead: "It scans the accounts you follow and lists the ones that do not follow back. Paste a single line into your browser console; nothing about your account leaves your browser.",
           copyCode: "Copy code",
           openCode: "Open code file",
           githubProject: "GitHub",
@@ -330,7 +332,7 @@
           step2Body: 'Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.',
           step3Title: "Paste the code",
           step3Body: 'Click Copy code, paste into the console. If Chrome blocks paste, type <kbd>allow pasting</kbd> first.',
-          step4Title: 'Start with "Scan now"',
+          step4Title: 'Press "Scan now"',
           step4Body: "When the panel opens, start the scan. Unfollow your selections slowly and carefully.",
           note: "Instagram may rate-limit you. Don't speed up the unfollow timing unnecessarily.",
           securityTitle: "Security",
@@ -341,6 +343,7 @@
           vtClean: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
           vtFlagged: "VirusTotal warning: {malicious} malicious / {suspicious} suspicious.",
           vtUnavailable: "Live VirusTotal summary could not be loaded right now.",
+          vtUnscanned: "This build has not been submitted to VirusTotal yet. Verify it yourself with the hash above.",
           securityPageCta: "View details",
           securitySourceCta: "Review code",
           numbersTitle: "Traffic",
@@ -387,6 +390,26 @@
         return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
       }
 
+      async function sha256Hex(text) {
+        if (!globalThis.crypto || !globalThis.crypto.subtle) return "";
+        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+        return Array.from(new Uint8Array(digest))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      /* The hash shown on the page is computed from the bytes this page just served,
+         so the claim verifies itself. The API hash is only a fallback for browsers
+         without SubtleCrypto (non-secure contexts). */
+      function applyScriptHash(hash, authoritative) {
+        if (!hash || (scriptHash && !authoritative)) return;
+        scriptHash = hash;
+        const hashNode = document.querySelector("[data-script-hash]");
+        if (hashNode) hashNode.textContent = hash.toUpperCase();
+        const vtLink = document.querySelector("[data-vt-link]");
+        if (vtLink) vtLink.href = `https://www.virustotal.com/gui/file/${hash}/detection`;
+      }
+
       function renderVirusTotalSummary() {
         if (!vtSummary) return;
         const dict = translations[currentLanguage];
@@ -395,7 +418,7 @@
           return;
         }
         if (!vtResult.ok) {
-          vtSummary.textContent = dict.vtUnavailable;
+          vtSummary.textContent = vtResult.error === "unscanned" ? dict.vtUnscanned : dict.vtUnavailable;
           return;
         }
         const stats = vtResult.stats || {};
@@ -415,6 +438,7 @@
         } catch {
           vtResult = { ok: false };
         }
+        applyScriptHash(vtResult && vtResult.hash, false);
         renderVirusTotalSummary();
       }
 
@@ -424,6 +448,7 @@
           if (!response.ok) throw new Error(translations[currentLanguage].loadError);
           snippet = await response.text();
           preview.textContent = snippet.slice(0, 1400) + (snippet.length > 1400 ? "\n..." : "");
+          applyScriptHash(await sha256Hex(snippet), true);
         } catch (error) {
           preview.textContent = translations[currentLanguage].loadFailed;
           status.textContent = error.message || translations[currentLanguage].loadError;
