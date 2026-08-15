@@ -71,7 +71,28 @@ if (!sorted) {
   throw new Error("changelog.json must be ordered newest first");
 }
 
+/* The sponsor wall is public-facing and hand-edited, so a bad handle would ship
+   a broken Instagram link. Fail the build instead. */
+const sponsorsPath = path.join(root, "sponsors.json");
+const sponsors = JSON.parse(fs.readFileSync(sponsorsPath, "utf8"));
+if (!Array.isArray(sponsors)) {
+  throw new Error("sponsors.json must be an array");
+}
+if (sponsors.length > 10) {
+  throw new Error(`sponsors.json holds ${sponsors.length} entries; the wall shows 10`);
+}
+sponsors.forEach((sponsor, index) => {
+  const where = `sponsors.json[${index}]`;
+  if (typeof sponsor.name !== "string" || !sponsor.name.trim()) {
+    throw new Error(`${where}: "name" must be a non-empty string`);
+  }
+  if (!/^[A-Za-z0-9._]{1,30}$/.test(sponsor.instagram || "")) {
+    throw new Error(`${where}: "instagram" must be a handle without the @`);
+  }
+});
+
 console.log(`Built ${path.relative(root, distPath)}`);
 console.log(`${oneLine.length.toLocaleString()} characters`);
 console.log(`SHA-256 ${fileHash}`);
 console.log(`Changelog ${entries.length} entries, latest ${entries[0].version} (${entries[0].date})`);
+console.log(`Sponsors ${sponsors.length}/10 slots filled`);

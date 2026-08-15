@@ -497,3 +497,91 @@ kbd {
     max-height: 220px;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Sponsor wall. Ten numbered slots. Scarcity is the motivation, so the count
+   of remaining places is stated rather than implied.
+   -------------------------------------------------------------------------- */
+
+.wall {
+  margin-top: 30px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+
+.wall-lead {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.wall-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 28px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: slot;
+}
+
+.wall-list:empty {
+  display: none;
+  margin: 0;
+}
+
+.wall-slot {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line);
+  counter-increment: slot;
+}
+
+.wall-rank {
+  flex: 0 0 1.4rem;
+  color: var(--code-line);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+}
+
+.wall-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.wall-handle {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  text-decoration: none;
+}
+
+.wall-handle:hover {
+  text-decoration: underline;
+}
+
+.wall-empty {
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.wall-empty b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .wall-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

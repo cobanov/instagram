@@ -113,6 +113,14 @@
               <a class="btn" href="mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship" data-i18n="supportEmailCta">Kurumsal sponsorluk</a>
             </div>
           </div>
+
+          <div class="wall">
+            <p class="wall-lead" data-i18n="wallLead">
+              En çok destek veren 10 sponsor bu bölümde Instagram adresiyle birlikte gösterilir.
+            </p>
+            <ol class="wall-list" data-sponsors></ol>
+            <p class="wall-empty" data-sponsors-empty hidden></p>
+          </div>
         </div>
       </section>
 
@@ -226,19 +234,19 @@
           </p>
           <div class="figures reveal">
             <div>
-              <span class="figure-value">53.8k</span>
-              <span class="figure-label" data-i18n="trafficVisitors">tekil ziyaretçi</span>
+              <span class="figure-value">48.6k</span>
+              <span class="figure-label" data-i18n="trafficVisitors">sayfa görüntüleme</span>
             </div>
             <div>
-              <span class="figure-value">599k</span>
-              <span class="figure-label" data-i18n="trafficRequests">toplam request</span>
+              <span class="figure-value">48.3k</span>
+              <span class="figure-label" data-i18n="trafficRequests">ziyaret</span>
             </div>
             <div>
-              <span class="figure-value">1 GB</span>
-              <span class="figure-label" data-i18n="trafficData">veri trafiği</span>
+              <span class="figure-value">38</span>
+              <span class="figure-label" data-i18n="trafficData">ulaşılan ülke</span>
             </div>
           </div>
-          <p class="figures-period" data-i18n="trafficPeriod">26 Mart - 25 Nisan 2026, Cloudflare</p>
+          <p class="figures-period" data-i18n="trafficPeriod">16 Temmuz - 15 Ağustos 2026, Cloudflare Web Analytics</p>
         </div>
       </section>
 
@@ -278,6 +286,7 @@
       let scriptHash = "";
       let vtResult = null;
       let changelog;
+      let sponsors;
 
       let currentLanguage =
         localStorage.getItem("cobanov_iu_language") ||
@@ -318,6 +327,9 @@
           step4Body:
             "Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.",
           note: "Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.",
+          wallLead: "En çok destek veren 10 sponsor bu bölümde Instagram adresiyle birlikte gösterilir.",
+          wallOpen: "Şu anda {n} yer boş. İlk sponsor sen olabilirsin.",
+          wallLeft: "Geriye {n} yer kaldı.",
           changelogTitle: "Değişiklikler",
           changelogBody: "Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.",
           changelogAll: "Tüm geçmiş",
@@ -338,10 +350,10 @@
           vtUnscanned: "Bu sürüm henüz VirusTotal'a gönderilmemiş.",
           numbersTitle: "Trafik",
           numbersBody: "Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.",
-          trafficVisitors: "tekil ziyaretçi",
-          trafficRequests: "toplam request",
-          trafficData: "veri trafiği",
-          trafficPeriod: "26 Mart - 25 Nisan 2026, Cloudflare",
+          trafficVisitors: "sayfa görüntüleme",
+          trafficRequests: "ziyaret",
+          trafficData: "ulaşılan ülke",
+          trafficPeriod: "16 Temmuz - 15 Ağustos 2026, Cloudflare Web Analytics",
           sourceTitle: "Kaynak",
           sourceBody:
             'Yeni sürüm; eski kullanım fikri <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a> projesinden geliyor.',
@@ -384,6 +396,9 @@
           step4Title: 'Press "Scan now"',
           step4Body: "When the panel opens, start the scan. Unfollow your selections slowly and carefully.",
           note: "Instagram may rate-limit you. Do not speed up the unfollow timing unnecessarily.",
+          wallLead: "The ten largest sponsors appear here with their Instagram handle.",
+          wallOpen: "{n} places are open. You could be the first sponsor.",
+          wallLeft: "{n} places left.",
           changelogTitle: "Changelog",
           changelogBody: "Every time the code is updated, you can see what changed here.",
           changelogAll: "Full history",
@@ -404,10 +419,10 @@
           vtUnscanned: "This build has not been submitted to VirusTotal yet.",
           numbersTitle: "Traffic",
           numbersBody: "This site is open source and maintained as a hobby. Raw last-30-days numbers below.",
-          trafficVisitors: "unique visitors",
-          trafficRequests: "total requests",
-          trafficData: "data transferred",
-          trafficPeriod: "26 March - 25 April 2026, Cloudflare",
+          trafficVisitors: "page views",
+          trafficRequests: "visits",
+          trafficData: "countries reached",
+          trafficPeriod: "16 July - 15 August 2026, Cloudflare Web Analytics",
           sourceTitle: "Source",
           sourceBody:
             'This is the new version; the original usage idea comes from <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.',
@@ -454,6 +469,7 @@
         applyScriptHash(scriptHash, true);
         renderVirusTotalSummary();
         renderChangelog();
+        renderSponsors();
         status.textContent = "";
       }
 
@@ -569,6 +585,67 @@
         }
         applyScriptHash(vtResult && vtResult.hash, false);
         renderVirusTotalSummary();
+      }
+
+      function renderSponsors() {
+        const list = document.querySelector("[data-sponsors]");
+        const empty = document.querySelector("[data-sponsors-empty]");
+        if (!list || sponsors === undefined) return;
+        const dict = translations[currentLanguage];
+        const filled = Array.isArray(sponsors) ? sponsors.slice(0, 10) : [];
+
+        list.replaceChildren(
+          ...filled.map((sponsor, index) => {
+            const item = document.createElement("li");
+            item.className = "wall-slot";
+
+            const rank = document.createElement("span");
+            rank.className = "wall-rank";
+            rank.textContent = String(index + 1).padStart(2, "0");
+
+            const name = document.createElement("span");
+            name.className = "wall-name";
+            name.textContent = sponsor.name;
+
+            const handle = document.createElement("a");
+            handle.className = "wall-handle";
+            handle.href = `https://www.instagram.com/${encodeURIComponent(sponsor.instagram)}/`;
+            handle.rel = "noreferrer";
+            handle.textContent = `@${sponsor.instagram}`;
+
+            item.append(rank, name, handle);
+            return item;
+          })
+        );
+
+        if (empty) {
+          const left = 10 - filled.length;
+          empty.innerHTML = "";
+          if (left > 0) {
+            const strong = document.createElement("b");
+            strong.textContent = String(left);
+            empty.append(
+              document.createTextNode(filled.length ? dict.wallLeft.split("{n}")[0] : dict.wallOpen.split("{n}")[0]),
+              strong,
+              document.createTextNode(
+                (filled.length ? dict.wallLeft : dict.wallOpen).split("{n}")[1] || ""
+              )
+            );
+            empty.hidden = false;
+          } else {
+            empty.hidden = true;
+          }
+        }
+      }
+
+      async function loadSponsors() {
+        try {
+          const response = await fetch("sponsors.json", { cache: "no-store" });
+          sponsors = response.ok ? await response.json() : null;
+        } catch {
+          sponsors = null;
+        }
+        renderSponsors();
       }
 
       async function loadChangelog() {
@@ -701,6 +778,7 @@
       loadSource();
       loadVirusTotalSummary();
       loadChangelog();
+      loadSponsors();
       observeReveals();
     </script>
   </body>
