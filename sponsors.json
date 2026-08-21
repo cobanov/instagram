@@ -1,5 +1,5 @@
 [
-  { "name": "Şevval Can", "instagram": "sevvalcann" },
-  { "name": "Fatih Güzel", "instagram": "fatihguzeldev" },
-  { "name": "Woosal", "instagram": "woosal1337" }
+  { "name": "rmncr", "github": "rmncr", "amount": 25 },
+  { "name": "Fatih Güzel", "instagram": "fatihguzeldev", "amount": 10 },
+  { "name": "Woosal", "instagram": "woosal1337", "amount": 10 }
 ]

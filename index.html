@@ -126,7 +126,7 @@
 
           <div class="wall">
             <p class="wall-lead" data-i18n="wallLead">
-              Sponsor olursan adın ve Instagram hesabın burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.
+              Sponsor olursan adın, hesabın ve desteğin burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.
             </p>
             <ol class="wall-list" data-sponsors></ol>
             <p class="wall-empty" data-sponsors-empty hidden></p>
@@ -336,7 +336,7 @@
           step4Body:
             "Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.",
           note: "Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.",
-          wallLead: "Sponsor olursan adın ve Instagram hesabın burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.",
+          wallLead: "Sponsor olursan adın, hesabın ve desteğin burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.",
           wallOpen: "İlk sponsor henüz yok. İlk olan listenin en üstünde kalır.",
           wallLeft: "Listede {n} yer daha var.",
           changelogTitle: "Değişiklikler",
@@ -404,7 +404,7 @@
           step4Title: 'Press "Scan now"',
           step4Body: "When the panel opens, start the scan. Unfollow your selections slowly and carefully.",
           note: "Instagram may rate-limit you. Do not speed up the unfollow timing unnecessarily.",
-          wallLead: "Sponsor this and your name and Instagram handle appear here. The page was viewed 48,640 times in the last 30 days.",
+          wallLead: "Sponsor this and your name, handle, and amount appear here. The page was viewed 48,640 times in the last 30 days.",
           wallOpen: "No sponsors yet. Whoever is first stays at the top of the list.",
           wallLeft: "{n} more places on the list.",
           changelogTitle: "Changelog",
@@ -615,13 +615,24 @@
             name.className = "wall-name";
             name.textContent = sponsor.name;
 
+            const account = sponsor.github || sponsor.instagram;
             const handle = document.createElement("a");
             handle.className = "wall-handle";
-            handle.href = `https://www.instagram.com/${encodeURIComponent(sponsor.instagram)}/`;
+            handle.href = sponsor.github
+              ? `https://github.com/${encodeURIComponent(account)}`
+              : `https://www.instagram.com/${encodeURIComponent(account)}/`;
             handle.rel = "noreferrer";
-            handle.textContent = `@${sponsor.instagram}`;
+            handle.textContent = `@${account}`;
 
             item.append(rank, name, handle);
+
+            if (typeof sponsor.amount === "number") {
+              const amount = document.createElement("span");
+              amount.className = "wall-amount";
+              amount.textContent = `$${sponsor.amount}`;
+              item.append(amount);
+            }
+
             return item;
           })
         );

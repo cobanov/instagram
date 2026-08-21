@@ -33,6 +33,14 @@ March 26 - April 25, 2026 Cloudflare Analytics snapshot.
 If this project is useful to you, you can sponsor it at
 [github.com/sponsors/cobanov](https://github.com/sponsors/cobanov).
 
+### Sponsors
+
+Thanks to the people who have backed this project:
+
+- [rmncr](https://github.com/rmncr) - $25
+- [Fatih Guzel](https://www.instagram.com/fatihguzeldev/) - $10
+- [Woosal](https://www.instagram.com/woosal1337/) - $10
+
 ## Credits
 
 Inspired by the original workflow from

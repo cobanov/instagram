@@ -575,6 +575,17 @@ kbd {
   text-decoration: underline;
 }
 
+.wall-amount {
+  flex: 0 0 auto;
+  min-width: 3.1rem;
+  text-align: right;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: var(--step--1);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--ink);
+}
+
 .wall-empty {
   margin: 18px 0 0;
   color: var(--muted);
