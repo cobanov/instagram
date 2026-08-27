@@ -602,3 +602,128 @@ kbd {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   Cross-promotion bar: above the masthead, slides in once, closes for good
+   -------------------------------------------------------------------------- */
+
+.promo-bar {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* Animating the height rather than sliding a fixed bar over the page keeps
+   the masthead where it belongs: nothing is covered, only pushed down. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .promo-bar {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.5s var(--ease), opacity 0.4s var(--ease);
+  }
+
+  .js .promo-bar.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+
+  /* A grid row can only collapse if its content can, so the inner wrapper
+     needs its own min-height reset. */
+  .js .promo-bar > * {
+    min-height: 0;
+  }
+}
+
+.promo-bar-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding-block: 12px;
+}
+
+/* The mark sits on the code background rather than the bar, so almanak's own
+   black reads as its black and not as a hole in this page. */
+.promo-bar-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--code-bg);
+  color: var(--ink);
+}
+
+.promo-bar-mark svg {
+  width: 19px;
+  height: 19px;
+}
+
+.promo-bar-text {
+  flex: 1 1 22ch;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+  line-height: 1.45;
+}
+
+.promo-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* The full 44px button is right where a button is the point of the screen.
+   In a band above the header it is a slab, so the bar gets a shorter one. */
+.btn-sm {
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+.promo-bar-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: var(--pill);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.25s var(--ease), background 0.25s var(--ease);
+}
+
+.promo-bar-close:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.promo-bar-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Narrow: the text takes its own line and the buttons sit under it, rather
+   than every element fighting for a two-word column. */
+@media (max-width: 640px) {
+  .promo-bar-text {
+    flex-basis: 100%;
+    order: 2;
+  }
+
+  .promo-bar-actions {
+    order: 3;
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+  .promo-bar-actions .btn {
+    flex: 1 1 auto;
+  }
+}

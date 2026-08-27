@@ -49,6 +49,57 @@
   <body>
     <a class="skip-link" href="#main" data-i18n="skip">İçeriğe geç</a>
 
+    <!--
+      A word about the other things on this domain. It sits above the masthead
+      rather than at the foot of the page, where nobody who came to copy a
+      snippet ever scrolled. It is not fixed: it slides in once, then scrolls
+      away like any other band of the page, and closing it is remembered.
+
+      Hidden until the script has checked that, so a reader who dismissed it
+      does not watch it flash past on every visit.
+    -->
+    <aside class="promo-bar" data-promo hidden>
+      <div class="shell promo-bar-inner">
+        <span class="promo-bar-mark" aria-hidden="true">
+          <svg viewBox="0 0 64 64">
+            <g fill="currentColor">
+              <rect x="10" y="40" width="4" height="10" />
+              <rect x="16" y="34" width="4" height="16" />
+              <rect x="22" y="22" width="4" height="28" />
+              <rect x="28" y="30" width="4" height="20" />
+              <rect x="40" y="36" width="4" height="14" />
+              <rect x="46" y="28" width="4" height="22" />
+            </g>
+            <rect x="34" y="12" width="2" height="42" fill="#1d9bf0" />
+          </svg>
+        </span>
+        <p class="promo-bar-text" data-i18n="promoText">
+          Bir de almanak var: X (Twitter) arşivini tarayıcında açar. Aynı söz, veri dışarı çıkmaz.
+        </p>
+        <span class="promo-bar-actions">
+          <a
+            class="btn btn-primary btn-sm"
+            href="https://almanak.cobanov.dev/?ref=instagram"
+            rel="noreferrer"
+            data-oa-event="visit-almanak"
+            data-i18n="promoCta"
+          >almanak'ı dene</a>
+          <a
+            class="btn btn-sm"
+            href="https://cobanov.dev/?ref=instagram"
+            rel="noreferrer"
+            data-oa-event="visit-cobanov"
+            data-i18n="promoAll"
+          >Tüm projeler</a>
+        </span>
+        <button class="promo-bar-close" type="button" data-promo-close aria-label="Kapat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+    </aside>
+
     <header class="masthead">
       <div class="shell masthead-inner">
         <a class="wordmark" href="/">
@@ -270,6 +321,7 @@
           </p>
         </div>
       </section>
+
     </main>
 
     <footer class="colophon">
@@ -290,6 +342,8 @@
       const status = document.querySelector("[data-status]");
       const copyButton = document.querySelector("[data-copy]");
       const languageToggle = document.querySelector("[data-language-toggle]");
+      const promo = document.querySelector("[data-promo]");
+      const promoClose = document.querySelector("[data-promo-close]");
       const vtSummary = document.querySelector("[data-vt-summary]");
 
       let snippet = "";
@@ -366,6 +420,11 @@
           sourceTitle: "Kaynak",
           sourceBody:
             'Yeni sürüm; eski kullanım fikri <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a> projesinden geliyor.',
+          promoText:
+            "Bir de almanak var: X (Twitter) arşivini tarayıcında açar. Aynı söz, veri dışarı çıkmaz.",
+          promoCta: "almanak'ı dene",
+          promoAll: "Tüm projeler",
+          promoClose: "Kapat",
           copyright: "© 2026 Mert Cobanov.",
           disclaimer: "Instagram ve Meta ile ilişkili değildir.",
           copied: "Kod kopyalandı. Instagram konsoluna yapıştırabilirsiniz.",
@@ -434,6 +493,11 @@
           sourceTitle: "Source",
           sourceBody:
             'This is the new version; the original usage idea comes from <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.',
+          promoText:
+            "There is almanak too: it opens your X (Twitter) archive in the browser. Same promise, nothing is uploaded.",
+          promoCta: "Try almanak",
+          promoAll: "All projects",
+          promoClose: "Close",
           copyright: "© 2026 Mert Cobanov.",
           disclaimer: "Not affiliated with Instagram or Meta.",
           copied: "Code copied. Paste it into the Instagram console.",
@@ -473,6 +537,7 @@
           "aria-label",
           currentLanguage === "tr" ? "Switch to English" : "Türkçeye geç"
         );
+        if (promoClose) promoClose.setAttribute("aria-label", dict.promoClose);
         localStorage.setItem("cobanov_iu_language", currentLanguage);
         applyScriptHash(scriptHash, true);
         renderVirusTotalSummary();
@@ -788,6 +853,42 @@
             node.classList.add("is-visible");
           });
         }, 3000);
+      }
+
+      /* The bar comes back a month after it is closed, so it can mention
+         something new without becoming furniture nobody sees. */
+      const PROMO_QUIET_DAYS = 30;
+
+      function promoIsDismissed() {
+        const at = Number(localStorage.getItem("cobanov_iu_promo_closed") || 0);
+        return at > 0 && Date.now() - at < PROMO_QUIET_DAYS * 86400000;
+      }
+
+      if (promo && !promoIsDismissed()) {
+        promo.hidden = false;
+        /* Two frames, so the browser paints it closed before it opens.
+           Setting the class in the same frame skips the transition. */
+        requestAnimationFrame(() => requestAnimationFrame(() => promo.classList.add("is-open")));
+      }
+
+      if (promoClose) {
+        promoClose.addEventListener("click", () => {
+          promo.classList.remove("is-open");
+          /* Waiting on transitionend would strand the bar on screen for a
+             reader who asked for no motion: with the transition suppressed,
+             the event never fires. */
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            promo.hidden = true;
+          } else {
+            setTimeout(() => { promo.hidden = true; }, 550);
+          }
+          try {
+            localStorage.setItem("cobanov_iu_promo_closed", String(Date.now()));
+          } catch {
+            /* Private window, or storage refused. Closing it for this visit
+               is still the right answer; it simply returns next time. */
+          }
+        });
       }
 
       applyLanguage(currentLanguage);
