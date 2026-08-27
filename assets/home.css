@@ -644,23 +644,12 @@ kbd {
   padding-block: 12px;
 }
 
-/* The mark sits on the code background rather than the bar, so almanak's own
-   black reads as its black and not as a hole in this page. */
-.promo-bar-mark {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
+/* Each button carries the other site's own mark, in that site's own colour, so
+   the bar reads as two places rather than one link said twice. */
+.promo-bar-icon {
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--code-bg);
-  color: var(--ink);
-}
-
-.promo-bar-mark svg {
-  width: 19px;
-  height: 19px;
 }
 
 .promo-bar-text {

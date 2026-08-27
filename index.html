@@ -60,30 +60,48 @@
     -->
     <aside class="promo-bar" data-promo hidden>
       <div class="shell promo-bar-inner">
-        <span class="promo-bar-mark" aria-hidden="true">
-          <svg viewBox="0 0 64 64">
-            <g fill="currentColor">
-              <rect x="10" y="40" width="4" height="10" />
-              <rect x="16" y="34" width="4" height="16" />
-              <rect x="22" y="22" width="4" height="28" />
-              <rect x="28" y="30" width="4" height="20" />
-              <rect x="40" y="36" width="4" height="14" />
-              <rect x="46" y="28" width="4" height="22" />
-            </g>
-            <rect x="34" y="12" width="2" height="42" fill="#1d9bf0" />
-          </svg>
-        </span>
         <p class="promo-bar-text" data-i18n="promoText">
-          Bir de almanak var: X (Twitter) arşivini tarayıcında açar. Aynı söz, veri dışarı çıkmaz.
+          Burada iki tane daha var, ikisi de ücretsiz ve açık kaynak.
         </p>
         <span class="promo-bar-actions">
           <a
-            class="btn btn-primary btn-sm"
+            class="btn btn-sm"
             href="https://almanak.cobanov.dev/?ref=instagram"
             rel="noreferrer"
             data-oa-event="visit-almanak"
-            data-i18n="promoCta"
-          >almanak'ı dene</a>
+          >
+            <svg class="promo-bar-icon" viewBox="0 0 64 64" aria-hidden="true">
+              <g fill="currentColor">
+                <rect x="10" y="40" width="4" height="10" />
+                <rect x="16" y="34" width="4" height="16" />
+                <rect x="22" y="22" width="4" height="28" />
+                <rect x="28" y="30" width="4" height="20" />
+                <rect x="40" y="36" width="4" height="14" />
+                <rect x="46" y="28" width="4" height="22" />
+              </g>
+              <rect x="34" y="12" width="2" height="42" fill="#1d9bf0" />
+            </svg>
+            <span data-i18n="promoAlmanak">X arşivini oku</span>
+          </a>
+          <a
+            class="btn btn-sm"
+            href="https://tv.cobanov.dev/?ref=instagram"
+            rel="noreferrer"
+            data-oa-event="visit-tv"
+          >
+            <svg
+              class="promo-bar-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#3ddc84"
+              stroke-width="1.7"
+              aria-hidden="true"
+            >
+              <rect x="3" y="5" width="18" height="12.5" rx="2.5" />
+              <path d="M9.5 21h5" stroke-linecap="round" />
+            </svg>
+            <span data-i18n="promoTv">Android TV'ni temizle</span>
+          </a>
           <a
             class="btn btn-sm"
             href="https://cobanov.dev/?ref=instagram"
@@ -420,9 +438,9 @@
           sourceTitle: "Kaynak",
           sourceBody:
             'Yeni sürüm; eski kullanım fikri <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a> projesinden geliyor.',
-          promoText:
-            "Bir de almanak var: X (Twitter) arşivini tarayıcında açar. Aynı söz, veri dışarı çıkmaz.",
-          promoCta: "almanak'ı dene",
+          promoText: "Burada iki tane daha var, ikisi de ücretsiz ve açık kaynak.",
+          promoAlmanak: "X arşivini oku",
+          promoTv: "Android TV'ni temizle",
           promoAll: "Tüm projeler",
           promoClose: "Kapat",
           copyright: "© 2026 Mert Cobanov.",
@@ -493,9 +511,9 @@
           sourceTitle: "Source",
           sourceBody:
             'This is the new version; the original usage idea comes from <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.',
-          promoText:
-            "There is almanak too: it opens your X (Twitter) archive in the browser. Same promise, nothing is uploaded.",
-          promoCta: "Try almanak",
+          promoText: "Two more here, both free and open source.",
+          promoAlmanak: "Read your X archive",
+          promoTv: "Clean up your Android TV",
           promoAll: "All projects",
           promoClose: "Close",
           copyright: "© 2026 Mert Cobanov.",
