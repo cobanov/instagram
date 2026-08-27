@@ -16,3 +16,6 @@ yarn-error.log*
 # third-party skill bundle (local tooling, not product code)
 .agents/
 skills-lock.json
+
+# wrangler local state/cache
+.wrangler/
