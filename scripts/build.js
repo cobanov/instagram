@@ -71,6 +71,16 @@ if (!sorted) {
   throw new Error("changelog.json must be ordered newest first");
 }
 
+/* The two version numbers drifted apart once already, because nothing read them
+   together. The changelog is the one the site shows, so package.json follows it. */
+const pkgPath = path.join(root, "package.json");
+const pkgVersion = JSON.parse(fs.readFileSync(pkgPath, "utf8")).version;
+if (pkgVersion !== entries[0].version) {
+  throw new Error(
+    `package.json is ${pkgVersion} but changelog.json ships ${entries[0].version}`
+  );
+}
+
 /* The sponsor wall is public-facing and hand-edited, so a bad handle would ship
    a broken Instagram link. Fail the build instead. */
 const sponsorsPath = path.join(root, "sponsors.json");
