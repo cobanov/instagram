@@ -86,8 +86,23 @@ sponsors.forEach((sponsor, index) => {
   if (typeof sponsor.name !== "string" || !sponsor.name.trim()) {
     throw new Error(`${where}: "name" must be a non-empty string`);
   }
-  if (!/^[A-Za-z0-9._]{1,30}$/.test(sponsor.instagram || "")) {
+  /* A sponsor links to one profile or the other, and the two services do not
+     accept the same characters, so each handle is checked against its own
+     rules rather than a shared one. */
+  if (sponsor.instagram === undefined && sponsor.github === undefined) {
+    throw new Error(`${where}: needs an "instagram" or a "github" handle`);
+  }
+  if (
+    sponsor.instagram !== undefined &&
+    !/^[A-Za-z0-9._]{1,30}$/.test(sponsor.instagram)
+  ) {
     throw new Error(`${where}: "instagram" must be a handle without the @`);
+  }
+  if (
+    sponsor.github !== undefined &&
+    !/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(sponsor.github)
+  ) {
+    throw new Error(`${where}: "github" must be a username without the @`);
   }
 });
 
