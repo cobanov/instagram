@@ -646,6 +646,8 @@ kbd {
 
 /* Each button carries the other site's own mark, in that site's own colour, so
    the bar reads as two places rather than one link said twice. */
+.promo-tiny { display: none; }
+
 .promo-bar-icon {
   width: 16px;
   height: 16px;
@@ -701,18 +703,30 @@ kbd {
 /* Narrow: the text takes its own line and the buttons sit under it, rather
    than every element fighting for a two-word column. */
 @media (max-width: 640px) {
-  .promo-bar-text {
-    flex-basis: 100%;
-    order: 2;
+  /* A phone cannot afford the sentence or the third link: the two destinations
+     and a way out are the whole point of the bar, and everything else pushed it
+     into a three-row slab that shoved the page sideways. What is left is one
+     row of two chips wearing the short name. min-width is what actually stops
+     the overflow — a flex item will not shrink past its content without it. */
+  .promo-bar-text,
+  .promo-bar-actions .btn-more,
+  .promo-full {
+    display: none;
+  }
+
+  .promo-tiny {
+    display: inline;
   }
 
   .promo-bar-actions {
-    order: 3;
-    flex-basis: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
     margin-left: 0;
   }
 
   .promo-bar-actions .btn {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-width: 0;
   }
 }
