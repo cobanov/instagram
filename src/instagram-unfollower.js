@@ -25,6 +25,7 @@
     unfollowPauseMs: 300000
   };
 
+  const PROGRESS_TITLE_ID = "iu-progress-title";
   const PANEL_WIDTH = 380;
   const PANEL_MARGIN = 18;
   const MAX_RETRIES = 3;
@@ -38,7 +39,6 @@
       scanBtn: "Scan now",
       scanning: "Scanning",
       loadingFollowing: "Loading the people you follow",
-      loadingFollowers: "Checking follow-back status",
       paused: "Paused",
       pause: "Pause",
       resume: "Resume",
@@ -77,7 +77,7 @@
       currently: "Currently",
       nextActionIn: "Next action in {seconds}s",
       cooldownIn: "Cooldown — {seconds}s",
-      idle: "Ready",
+      scanPause: "Long pause — {seconds}s",
       unfollowDoneTitle: "Done",
       unfollowDoneBody: "{ok} unfollowed, {fail} failed",
       unfollowBlocked: "Instagram blocked this action, so {count} remaining users were skipped. Wait a few hours before trying again.",
@@ -100,6 +100,7 @@
       requestFailed: "Request failed: {status}",
       tooManyRequests: "Instagram is rate-limiting requests. Try again later or increase delays in settings.",
       close: "Close",
+      langSwitch: "Switch to Turkish",
       minimize: "Minimize",
       expand: "Expand",
       langCode: "TR",
@@ -116,7 +117,6 @@
       scanBtn: "Taramayı başlat",
       scanning: "Taranıyor",
       loadingFollowing: "Takip ettiklerin yükleniyor",
-      loadingFollowers: "Geri takip durumu kontrol ediliyor",
       paused: "Duraklatıldı",
       pause: "Duraklat",
       resume: "Devam et",
@@ -155,7 +155,7 @@
       currently: "Şu an",
       nextActionIn: "Sonraki işlem {seconds} sn sonra",
       cooldownIn: "Mola — {seconds} sn",
-      idle: "Hazır",
+      scanPause: "Uzun mola — {seconds} sn",
       unfollowDoneTitle: "Tamamlandı",
       unfollowDoneBody: "{ok} başarılı, {fail} başarısız",
       unfollowBlocked: "Instagram bu işlemi engelledi, kalan {count} kişi atlandı. Tekrar denemeden önce birkaç saat bekle.",
@@ -178,6 +178,7 @@
       requestFailed: "İstek başarısız: {status}",
       tooManyRequests: "Instagram istekleri kısıtlıyor. Sonra dene veya ayarlardan gecikmeleri artır.",
       close: "Kapat",
+      langSwitch: "İngilizce'ye geç",
       minimize: "Küçült",
       expand: "Aç",
       langCode: "EN",
@@ -320,7 +321,7 @@
           </div>
           <div class="iu-header-actions">
             <button type="button" data-action="settings" aria-label="${escapeAttr(t("settings"))}" title="${escapeAttr(t("settings"))}">${SVG.gear}</button>
-            <button type="button" data-action="language" aria-label="${escapeAttr(t("langCode"))}" title="${escapeAttr(t("langCode"))}"><span data-lang>${escapeHTML(t("langCode"))}</span></button>
+            <button type="button" data-action="language" aria-label="${escapeAttr(t("langSwitch"))}" title="${escapeAttr(t("langSwitch"))}"><span data-lang aria-hidden="true">${escapeHTML(t("langCode"))}</span></button>
             <button type="button" data-action="minimize" aria-label="${escapeAttr(t("minimize"))}" title="${escapeAttr(t("minimize"))}">${SVG.minimize}</button>
             <button type="button" data-action="close" aria-label="${escapeAttr(t("close"))}" title="${escapeAttr(t("close"))}">${SVG.close}</button>
           </div>
@@ -487,6 +488,18 @@
     body.querySelector("[data-action='scan']")?.addEventListener("click", startScan);
   }
 
+  /* The bar is the only place the panel reports how far along a run is, so it
+     has to carry the numbers, not just paint them. A scan with no page count
+     yet is indeterminate, which means no aria-valuenow at all. */
+  function renderBar(percent, valueText, known) {
+    const now = known ? ` aria-valuenow="${percent}"` : "";
+    return `
+      <div class="iu-bar" role="progressbar" aria-labelledby="${PROGRESS_TITLE_ID}"
+        aria-valuemin="0" aria-valuemax="100"${now} aria-valuetext="${escapeAttr(valueText)}" data-bar>
+        <span data-progress-bar style="width:${percent}%"></span>
+      </div>`;
+  }
+
   function renderScanView() {
     const { current, total, label, note } = state.progress;
     const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
@@ -494,10 +507,10 @@
     return `
       <div class="iu-progress">
         <div class="iu-progress-head">
-          <h2 data-progress-label>${escapeHTML(state.scanPaused ? t("paused") : t(label))}</h2>
+          <h2 id="${PROGRESS_TITLE_ID}" data-progress-label>${escapeHTML(state.scanPaused ? t("paused") : t(label))}</h2>
           <p data-progress-note>${escapeHTML(note)}</p>
         </div>
-        <div class="iu-bar"><span data-progress-bar style="width:${percent}%"></span></div>
+        ${renderBar(percent, counter, Boolean(total))}
         <div class="iu-progress-meta">
           <span data-progress-counter>${escapeHTML(counter)}</span>
           <span data-countdown class="iu-muted"></span>
@@ -527,7 +540,7 @@
   function renderResultsView() {
     const display = getDisplayUsers();
     const totalNonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
-    const visibleSelected = display.filter((u) => state.selected.has(u.id)).length;
+    const allSelected = display.length > 0 && display.every((u) => state.selected.has(u.id));
     let summary;
     if (totalNonFollowers === 0) summary = t("foundNone");
     else if (totalNonFollowers === 1) summary = t("foundOne");
@@ -557,7 +570,7 @@
         <div class="iu-actionbar">
           <div class="iu-actionbar-left">
             <button type="button" class="iu-btn iu-btn--small" data-action="select-all" ${display.length ? "" : "disabled"}>
-              ${escapeHTML(visibleSelected === display.length && display.length ? t("selectNone") : t("selectAll"))}
+              ${escapeHTML(allSelected ? t("selectNone") : t("selectAll"))}
             </button>
             <span class="iu-muted" data-selected-label>${escapeHTML(t("selectedCount", { count: state.selected.size }))}</span>
           </div>
@@ -620,6 +633,7 @@
         state.search = event.target.value;
         const list = body.querySelector("[data-list]");
         if (list) list.innerHTML = renderUserList(getDisplayUsers());
+        updateActionBar(body);
       });
     }
 
@@ -641,7 +655,7 @@
       else state.selected.delete(id);
       const row = checkbox.closest("[data-row]");
       if (row) row.classList.toggle("iu-row--selected", checkbox.checked);
-      updateSelectedLabel(body);
+      updateActionBar(body);
     });
 
     body.addEventListener("click", (event) => {
@@ -673,7 +687,7 @@
         checkbox.checked = true;
       }
       row.classList.toggle("iu-row--selected", checkbox.checked);
-      updateSelectedLabel(body);
+      updateActionBar(body);
     });
 
     body.addEventListener("keydown", (event) => {
@@ -696,6 +710,21 @@
     body.querySelector("[data-action='unfollow']")?.addEventListener("click", confirmUnfollow);
   }
 
+  function updateActionBar(body) {
+    const root = body || document.querySelector(`#${APP_ID} [data-body]`);
+    if (!root) return;
+    const display = getDisplayUsers();
+    const allSelected = display.length > 0 && display.every((u) => state.selected.has(u.id));
+    const selectAllBtn = root.querySelector("[data-action='select-all']");
+    if (selectAllBtn) {
+      selectAllBtn.disabled = display.length === 0;
+      selectAllBtn.textContent = allSelected ? t("selectNone") : t("selectAll");
+    }
+    const copyBtn = root.querySelector("[data-action='copy']");
+    if (copyBtn) copyBtn.disabled = display.length === 0;
+    updateSelectedLabel(root);
+  }
+
   function updateSelectedLabel(body) {
     const root = body || document.querySelector(`#${APP_ID} [data-body]`);
     if (!root) return;
@@ -715,26 +744,23 @@
     const done = state.progress.current;
     const percent = total ? Math.round((done / total) * 100) : 0;
     const last = state.log[state.log.length - 1];
-    const summary = state.mode === "unfollowDone"
-      ? t("unfollowDoneBody", { ok: state.log.filter((e) => e.ok).length, fail: state.log.filter((e) => !e.ok).length })
-      : t("ofTotal", { current: done, total });
+    const summary = unfollowSummary();
     return `
       <div class="iu-progress">
         <div class="iu-progress-head">
-          <h2>${escapeHTML(state.mode === "unfollowDone" ? t("unfollowDoneTitle") : (state.unfollowPaused ? t("paused") : t("unfollowing")))}</h2>
+          <h2 id="${PROGRESS_TITLE_ID}" data-progress-label>${escapeHTML(unfollowTitle())}</h2>
           <p data-progress-note>${escapeHTML(state.progress.note || "")}</p>
         </div>
-        <div class="iu-bar"><span style="width:${percent}%"></span></div>
+        ${renderBar(percent, summary, Boolean(total))}
         <div class="iu-progress-meta">
-          <span>${escapeHTML(summary)}</span>
+          <span data-progress-counter>${escapeHTML(summary)}</span>
           <span data-countdown class="iu-muted"></span>
         </div>
-        ${last ? `
-          <div class="iu-current">
-            <span class="iu-muted">${escapeHTML(t("currently"))}</span>
-            <strong>@${escapeHTML(last.user.username)}</strong>
-            <span class="iu-tag ${last.ok ? "iu-tag--green" : "iu-tag--red"}" title="${escapeAttr(last.reason || "")}">${last.ok ? "✓" : "✕"}</span>
-          </div>` : ""}
+        <div class="iu-current" data-current ${last ? "" : "hidden"}>
+          <span class="iu-muted">${escapeHTML(t("currently"))}</span>
+          <strong data-current-user>${last ? "@" + escapeHTML(last.user.username) : ""}</strong>
+          <span class="iu-tag ${last && !last.ok ? "iu-tag--red" : "iu-tag--green"}" data-current-tag title="${escapeAttr(last?.reason || "")}">${last && !last.ok ? "✕" : "✓"}</span>
+        </div>
         ${state.unfollowBlocked ? `
           <div class="iu-blocked">${escapeHTML(t("unfollowBlocked", { count: state.unfollowBlocked }))}</div>` : ""}
         <div class="iu-progress-actions">
@@ -749,10 +775,28 @@
     `;
   }
 
+  function unfollowTitle() {
+    if (state.mode === "unfollowDone") return t("unfollowDoneTitle");
+    return state.unfollowPaused ? t("paused") : t("unfollowing");
+  }
+
+  function unfollowSummary() {
+    if (state.mode === "unfollowDone") {
+      return t("unfollowDoneBody", {
+        ok: state.log.filter((e) => e.ok).length,
+        fail: state.log.filter((e) => !e.ok).length
+      });
+    }
+    return t("ofTotal", { current: state.progress.current, total: state.progress.total });
+  }
+
   function bindUnfollow(body) {
     body.querySelector("[data-action='pause-unfollow']")?.addEventListener("click", () => {
       state.unfollowPaused = !state.unfollowPaused;
-      renderBody();
+      const btn = body.querySelector("[data-action='pause-unfollow']");
+      if (btn) btn.textContent = t(state.unfollowPaused ? "resume" : "pause");
+      const label = body.querySelector("[data-progress-label]");
+      if (label) label.textContent = unfollowTitle();
     });
     body.querySelector("[data-action='cancel-unfollow']")?.addEventListener("click", () => {
       state.unfollowCancelled = true;
@@ -976,7 +1020,7 @@
         label: "unfollowing",
         note: outcome.ok ? "" : outcome.reason
       };
-      renderBody();
+      updateUnfollowDOM();
 
       if (outcome.blocked) {
         state.unfollowBlocked = targets.length - processed;
@@ -1288,23 +1332,70 @@
     node.textContent = t(reason, { seconds: remaining });
   }
 
+  function setBar(root, percent, valueText, known) {
+    const bar = root.querySelector("[data-progress-bar]");
+    if (bar) bar.style.width = percent + "%";
+    const box = root.querySelector("[data-bar]");
+    if (!box) return;
+    if (known) box.setAttribute("aria-valuenow", String(percent));
+    else box.removeAttribute("aria-valuenow");
+    box.setAttribute("aria-valuetext", valueText);
+  }
+
+  function updatePillDOM() {
+    if (!state.minimized) return;
+    const pillLabelEl = document.querySelector(`#${APP_ID} [data-pill-label]`);
+    if (pillLabelEl) pillLabelEl.textContent = pillLabel();
+  }
+
   function updateProgressDOM() {
     const root = document.querySelector(`#${APP_ID} [data-body]`);
     if (!root) return;
     const { current, total, label, note } = state.progress;
     const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
-    const bar = root.querySelector("[data-progress-bar]");
-    if (bar) bar.style.width = percent + "%";
-    const counter = root.querySelector("[data-progress-counter]");
-    if (counter) counter.textContent = total ? t("ofTotal", { current, total }) : t("ofUnknown", { current });
+    const counter = total ? t("ofTotal", { current, total }) : t("ofUnknown", { current });
+    setBar(root, percent, counter, Boolean(total));
+    const counterEl = root.querySelector("[data-progress-counter]");
+    if (counterEl) counterEl.textContent = counter;
     const labelEl = root.querySelector("[data-progress-label]");
     if (labelEl) labelEl.textContent = state.scanPaused ? t("paused") : t(label);
     const noteEl = root.querySelector("[data-progress-note]");
     if (noteEl) noteEl.textContent = note || "";
-    if (state.minimized) {
-      const pillLabelEl = document.querySelector(`#${APP_ID} [data-pill-label]`);
-      if (pillLabelEl) pillLabelEl.textContent = pillLabel();
+    updatePillDOM();
+  }
+
+  /* Rebuilding the whole view after every request moved keyboard focus off the
+     Pause button, so the run could not be paused from the keyboard. */
+  function updateUnfollowDOM() {
+    const root = document.querySelector(`#${APP_ID} [data-body]`);
+    if (!root) return;
+    const { current, total, note } = state.progress;
+    const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
+    const summary = unfollowSummary();
+    setBar(root, percent, summary, Boolean(total));
+    const counterEl = root.querySelector("[data-progress-counter]");
+    if (counterEl) counterEl.textContent = summary;
+    const labelEl = root.querySelector("[data-progress-label]");
+    if (labelEl) labelEl.textContent = unfollowTitle();
+    const noteEl = root.querySelector("[data-progress-note]");
+    if (noteEl) noteEl.textContent = note || "";
+    const last = state.log[state.log.length - 1];
+    const currentEl = root.querySelector("[data-current]");
+    if (currentEl) {
+      currentEl.hidden = !last;
+      if (last) {
+        const userEl = currentEl.querySelector("[data-current-user]");
+        if (userEl) userEl.textContent = "@" + last.user.username;
+        const tagEl = currentEl.querySelector("[data-current-tag]");
+        if (tagEl) {
+          tagEl.textContent = last.ok ? "✓" : "✕";
+          tagEl.title = last.reason || "";
+          tagEl.classList.toggle("iu-tag--green", last.ok);
+          tagEl.classList.toggle("iu-tag--red", !last.ok);
+        }
+      }
     }
+    updatePillDOM();
   }
 
   function toast(message) {
@@ -1360,8 +1451,24 @@
       pointer-events: none;
       z-index: 2147483647;
       color: var(--iu-text);
+      color-scheme: dark;
       font: 14px/1.45 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     }
+    #${APP_ID} .iu-list, #${APP_ID} .iu-form {
+      scrollbar-width: thin;
+      scrollbar-color: var(--iu-line-strong) transparent;
+    }
+    #${APP_ID} .iu-list::-webkit-scrollbar,
+    #${APP_ID} .iu-form::-webkit-scrollbar { width: 8px; }
+    #${APP_ID} .iu-list::-webkit-scrollbar-track,
+    #${APP_ID} .iu-form::-webkit-scrollbar-track { background: transparent; }
+    #${APP_ID} .iu-list::-webkit-scrollbar-thumb,
+    #${APP_ID} .iu-form::-webkit-scrollbar-thumb {
+      background: var(--iu-line-strong);
+      border-radius: 4px;
+    }
+    #${APP_ID} .iu-list::-webkit-scrollbar-thumb:hover,
+    #${APP_ID} .iu-form::-webkit-scrollbar-thumb:hover { background: var(--iu-muted); }
     #${APP_ID} :focus-visible {
       outline: 2px solid var(--iu-accent);
       outline-offset: 2px;
@@ -1370,6 +1477,7 @@
     #${APP_ID} button, #${APP_ID} input, #${APP_ID} a { font: inherit; color: inherit; }
     #${APP_ID} a { text-decoration: none; }
     #${APP_ID} button { cursor: pointer; }
+    #${APP_ID} [hidden] { display: none !important; }
 
     #${APP_ID} .iu-panel {
       position: absolute;
@@ -1549,7 +1657,7 @@
       transition: border-color 0.15s;
     }
     #${APP_ID} .iu-search:focus { border-color: var(--iu-accent); }
-    #${APP_ID} .iu-search::-webkit-search-cancel-button { filter: invert(1) opacity(0.5); }
+    #${APP_ID} .iu-search::-webkit-search-cancel-button { filter: opacity(0.6); cursor: pointer; }
 
     #${APP_ID} .iu-filters {
       display: flex;
@@ -1630,7 +1738,13 @@
       font-size: 13px;
       font-weight: 500;
     }
-    #${APP_ID} .iu-row-name a { color: var(--iu-text); }
+    #${APP_ID} .iu-row-name > a {
+      color: var(--iu-text);
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     #${APP_ID} .iu-row-name a:hover { color: var(--iu-accent-2); }
     #${APP_ID} .iu-row-sub {
       font-size: 12px;
@@ -1665,6 +1779,7 @@
     #${APP_ID} .iu-tag {
       display: inline-flex;
       align-items: center;
+      flex-shrink: 0;
       padding: 1px 6px;
       border-radius: 4px;
       font-size: 10px;
@@ -1798,7 +1913,7 @@
   `;
 
   if (globalThis.__IU_TEST__) {
-    globalThis.__IU_TEST__({ evaluateUnfollowResponse, unfollowUser, normalizeUser, isDefaultAvatar, parseRetryAfter });
+    globalThis.__IU_TEST__({ evaluateUnfollowResponse, unfollowUser, normalizeUser, isDefaultAvatar, parseRetryAfter, I18N, t });
     return;
   }
 
