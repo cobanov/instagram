@@ -4,7 +4,7 @@ Orijinal proje: https://github.com/cobanov/instagram (Mert Cobanov / @cobanov)
 Orijinal site: https://cobanov.dev/instagram
 
 Bu, o projenin "console'a yapıştır" script'ini bir Chrome eklentisine
-sarmalayan **gayriresmi** bir fork'tur. Script'in kendi mantığında hiçbir
+sarmalayan bir fork'tur. Script'in kendi mantığında hiçbir
 değişiklik yapılmadı; sadece tetikleme şekli değişti (console yerine
 eklenti ikonuna tıklama).
 
