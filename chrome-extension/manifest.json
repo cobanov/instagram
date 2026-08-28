@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Instagram Unfollowers (cobanov) - Chrome uzantısı",
+  "name": "Instagram Unfollowers",
   "version": "1.0.0",
-  "description": "cobanov/instagram projesinin (Instagram'da geri takip etmeyenleri bulan console aracı) gayriresmi Chrome eklentisi hali. Orijinal proje: github.com/cobanov/instagram",
+  "description": "Chrome extension wrapper for the cobanov/instagram console script that finds Instagram accounts that don't follow you back. Original project: github.com/cobanov/instagram",
   "permissions": ["activeTab", "scripting"],
   "host_permissions": ["https://www.instagram.com/*"],
   "action": {
-    "default_title": "Instagram Unfollowers'ı aç"
+    "default_title": "Open Instagram Unfollowers"
   },
   "background": {
     "service_worker": "background.js"
