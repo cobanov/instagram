@@ -5,8 +5,12 @@ import { FILE_HASH } from "./_script-hash.js";
    for most of the day. The answer for a fixed hash barely changes, so it is
    cached at the edge and VirusTotal sees a few requests a day instead.
 
-   The cache key drops the query string on purpose: a ?nocache= parameter must
-   not be able to force a live lookup and burn the quota. */
+   The cache key drops the caller's query string on purpose: a ?nocache=
+   parameter must not be able to force a live lookup and burn the quota. It
+   carries the script hash instead, which is a build-time constant. A new build
+   therefore gets its own cache entry, so the endpoint stops serving the
+   previous snippet's verdict for up to OK_TTL after a deploy, and a caller
+   still cannot influence the key. */
 const OK_TTL = 21600; // 6 hours
 const MISS_TTL = 900; // 15 minutes for "not scanned yet"
 const FAIL_TTL = 300; // 5 minutes, enough to stop a stampede
@@ -16,7 +20,7 @@ export async function onRequestGet(context) {
 
   const cache = caches.default;
   const cacheUrl = new URL(request.url);
-  cacheUrl.search = "";
+  cacheUrl.search = `?h=${FILE_HASH}`;
   const cacheKey = new Request(cacheUrl.toString(), { method: "GET" });
 
   const cached = await cache.match(cacheKey);

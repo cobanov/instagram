@@ -25,6 +25,27 @@ accounts that do not follow you back.
 
 If Chrome blocks pasting, type `allow pasting` in the console first.
 
+## Development
+
+```
+npm run build   # bundles src/ into dist/ and writes the new snippet hash
+npm run check   # syntax check plus the test suite
+npm run vt      # submits the built snippet to VirusTotal
+```
+
+Every build produces a new snippet hash, and the security page reports a hash
+VirusTotal has never seen as unscanned. `npm run vt` closes that gap: run it
+after a build that changes `dist/`. It drives the public upload form in a
+browser rather than the API, so there is no VirusTotal key to keep locally, and
+it needs Playwright, which is not a project dependency:
+
+```
+npm i -g playwright && npx playwright install chrome
+```
+
+The browser window is visible on purpose. Headless Chrome opens the upload
+dialog but never completes the submission.
+
 ## Sponsorship
 
 The project receives about **53.8k unique visitors per 30 days** based on the
