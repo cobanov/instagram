@@ -1,5 +1,25 @@
 [
   {
+    "version": "2.1.1",
+    "date": "2026-08-27",
+    "tr": [
+      "Tarama sayacı bekleme süresi yerine ham \"scanPause\" metnini gösteriyordu. Artık \"Uzun mola — 8 sn\" yazıyor.",
+      "Uzun bir kullanıcı adı artık yanındaki ONAYLI veya GİZLİ etiketini kesmiyor, kendisi kısalıyor.",
+      "Liste kaydırma çubuğu arkadaki sayfanın değil panelin koyu renklerini kullanıyor.",
+      "Arama yaptığında listenin altındaki butonlar da güncelleniyor. Eşleşen kullanıcı yoksa \"Tümünü seç\" kapalı geliyor.",
+      "Takip bırakma sırasında klavye odağı Duraklat butonunda kalıyor, her istekte kaybolmuyor.",
+      "İlerleme çubuğu ilerlemesini ekran okuyucuya bildiriyor, dil butonu hangi dile geçeceğini söylüyor."
+    ],
+    "en": [
+      "The scan countdown showed the raw text \"scanPause\" instead of the wait. It now reads \"Long pause — 8s\".",
+      "A long username no longer cuts off the VERIFIED or PRIVATE tag beside it. The username shortens instead.",
+      "The list scrollbar follows the panel's dark colours instead of the page behind it.",
+      "Searching now updates the buttons under the list, so \"Select all\" is off when no user matches.",
+      "Unfollowing keeps the keyboard focus on the Pause button instead of dropping it after every request.",
+      "The progress bar reports its progress to a screen reader, and the language button says which language it switches to."
+    ]
+  },
+  {
     "version": "2.1.0",
     "date": "2026-08-15",
     "tr": [

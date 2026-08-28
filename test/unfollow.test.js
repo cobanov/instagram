@@ -208,3 +208,70 @@ test("normalizeUser falls back to friendship_status.followed_by", () => {
   const user = normalizeUser({ id: "1", username: "a", friendship_status: { followed_by: true } });
   assert.equal(user.follows_viewer, true);
 });
+
+/* The panel showed the raw key "scanPause" to users because t() falls back to
+   the key when a string is missing. These tests read the keys out of the source
+   and check every one of them resolves, so the next missing string fails here
+   instead of on screen. */
+const { I18N } = loadInternals();
+const LOCALES = Object.keys(I18N);
+
+/* Most keys are plain t("key") calls. The rest are passed around as data —
+   countdown reasons, progress labels, and the settings field table — so each of
+   those shapes needs its own pattern. */
+function usedKeys() {
+  const keys = new Set();
+  const patterns = [
+    /\bt\(\s*"(\w+)"/g,
+    /\bt\(\s*[\w.]+\s*\?\s*"(\w+)"\s*:\s*"(\w+)"/g,
+    /sleepWithCountdown\([^,]+,\s*"(\w+)"\)/g,
+    /\blabel:\s*"(\w+)"/g,
+    /\[\s*"\w+",\s*"(\w+)",\s*\d+\s*\]/g
+  ];
+  for (const pattern of patterns) {
+    for (const match of SOURCE.matchAll(pattern)) {
+      match.slice(1).filter(Boolean).forEach((key) => keys.add(key));
+    }
+  }
+  return [...keys];
+}
+
+test("every string key the code asks for exists in every language", () => {
+  const missing = [];
+  for (const locale of LOCALES) {
+    for (const key of usedKeys()) {
+      if (!(key in I18N[locale])) missing.push(`${locale}.${key}`);
+    }
+  }
+  assert.deepEqual(missing, [], `missing strings: ${missing.join(", ")}`);
+});
+
+test("the countdown reasons resolve to text, not to their own key", () => {
+  for (const key of ["scanPause", "cooldownIn", "nextActionIn"]) {
+    for (const locale of LOCALES) {
+      const template = I18N[locale][key];
+      assert.notEqual(template, undefined, `${locale}.${key} is missing`);
+      assert.match(template, /\{seconds\}/, `${locale}.${key} must show the seconds left`);
+    }
+  }
+});
+
+test("the languages carry the same set of keys", () => {
+  const [first, ...rest] = LOCALES;
+  for (const locale of rest) {
+    assert.deepEqual(
+      Object.keys(I18N[locale]).sort(),
+      Object.keys(I18N[first]).sort(),
+      `${locale} and ${first} must define the same keys`
+    );
+  }
+});
+
+test("no language leaves a string empty", () => {
+  for (const locale of LOCALES) {
+    for (const [key, value] of Object.entries(I18N[locale])) {
+      assert.equal(typeof value, "string", `${locale}.${key} must be a string`);
+      assert.notEqual(value.trim(), "", `${locale}.${key} is empty`);
+    }
+  }
+});
