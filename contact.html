@@ -1,15 +1,35 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Cobanov Instagram Unfollowers için iletişim ve sponsorluk bilgileri."
+      content="Contact and sponsorship information for Cobanov Instagram Unfollowers."
     />
     <meta name="theme-color" content="#141210" />
-    <script>document.documentElement.classList.add("js");</script>
-    <title>İletişim | Cobanov Instagram Unfollowers</title>
+
+    <script>
+      /* Language is picked before the first paint, so nobody sees the wrong
+         one flash past. English unless a choice was stored earlier. */
+      (function () {
+        var lang = "en";
+        try {
+          /* Seçim daha önce "cobanov_iu_language" altında tutuluyordu.
+             Türkçe'yi bilerek seçmiş biri, anahtar değişti diye onu
+             kaybetmesin. */
+          var stored =
+            localStorage.getItem("lang") ||
+            localStorage.getItem("cobanov_iu_language");
+          lang = stored === "tr" ? "tr" : "en";
+        } catch (e) {}
+        document.documentElement.setAttribute("data-lang", lang);
+        document.documentElement.lang = lang;
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+
+    <title>Contact | Cobanov Instagram Unfollowers</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23141210'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23e56192'/%3E%3C/svg%3E"
@@ -31,7 +51,9 @@
     ></script>
   </head>
   <body class="page-doc">
-    <a class="skip-link" href="#main" data-i18n="skip">İçeriğe geç</a>
+    <a class="skip-link" href="#main">
+      <span lang="en">Skip to content</span><span lang="tr">İçeriğe geç</span>
+    </a>
 
     <header class="masthead">
       <div class="shell masthead-inner">
@@ -40,7 +62,7 @@
           <span>cobanov</span>
         </a>
         <nav aria-label="Primary">
-          <a class="nav-text" href="/security" data-i18n="navSecurity">Güvenlik</a>
+          <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub" title="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.86 8.37 6.84 9.73.5.09.68-.22.68-.49v-1.9c-2.78.62-3.37-1.21-3.37-1.21-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.97c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.92v2.79c0 .27.18.58.69.48A10.08 10.08 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
@@ -53,29 +75,32 @@
               <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
             </svg>
           </a>
-          <button class="lang-toggle" type="button" data-language-toggle aria-label="Switch to English" title="Türkçe">TR</button>
+          <button class="lang-toggle" type="button" data-language-toggle aria-label="Language / Dil">TR</button>
         </nav>
       </div>
     </header>
 
     <main id="main">
-      <h1 data-i18n="headline">İletişim</h1>
-      <p data-i18n="lead">
-        Sorular, hata bildirimleri, sponsorluklar ve iş birliği mesajları için yazabilirsiniz.
+      <h1><span lang="en">Contact</span><span lang="tr">İletişim</span></h1>
+      <p>
+        <span lang="en">Questions, bug reports, sponsorships, and collaboration messages are all welcome.</span><span lang="tr">Sorular, hata bildirimleri, sponsorluklar ve iş birliği mesajları için yazabilirsiniz.</span>
       </p>
 
       <section class="panel">
         <p class="contact-line">
-          <span data-i18n="emailLabel">E-posta:</span>
+          <span lang="en">Email:</span><span lang="tr">E-posta:</span>
           <a href="mailto:mertcobanov@gmail.com">mertcobanov@gmail.com</a>
         </p>
         <p class="contact-line">
-          <span data-i18n="githubLabel">GitHub:</span>
+          <span>GitHub:</span>
           <a href="https://github.com/cobanov/instagram" rel="noreferrer">
             github.com/cobanov/instagram
           </a>
         </p>
-        <p class="contact-line" data-i18n="socialNote">
+        <p class="contact-line" lang="en">
+          You can follow me on Instagram and Twitter as well.
+        </p>
+        <p class="contact-line" lang="tr">
           Beni Instagram ve Twitter'da da takip edebilirsiniz.
         </p>
         <div class="social-list">
@@ -96,94 +121,67 @@
         </div>
       </section>
 
-      <h2 data-i18n="sponsorTitle">Sponsorluk</h2>
-      <p data-i18n="sponsorBody">
+      <h2><span lang="en">Sponsorship</span><span lang="tr">Sponsorluk</span></h2>
+      <p lang="en">
+        Cobanov Instagram Unfollowers drew roughly 53.8k unique visitors in the latest 30-day Cloudflare report. Sponsors can get a plain thank-you link on the site and in the README.
+      </p>
+      <p lang="tr">
         Cobanov Instagram Unfollowers, son 30 günlük Cloudflare raporunda yaklaşık 53.8k tekil ziyaretçi aldı. Sponsorlar için sitede ve README'de sade bir teşekkür bağlantısı eklenebilir.
       </p>
 
-      <h2 data-i18n="adsTitle">Reklam politikası</h2>
-      <p data-i18n="adsBody">
+      <h2><span lang="en">Advertising policy</span><span lang="tr">Reklam politikası</span></h2>
+      <p lang="en">
+        Sponsored links and ads are kept away from the copy-code button and the tool's own actions. The site never asks you to click an ad.
+      </p>
+      <p lang="tr">
         Sponsorlu bağlantılar ve reklamlar, kod kopyalama ve araç aksiyonlarından ayrı tutulur. Site kullanıcıdan reklama tıklamasını istemez.
       </p>
     </main>
 
     <footer class="colophon">
       <div class="shell colophon-row">
-        <span data-i18n="copyright">© 2026 Mert Cobanov.</span>
-      <span class="colophon-legal" data-i18n="disclaimer">Instagram ve Meta ile ilişkili değildir.</span>
+        <span>© 2026 Mert Cobanov.</span>
+      <span class="colophon-legal">
+        <span lang="en">Not affiliated with Instagram or Meta.</span><span lang="tr">Instagram ve Meta ile ilişkili değildir.</span>
+      </span>
       <span class="colophon-links">
-        <a href="/privacy" data-i18n="navPrivacy">Gizlilik</a>
-        <a href="/contact" data-i18n="navContact">İletişim</a>
-        <a href="/security" data-i18n="navSecurity">Güvenlik</a>
+        <a href="/privacy"><span lang="en">Privacy</span><span lang="tr">Gizlilik</span></a>
+        <a href="/contact"><span lang="en">Contact</span><span lang="tr">İletişim</span></a>
+        <a href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
         <a href="https://github.com/cobanov/instagram" rel="noreferrer">GitHub</a>
       </span>
       </div>
     </footer>
 
     <script>
+      /* Everything visible ships in both languages and CSS hides one of them.
+         The only strings JS still owns are the ones with no element to sit in. */
       const languageToggle = document.querySelector("[data-language-toggle]");
-      let currentLanguage = localStorage.getItem("cobanov_iu_language")
-        || (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
+      const pageTitle = { en: "Contact", tr: "İletişim" };
 
-      const translations = {
-        tr: {
-          metaDescription: "Cobanov Instagram Unfollowers için iletişim ve sponsorluk bilgileri.",
-          navContact: "İletişim",
-          skip: "İçeriğe geç",
-          navSecurity: "Güvenlik",
-          navPrivacy: "Gizlilik",
-          headline: "İletişim",
-          lead: "Sorular, hata bildirimleri, sponsorluklar ve iş birliği mesajları için yazabilirsiniz.",
-          emailLabel: "E-posta:",
-          githubLabel: "GitHub:",
-          socialNote: "Beni Instagram ve Twitter'da da takip edebilirsiniz.",
-          sponsorTitle: "Sponsorluk",
-          sponsorBody: "Cobanov Instagram Unfollowers, son 30 günlük Cloudflare raporunda yaklaşık 53.8k tekil ziyaretçi aldı. Sponsorlar için sitede ve README'de sade bir teşekkür bağlantısı eklenebilir.",
-          adsTitle: "Reklam politikası",
-          adsBody: "Sponsorlu bağlantılar ve reklamlar, kod kopyalama ve araç aksiyonlarından ayrı tutulur. Site kullanıcıdan reklama tıklamasını istemez.",
-          disclaimer: "Instagram ve Meta ile ilişkili değildir.",
-          copyright: "© 2026 Mert Cobanov."
-        },
-        en: {
-          metaDescription: "Contact and sponsorship information for Cobanov Instagram Unfollowers.",
-          navContact: "Contact",
-          skip: "Skip to content",
-          navSecurity: "Security",
-          navPrivacy: "Privacy",
-          headline: "Contact",
-          lead: "Questions, bug reports, sponsorships, and collaboration messages are welcome.",
-          emailLabel: "Email:",
-          githubLabel: "GitHub:",
-          socialNote: "You can also follow me on Instagram and Twitter.",
-          sponsorTitle: "Sponsorship",
-          sponsorBody: "Cobanov Instagram Unfollowers received about 53.8k unique visitors in the latest 30-day Cloudflare report. Sponsors can be featured with a simple thank-you link on the site and in the README.",
-          adsTitle: "Advertising policy",
-          adsBody: "Sponsored links and ads are kept separate from copy-code and tool action buttons. The site does not ask users to click ads.",
-          disclaimer: "Not affiliated with Instagram or Meta.",
-          copyright: "© 2026 Mert Cobanov."
-        }
-      };
+      function lang() {
+        return document.documentElement.getAttribute("data-lang") === "tr" ? "tr" : "en";
+      }
 
-      function applyLanguage(language) {
-        currentLanguage = translations[language] ? language : "tr";
-        const dict = translations[currentLanguage];
-        document.documentElement.lang = currentLanguage;
-        document.title = (currentLanguage === "tr" ? "İletişim" : "Contact") + " | Cobanov Instagram Unfollowers";
-        document.querySelector("meta[name='description']").setAttribute("content", dict.metaDescription);
-        document.querySelectorAll("[data-i18n]").forEach((node) => {
-          if (dict[node.dataset.i18n] !== undefined) node.textContent = dict[node.dataset.i18n];
-        });
-        languageToggle.textContent = currentLanguage === "tr" ? "TR" : "EN";
-        languageToggle.setAttribute("aria-label", currentLanguage === "tr" ? "Switch to English" : "Türkçeye geç");
-        languageToggle.setAttribute("title", currentLanguage === "tr" ? "Türkçe" : "English");
-        localStorage.setItem("cobanov_iu_language", currentLanguage);
+      function refreshLanguage() {
+        languageToggle.textContent = lang() === "tr" ? "EN" : "TR";
+        document.title = `${pageTitle[lang()]} | Cobanov Instagram Unfollowers`;
       }
 
       languageToggle.addEventListener("click", () => {
-        applyLanguage(currentLanguage === "tr" ? "en" : "tr");
+        const next = lang() === "tr" ? "en" : "tr";
+        document.documentElement.setAttribute("data-lang", next);
+        document.documentElement.lang = next;
+        try {
+          localStorage.setItem("lang", next);
+        } catch (error) {
+          /* Private window, or storage refused. The switch still works for
+             this visit; it simply will not be remembered. */
+        }
+        refreshLanguage();
       });
 
-      applyLanguage(currentLanguage);
+      refreshLanguage();
     </script>
   </body>
 </html>

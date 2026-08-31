@@ -1,14 +1,34 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Instagram'da sizi geri takip etmeyenleri bulan, sade arayüzlü ve optimize edilmiş console aracı."
+      content="A small, fast console tool that finds the Instagram accounts which do not follow you back."
     />
     <meta name="theme-color" content="#141210" />
-    <script>document.documentElement.classList.add("js");</script>
+
+    <script>
+      /* Language is picked before the first paint, so nobody sees the wrong
+         one flash past. English unless a choice was stored earlier. */
+      (function () {
+        var lang = "en";
+        try {
+          /* Seçim daha önce "cobanov_iu_language" altında tutuluyordu.
+             Türkçe'yi bilerek seçmiş biri, anahtar değişti diye onu
+             kaybetmesin. */
+          var stored =
+            localStorage.getItem("lang") ||
+            localStorage.getItem("cobanov_iu_language");
+          lang = stored === "tr" ? "tr" : "en";
+        } catch (e) {}
+        document.documentElement.setAttribute("data-lang", lang);
+        document.documentElement.lang = lang;
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+
     <title>Cobanov Instagram Unfollowers</title>
 
     <link rel="canonical" href="https://instagram.cobanov.dev/" />
@@ -16,9 +36,11 @@
     <meta property="og:title" content="Cobanov Instagram Unfollowers" />
     <meta
       property="og:description"
-      content="Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz."
+      content="Scans the accounts you follow and lists the ones that do not follow back. Your data never leaves the browser."
     />
     <meta property="og:url" content="https://instagram.cobanov.dev/" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="tr_TR" />
     <meta property="og:image" content="https://instagram.cobanov.dev/assets/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -47,7 +69,9 @@
     ></script>
   </head>
   <body>
-    <a class="skip-link" href="#main" data-i18n="skip">İçeriğe geç</a>
+    <a class="skip-link" href="#main">
+      <span lang="en">Skip to content</span><span lang="tr">İçeriğe geç</span>
+    </a>
 
     <!--
       A word about the other things on this domain. It sits above the masthead
@@ -60,7 +84,10 @@
     -->
     <aside class="promo-bar" data-promo hidden>
       <div class="shell promo-bar-inner">
-        <p class="promo-bar-text" data-i18n="promoText">
+        <p class="promo-bar-text" lang="en">
+          There is one more of these, and it is free too.
+        </p>
+        <p class="promo-bar-text" lang="tr">
           Bir de şu var, o da ücretsiz.
         </p>
         <span class="promo-bar-actions">
@@ -75,18 +102,18 @@
               <path d="M6 9l3 3-3 3" stroke-linecap="round" stroke-linejoin="round" />
               <path d="M12.5 15h5" stroke-linecap="round" />
             </svg>
-            <span class="promo-full" data-i18n="promoTarmy">Terminalden uzay imparatorluğu</span>
-            <span class="promo-tiny" data-i18n="promoTarmyShort">terminal.army</span>
+            <span class="promo-full" lang="en">A space empire from your terminal</span>
+            <span class="promo-full" lang="tr">Terminalden uzay imparatorluğu</span>
+            <span class="promo-tiny">terminal.army</span>
           </a>
           <a
             class="btn btn-sm btn-more"
             href="https://cobanov.dev/?ref=instagram"
             rel="noreferrer"
             data-oa-event="visit-cobanov"
-            data-i18n="promoAll"
-          >Tüm projeler</a>
+          ><span lang="en">All projects</span><span lang="tr">Tüm projeler</span></a>
         </span>
-        <button class="promo-bar-close" type="button" data-promo-close aria-label="Kapat">
+        <button class="promo-bar-close" type="button" data-promo-close aria-label="Close">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
@@ -101,7 +128,7 @@
           <span>cobanov</span>
         </a>
         <nav aria-label="Primary">
-          <a class="nav-text" href="/security" data-i18n="navSecurity">Güvenlik</a>
+          <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.86 8.37 6.84 9.73.5.09.68-.22.68-.49v-1.9c-2.78.62-3.37-1.21-3.37-1.21-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.97c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.92v2.79c0 .27.18.58.69.48A10.08 10.08 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
@@ -114,7 +141,7 @@
               <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" />
             </svg>
           </a>
-          <button class="lang-toggle" type="button" data-language-toggle aria-label="Switch to English">TR</button>
+          <button class="lang-toggle" type="button" data-language-toggle aria-label="Language / Dil">TR</button>
         </nav>
       </div>
     </header>
@@ -123,8 +150,11 @@
       <section class="hero">
         <div class="shell hero-split">
           <div>
-            <h1 data-i18n="headline">Seni geri takip etmeyenleri gör</h1>
-            <p class="hero-sub" data-i18n="lead">
+            <h1><span lang="en">See who does not follow you back</span><span lang="tr">Seni geri takip etmeyenleri gör</span></h1>
+            <p class="hero-sub" lang="en">
+              It scans the accounts you follow and lists the ones that do not follow back. Your data never leaves the browser.
+            </p>
+            <p class="hero-sub" lang="tr">
               Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz.
             </p>
 
@@ -134,9 +164,9 @@
                   <rect x="9" y="9" width="13" height="13" rx="2" />
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                 </svg>
-                <span data-i18n="copyCode">Kodu kopyala</span>
+                <span lang="en">Copy code</span><span lang="tr">Kodu kopyala</span>
               </button>
-              <a class="btn" href="dist/instagram-unfollower.one-line.js" data-i18n="openCode">Dosyayı aç</a>
+              <a class="btn" href="dist/instagram-unfollower.one-line.js"><span lang="en">Open the file</span><span lang="tr">Dosyayı aç</span></a>
             </div>
             <p class="copy-status" data-status aria-live="polite"></p>
           </div>
@@ -155,22 +185,31 @@
 
       <section id="support">
         <div class="shell">
-          <h2 data-i18n="supportTitle">Destek</h2>
-          <p class="section-intro" data-i18n="supportBody">
+          <h2><span lang="en">Support</span><span lang="tr">Destek</span></h2>
+          <p class="section-intro" lang="en">
+            This project is a hobby and it is free. If you find it useful, you can help keep it going.
+          </p>
+          <p class="section-intro" lang="tr">
             Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan geliştirilmesine destek olabilirsin.
           </p>
           <div class="support-row reveal">
-            <p data-i18n="supportNote">
+            <p lang="en">
+              For company sponsorship, write to me directly. I put a thank-you on this page and in the README.
+            </p>
+            <p lang="tr">
               Kurumsal sponsorluk için doğrudan yazabilirsin. Sayfada ve README'de teşekkür yerleştiririm.
             </p>
             <div class="support-actions">
-              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-i18n="supportSponsorCta" data-oa-event="sponsor">GitHub Sponsors</a>
+              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-oa-event="sponsor">GitHub Sponsors</a>
               <a class="btn" href="mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship">mertcobanov@gmail.com</a>
             </div>
           </div>
 
           <div class="wall">
-            <p class="wall-lead" data-i18n="wallLead">
+            <p class="wall-lead" lang="en">
+              Sponsor this and your name, handle, and amount show up here. The page was viewed 48,640 times in the last 30 days.
+            </p>
+            <p class="wall-lead" lang="tr">
               Sponsor olursan adın, hesabın ve desteğin burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.
             </p>
             <ol class="wall-list" data-sponsors></ol>
@@ -183,36 +222,54 @@
         <div class="shell">
           <div class="usage-split">
           <div class="usage-aside">
-            <h2 data-i18n="usageTitle">Nasıl kullanılır</h2>
-            <p class="section-intro" data-i18n="usageBody">
+            <h2><span lang="en">How to use it</span><span lang="tr">Nasıl kullanılır</span></h2>
+            <p class="section-intro" lang="en">
+              Open DevTools on the Instagram tab you already have open, then paste the snippet above into the console.
+            </p>
+            <p class="section-intro" lang="tr">
               Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
             </p>
-            <p class="note" data-i18n="note">
+            <p class="note" lang="en">
+              Instagram may rate-limit you. Do not push the unfollow speed higher than it needs to be.
+            </p>
+            <p class="note" lang="tr">
               Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.
             </p>
           </div>
           <ol class="steps">
             <li class="reveal">
-              <h3 data-i18n="step1Title">Instagram'a giriş yapın</h3>
-              <p data-i18n-html="step1Body">
+              <h3><span lang="en">Sign in to Instagram</span><span lang="tr">Instagram'a giriş yapın</span></h3>
+              <p lang="en">
+                First, sign in to your account on <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a>.
+              </p>
+              <p lang="tr">
                 Önce <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a> üzerinde hesabınızla giriş yapın.
               </p>
             </li>
             <li class="reveal">
-              <h3 data-i18n="step2Title">Konsolu açın</h3>
-              <p data-i18n-html="step2Body">
+              <h3><span lang="en">Open the console</span><span lang="tr">Konsolu açın</span></h3>
+              <p lang="en">
+                Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.
+              </p>
+              <p lang="tr">
                 Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.
               </p>
             </li>
             <li class="reveal">
-              <h3 data-i18n="step3Title">Kodu yapıştırın</h3>
-              <p data-i18n-html="step3Body">
+              <h3><span lang="en">Paste the code</span><span lang="tr">Kodu yapıştırın</span></h3>
+              <p lang="en">
+                Press Copy code, then paste it into the console. If Chrome blocks the paste, type <kbd>allow pasting</kbd> first.
+              </p>
+              <p lang="tr">
                 Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce <kbd>allow pasting</kbd> yazın.
               </p>
             </li>
             <li class="reveal">
-              <h3 data-i18n="step4Title">"Taramayı başlat"a basın</h3>
-              <p data-i18n="step4Body">
+              <h3><span lang="en">Press "Start scan"</span><span lang="tr">"Taramayı başlat"a basın</span></h3>
+              <p lang="en">
+                Start the scan once the panel opens. You can then unfollow your selections slowly and under control.
+              </p>
+              <p lang="tr">
                 Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
               </p>
             </li>
@@ -222,93 +279,113 @@
           <figure class="shot" data-shot>
             <img
               src="assets/panel.png"
-              alt="Tarama paneli çalışırken: takip edilen hesaplar yükleniyor, 718 hesabın 296'sı tarandı"
+              alt="The scan panel at work: followed accounts loading, 296 of 718 accounts scanned"
+              data-shot-image
               width="858"
               height="576"
               loading="lazy"
               decoding="async"
               onerror="this.closest('[data-shot]').hidden = true"
             />
-            <figcaption data-i18n="shotCaption">Panel tararken böyle görünür. Tarama sırasında hesabında hiçbir şey değişmez.</figcaption>
+            <figcaption>
+              <span lang="en">This is the panel while it scans. Nothing on your account changes during a scan.</span><span lang="tr">Panel tararken böyle görünür. Tarama sırasında hesabında hiçbir şey değişmez.</span>
+            </figcaption>
           </figure>
         </div>
       </section>
 
       <section id="changelog">
         <div class="shell">
-          <h2 data-i18n="changelogTitle">Değişiklikler</h2>
-          <p class="section-intro" data-i18n="changelogBody">
+          <h2><span lang="en">Changelog</span><span lang="tr">Değişiklikler</span></h2>
+          <p class="section-intro" lang="en">
+            Every time the code is updated, you can see here what changed.
+          </p>
+          <p class="section-intro" lang="tr">
             Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
           </p>
           <p class="meta-line" data-last-updated hidden></p>
           <ol class="releases" data-changelog></ol>
           <p class="section-intro" data-changelog-status hidden></p>
           <div class="security-actions">
-            <a class="btn" href="https://github.com/cobanov/instagram/commits/main" rel="noreferrer" data-i18n="changelogAll">Tüm geçmiş</a>
+            <a class="btn" href="https://github.com/cobanov/instagram/commits/main" rel="noreferrer"><span lang="en">Full history</span><span lang="tr">Tüm geçmiş</span></a>
           </div>
         </div>
       </section>
 
       <section id="security">
         <div class="shell">
-          <h2 data-i18n="securityTitle">Güvenlik</h2>
-          <p class="section-intro" data-i18n="securityBody">
+          <h2><span lang="en">Security</span><span lang="tr">Güvenlik</span></h2>
+          <p class="section-intro" lang="en">
+            Below are the security reports, or you can read the code yourself.
+          </p>
+          <p class="section-intro" lang="tr">
             Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
           </p>
 
           <div class="trust-bento reveal">
             <div class="trust-cell">
-              <h3 data-i18n="trustHash">Dosya imzası</h3>
+              <h3><span lang="en">File signature</span><span lang="tr">Dosya imzası</span></h3>
               <p class="trust-hash" data-script-hash>SHA-256</p>
             </div>
             <div class="trust-cell">
-              <h3 data-i18n="trustVt">VirusTotal</h3>
-              <p data-vt-summary data-i18n="vtLoading">VirusTotal sonucu yükleniyor...</p>
-              <p><a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link data-i18n="securityVirusTotal">VirusTotal raporu</a></p>
+              <h3>VirusTotal</h3>
+              <p data-vt-summary></p>
+              <p>
+                <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link><span lang="en">VirusTotal report</span><span lang="tr">VirusTotal raporu</span></a>
+              </p>
             </div>
             <div class="trust-cell">
-              <h3 data-i18n="trustStatic">Statik analiz</h3>
+              <h3><span lang="en">Static analysis</span><span lang="tr">Statik analiz</span></h3>
               <a href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer">
-                <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep workflow durumu" height="20" />
+                <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep workflow status" height="20" />
               </a>
             </div>
           </div>
 
           <div class="security-actions">
-            <a class="btn" href="/security" data-i18n="securityPageCta">Detayları gör</a>
-            <a class="btn" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer" data-i18n="securitySourceCta" data-oa-event="view-source">Kodu incele</a>
+            <a class="btn" href="/security"><span lang="en">See the details</span><span lang="tr">Detayları gör</span></a>
+            <a class="btn" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer" data-oa-event="view-source"><span lang="en">Read the code</span><span lang="tr">Kodu incele</span></a>
           </div>
         </div>
       </section>
 
       <section id="numbers">
         <div class="shell">
-          <h2 data-i18n="numbersTitle">Trafik</h2>
-          <p class="section-intro" data-i18n="numbersBody">
+          <h2><span lang="en">Traffic</span><span lang="tr">Trafik</span></h2>
+          <p class="section-intro" lang="en">
+            The site is open source and run as a hobby. Here are the raw numbers for the last 30 days.
+          </p>
+          <p class="section-intro" lang="tr">
             Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.
           </p>
           <div class="figures reveal">
             <div>
               <span class="figure-value">48.6k</span>
-              <span class="figure-label" data-i18n="trafficVisitors">sayfa görüntüleme</span>
+              <span class="figure-label"><span lang="en">page views</span><span lang="tr">sayfa görüntüleme</span></span>
             </div>
             <div>
               <span class="figure-value">48.3k</span>
-              <span class="figure-label" data-i18n="trafficRequests">ziyaret</span>
+              <span class="figure-label"><span lang="en">visits</span><span lang="tr">ziyaret</span></span>
             </div>
             <div>
               <span class="figure-value">38</span>
-              <span class="figure-label" data-i18n="trafficData">ulaşılan ülke</span>
+              <span class="figure-label"><span lang="en">countries reached</span><span lang="tr">ulaşılan ülke</span></span>
             </div>
           </div>
-          <p class="meta-line meta-line--figures" data-i18n="trafficPeriod">16 Temmuz - 15 Ağustos 2026, Cloudflare Web Analytics</p>
+          <p class="meta-line meta-line--figures">
+            <span lang="en">16 July - 15 August 2026, Cloudflare Web Analytics</span><span lang="tr">16 Temmuz - 15 Ağustos 2026, Cloudflare Web Analytics</span>
+          </p>
         </div>
       </section>
 
       <section id="source">
         <div class="shell">
-          <h2 data-i18n="sourceTitle">Kaynak</h2>
-          <p class="section-intro" data-i18n-html="sourceBody">
+          <h2><span lang="en">Source</span><span lang="tr">Kaynak</span></h2>
+          <p class="section-intro" lang="en">
+            This is the new version; the original usage idea comes from
+            <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.
+          </p>
+          <p class="section-intro" lang="tr">
             Yeni sürüm; eski kullanım fikri
             <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>
             projesinden geliyor.
@@ -320,14 +397,16 @@
 
     <footer class="colophon">
       <div class="shell colophon-row">
-        <span data-i18n="copyright">© 2026 Mert Cobanov.</span>
+        <span>© 2026 Mert Cobanov.</span>
         <span class="colophon-links">
-          <a href="/privacy" data-i18n="navPrivacy">Gizlilik</a>
-          <a href="/contact" data-i18n="navContact">İletişim</a>
-          <a href="/security" data-i18n="navSecurity">Güvenlik</a>
+          <a href="/privacy"><span lang="en">Privacy</span><span lang="tr">Gizlilik</span></a>
+          <a href="/contact"><span lang="en">Contact</span><span lang="tr">İletişim</span></a>
+          <a href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a href="https://github.com/cobanov/instagram" rel="noreferrer">GitHub</a>
         </span>
-        <span class="colophon-legal" data-i18n="disclaimer">Instagram ve Meta ile ilişkili değildir.</span>
+        <span class="colophon-legal">
+          <span lang="en">Not affiliated with Instagram or Meta.</span><span lang="tr">Instagram ve Meta ile ilişkili değildir.</span>
+        </span>
       </div>
     </footer>
 
@@ -339,6 +418,7 @@
       const promo = document.querySelector("[data-promo]");
       const promoClose = document.querySelector("[data-promo-close]");
       const vtSummary = document.querySelector("[data-vt-summary]");
+      const shotImage = document.querySelector("[data-shot-image]");
 
       let snippet = "";
       let scriptHash = "";
@@ -346,159 +426,68 @@
       let changelog;
       let sponsors;
 
-      let currentLanguage =
-        localStorage.getItem("cobanov_iu_language") ||
-        (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
-
-      const translations = {
-        tr: {
-          metaDescription:
-            "Instagram'da sizi geri takip etmeyenleri bulan, sade arayüzlü ve optimize edilmiş console aracı.",
-          skip: "İçeriğe geç",
-          navSecurity: "Güvenlik",
-          navPrivacy: "Gizlilik",
-          navContact: "İletişim",
-          headline: "Seni geri takip etmeyenleri gör",
-          lead: "Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz.",
-          copyCode: "Kodu kopyala",
-          openCode: "Dosyayı aç",
-          shotCaption: "Panel tararken böyle görünür. Tarama sırasında hesabında hiçbir şey değişmez.",
-          supportTitle: "Destek",
-          supportBody:
-            "Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan geliştirilmesine destek olabilirsin.",
-          supportNote: "Kurumsal sponsorluk için doğrudan yazabilirsin. Sayfada ve README'de teşekkür yerleştiririm.",
-          supportSponsorCta: "GitHub Sponsors",
-          usageTitle: "Nasıl kullanılır",
-          usageBody:
-            "Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.",
-          step1Title: "Instagram'a giriş yapın",
-          step1Body:
-            'Önce <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a> üzerinde hesabınızla giriş yapın.',
-          step2Title: "Konsolu açın",
-          step2Body:
-            'Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.',
-          step3Title: "Kodu yapıştırın",
-          step3Body:
-            'Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce <kbd>allow pasting</kbd> yazın.',
-          step4Title: '"Taramayı başlat"a basın',
-          step4Body:
-            "Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.",
-          note: "Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.",
-          wallLead: "Sponsor olursan adın, hesabın ve desteğin burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.",
-          wallOpen: "İlk sponsor henüz yok. İlk olan listenin en üstünde kalır.",
-          wallLeft: "Listede {n} yer daha var.",
-          changelogTitle: "Değişiklikler",
-          changelogBody: "Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.",
-          changelogAll: "Tüm geçmiş",
-          changelogUnavailable: "Değişiklik listesi şu anda yüklenemedi.",
-          lastUpdated: "Son güncelleme {date}",
-          securityTitle: "Güvenlik",
-          securityBody: "Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.",
-          trustHash: "Dosya imzası",
-          trustVt: "VirusTotal",
-          trustStatic: "Statik analiz",
-          securityVirusTotal: "VirusTotal raporu",
-          securityPageCta: "Detayları gör",
-          securitySourceCta: "Kodu incele",
-          vtLoading: "VirusTotal sonucu yükleniyor...",
-          vtClean: "{malicious} zararlı, {suspicious} şüpheli.",
-          vtFlagged: "Uyarı: {malicious} zararlı, {suspicious} şüpheli.",
-          vtUnavailable: "Canlı özet şu anda yüklenemedi.",
-          vtUnscanned: "Bu sürüm henüz VirusTotal'a gönderilmemiş.",
-          numbersTitle: "Trafik",
-          numbersBody: "Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.",
-          trafficVisitors: "sayfa görüntüleme",
-          trafficRequests: "ziyaret",
-          trafficData: "ulaşılan ülke",
-          trafficPeriod: "16 Temmuz - 15 Ağustos 2026, Cloudflare Web Analytics",
-          sourceTitle: "Kaynak",
-          sourceBody:
-            'Yeni sürüm; eski kullanım fikri <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a> projesinden geliyor.',
-          promoText: "Bir de şu var, o da ücretsiz.",
-          promoTarmy: "Terminalden uzay imparatorluğu",
-          promoTarmyShort: "terminal.army",
-          promoAll: "Tüm projeler",
-          promoClose: "Kapat",
-          copyright: "© 2026 Mert Cobanov.",
-          disclaimer: "Instagram ve Meta ile ilişkili değildir.",
-          copied: "Kod kopyalandı. Instagram konsoluna yapıştırabilirsiniz.",
-          copyFailed: "Kopyalama başarısız oldu. Kod dosyasını açıp elle kopyalayın.",
-          loadError: "Kod dosyası yüklenemedi."
+      /* Page copy lives in the markup in both languages and CSS hides one of
+         them, so the first paint is already right. Only the strings the script
+         writes itself, which have no element to sit in, need a table here. */
+      const T = {
+        copied: {
+          en: "Code copied. Paste it into the Instagram console.",
+          tr: "Kod kopyalandı. Instagram konsoluna yapıştırabilirsiniz."
         },
-        en: {
-          metaDescription:
-            "A clean and optimized console tool for finding Instagram accounts that do not follow you back.",
-          skip: "Skip to content",
-          navSecurity: "Security",
-          navPrivacy: "Privacy",
-          navContact: "Contact",
-          headline: "See who does not follow you back",
-          lead: "It scans the accounts you follow and lists the ones that do not follow back. Your data stays in the browser.",
-          copyCode: "Copy code",
-          openCode: "Open the file",
-          shotCaption: "The panel while it scans. Nothing on your account changes during a scan.",
-          supportTitle: "Support",
-          supportBody:
-            "This project is maintained as a hobby and it is free. If you find it useful, you can help keep it going.",
-          supportNote: "Write to me directly about company sponsorship. I add a thank-you on this page and in the README.",
-          supportSponsorCta: "GitHub Sponsors",
-          usageTitle: "How to use",
-          usageBody:
-            "Open the Instagram tab in your browser, open DevTools, and paste the snippet above into the console.",
-          step1Title: "Sign in to Instagram",
-          step1Body:
-            'First, sign in to your account on <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a>.',
-          step2Title: "Open the console",
-          step2Body:
-            'Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.',
-          step3Title: "Paste the code",
-          step3Body:
-            'Click Copy code, paste into the console. If Chrome blocks paste, type <kbd>allow pasting</kbd> first.',
-          step4Title: 'Press "Scan now"',
-          step4Body: "When the panel opens, start the scan. Unfollow your selections slowly and carefully.",
-          note: "Instagram may rate-limit you. Do not speed up the unfollow timing unnecessarily.",
-          wallLead: "Sponsor this and your name, handle, and amount appear here. The page was viewed 48,640 times in the last 30 days.",
-          wallOpen: "No sponsors yet. Whoever is first stays at the top of the list.",
-          wallLeft: "{n} more places on the list.",
-          changelogTitle: "Changelog",
-          changelogBody: "Every time the code is updated, you can see what changed here.",
-          changelogAll: "Full history",
-          changelogUnavailable: "The changelog could not be loaded right now.",
-          lastUpdated: "Last updated {date}",
-          securityTitle: "Security",
-          securityBody: "You can review the security reports below or inspect the code yourself.",
-          trustHash: "File signature",
-          trustVt: "VirusTotal",
-          trustStatic: "Static analysis",
-          securityVirusTotal: "VirusTotal report",
-          securityPageCta: "View details",
-          securitySourceCta: "Review code",
-          vtLoading: "Loading the VirusTotal result...",
-          vtClean: "{malicious} malicious, {suspicious} suspicious.",
-          vtFlagged: "Warning: {malicious} malicious, {suspicious} suspicious.",
-          vtUnavailable: "The live summary could not be loaded right now.",
-          vtUnscanned: "This build has not been submitted to VirusTotal yet.",
-          numbersTitle: "Traffic",
-          numbersBody: "This site is open source and maintained as a hobby. Raw last-30-days numbers below.",
-          trafficVisitors: "page views",
-          trafficRequests: "visits",
-          trafficData: "countries reached",
-          trafficPeriod: "16 July - 15 August 2026, Cloudflare Web Analytics",
-          sourceTitle: "Source",
-          sourceBody:
-            'This is the new version; the original usage idea comes from <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.',
-          promoText: "One more here, and it is free too.",
-          promoTarmy: "A space empire from your terminal",
-          promoTarmyShort: "terminal.army",
-          promoAll: "All projects",
-          promoClose: "Close",
-          copyright: "© 2026 Mert Cobanov.",
-          disclaimer: "Not affiliated with Instagram or Meta.",
-          copied: "Code copied. Paste it into the Instagram console.",
-          copyFailed: "Copy failed. Open the code file and copy it manually.",
-          loadError: "Code file could not be loaded."
+        copyFailed: {
+          en: "Copy failed. Open the code file and copy it by hand.",
+          tr: "Kopyalama başarısız oldu. Kod dosyasını açıp elle kopyalayın."
+        },
+        loadError: {
+          en: "The code file could not be loaded.",
+          tr: "Kod dosyası yüklenemedi."
+        },
+        wallOpen: {
+          en: "No sponsors yet. Whoever is first stays at the top of the list.",
+          tr: "İlk sponsor henüz yok. İlk olan listenin en üstünde kalır."
+        },
+        wallLeft: {
+          en: "{n} more places on the list.",
+          tr: "Listede {n} yer daha var."
+        },
+        changelogUnavailable: {
+          en: "The changelog could not be loaded right now.",
+          tr: "Değişiklik listesi şu anda yüklenemedi."
+        },
+        lastUpdated: {
+          en: "Last updated {date}",
+          tr: "Son güncelleme {date}"
+        },
+        vtLoading: {
+          en: "Loading the VirusTotal result...",
+          tr: "VirusTotal sonucu yükleniyor..."
+        },
+        vtClean: {
+          en: "{malicious} malicious, {suspicious} suspicious.",
+          tr: "{malicious} zararlı, {suspicious} şüpheli."
+        },
+        vtFlagged: {
+          en: "Warning: {malicious} malicious, {suspicious} suspicious.",
+          tr: "Uyarı: {malicious} zararlı, {suspicious} şüpheli."
+        },
+        vtUnavailable: {
+          en: "The live summary could not be loaded right now.",
+          tr: "Canlı özet şu anda yüklenemedi."
+        },
+        vtUnscanned: {
+          en: "This build has not been submitted to VirusTotal yet.",
+          tr: "Bu sürüm henüz VirusTotal'a gönderilmemiş."
+        },
+        promoClose: { en: "Close", tr: "Kapat" },
+        shotAlt: {
+          en: "The scan panel at work: followed accounts loading, 296 of 718 accounts scanned",
+          tr: "Tarama paneli çalışırken: takip edilen hesaplar yükleniyor, 718 hesabın 296'sı tarandı"
         }
       };
+
+      function lang() {
+        return document.documentElement.getAttribute("data-lang") === "tr" ? "tr" : "en";
+      }
 
       function format(template, values) {
         return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
@@ -507,7 +496,7 @@
       function formatDate(isoDate) {
         const parsed = new Date(`${isoDate}T00:00:00Z`);
         if (Number.isNaN(parsed.getTime())) return isoDate;
-        return parsed.toLocaleDateString(currentLanguage === "tr" ? "tr-TR" : "en-GB", {
+        return parsed.toLocaleDateString(lang() === "tr" ? "tr-TR" : "en-GB", {
           year: "numeric",
           month: "long",
           day: "numeric",
@@ -515,29 +504,29 @@
         });
       }
 
-      function applyLanguage(language) {
-        currentLanguage = translations[language] ? language : "tr";
-        const dict = translations[currentLanguage];
-        document.documentElement.lang = currentLanguage;
-        document.querySelector("meta[name='description']").setAttribute("content", dict.metaDescription);
-        document.querySelectorAll("[data-i18n]").forEach((node) => {
-          if (dict[node.dataset.i18n] !== undefined) node.textContent = dict[node.dataset.i18n];
-        });
-        document.querySelectorAll("[data-i18n-html]").forEach((node) => {
-          if (dict[node.dataset.i18nHtml] !== undefined) node.innerHTML = dict[node.dataset.i18nHtml];
-        });
-        languageToggle.textContent = currentLanguage === "tr" ? "TR" : "EN";
-        languageToggle.setAttribute(
-          "aria-label",
-          currentLanguage === "tr" ? "Switch to English" : "Türkçeye geç"
-        );
-        if (promoClose) promoClose.setAttribute("aria-label", dict.promoClose);
-        localStorage.setItem("cobanov_iu_language", currentLanguage);
-        applyScriptHash(scriptHash, true);
+      /* Redraws only what the script owns. The markup itself needs nothing:
+         the data-lang attribute on <html> already re-picked its language. */
+      function refreshLanguage() {
+        const L = lang();
+        languageToggle.textContent = L === "tr" ? "EN" : "TR";
+        if (promoClose) promoClose.setAttribute("aria-label", T.promoClose[L]);
+        if (shotImage) shotImage.alt = T.shotAlt[L];
         renderVirusTotalSummary();
         renderChangelog();
         renderSponsors();
         status.textContent = "";
+      }
+
+      function setLanguage(next) {
+        document.documentElement.setAttribute("data-lang", next);
+        document.documentElement.lang = next;
+        try {
+          localStorage.setItem("lang", next);
+        } catch (error) {
+          /* Private window, or storage refused. The switch still works for
+             this visit; it simply will not be remembered. */
+        }
+        refreshLanguage();
       }
 
       async function sha256Hex(text) {
@@ -563,19 +552,21 @@
 
       function renderVirusTotalSummary() {
         if (!vtSummary) return;
-        const dict = translations[currentLanguage];
+        const L = lang();
         if (!vtResult) {
-          vtSummary.textContent = dict.vtLoading;
+          vtSummary.textContent = T.vtLoading[L];
           return;
         }
         if (!vtResult.ok) {
-          vtSummary.textContent = vtResult.error === "unscanned" ? dict.vtUnscanned : dict.vtUnavailable;
+          vtSummary.textContent = vtResult.error === "unscanned" ? T.vtUnscanned[L] : T.vtUnavailable[L];
           return;
         }
         const stats = vtResult.stats || {};
         const values = { malicious: stats.malicious || 0, suspicious: stats.suspicious || 0 };
-        const key = values.malicious || values.suspicious ? "vtFlagged" : "vtClean";
-        vtSummary.textContent = format(dict[key], values);
+        vtSummary.textContent = format(
+          values.malicious || values.suspicious ? T.vtFlagged[L] : T.vtClean[L],
+          values
+        );
       }
 
       /* The changelog is the source of truth for "last updated": rebuilding CSS
@@ -585,12 +576,12 @@
         const statusNode = document.querySelector("[data-changelog-status]");
         const updatedNode = document.querySelector("[data-last-updated]");
         if (!list || changelog === undefined) return;
-        const dict = translations[currentLanguage];
+        const L = lang();
 
         if (!Array.isArray(changelog) || changelog.length === 0) {
           list.replaceChildren();
           if (statusNode) {
-            statusNode.textContent = dict.changelogUnavailable;
+            statusNode.textContent = T.changelogUnavailable[L];
             statusNode.hidden = false;
           }
           return;
@@ -614,7 +605,7 @@
 
             const notes = document.createElement("ul");
             notes.className = "release-notes";
-            for (const line of entry[currentLanguage] || entry.en || []) {
+            for (const line of entry[L] || entry.en || []) {
               const li = document.createElement("li");
               li.textContent = line;
               notes.appendChild(li);
@@ -626,7 +617,7 @@
         );
 
         if (updatedNode) {
-          updatedNode.textContent = format(dict.lastUpdated, { date: formatDate(changelog[0].date) });
+          updatedNode.textContent = format(T.lastUpdated[L], { date: formatDate(changelog[0].date) });
           updatedNode.hidden = false;
         }
         observeReveals();
@@ -635,11 +626,11 @@
       async function loadSnippet() {
         try {
           const response = await fetch(scriptUrl, { cache: "no-store" });
-          if (!response.ok) throw new Error(translations[currentLanguage].loadError);
+          if (!response.ok) throw new Error(T.loadError[lang()]);
           snippet = await response.text();
           applyScriptHash(await sha256Hex(snippet), true);
         } catch (error) {
-          status.textContent = error.message || translations[currentLanguage].loadError;
+          status.textContent = error.message || T.loadError[lang()];
         }
       }
 
@@ -658,7 +649,7 @@
         const list = document.querySelector("[data-sponsors]");
         const empty = document.querySelector("[data-sponsors-empty]");
         if (!list || sponsors === undefined) return;
-        const dict = translations[currentLanguage];
+        const L = lang();
         const filled = Array.isArray(sponsors) ? sponsors.slice(0, 10) : [];
 
         list.replaceChildren(
@@ -702,10 +693,10 @@
           if (left <= 0) {
             empty.hidden = true;
           } else if (filled.length === 0) {
-            empty.textContent = dict.wallOpen;
+            empty.textContent = T.wallOpen[L];
             empty.hidden = false;
           } else {
-            const [before, after = ""] = dict.wallLeft.split("{n}");
+            const [before, after = ""] = T.wallLeft[L].split("{n}");
             const strong = document.createElement("b");
             strong.textContent = String(left);
             empty.append(document.createTextNode(before), strong, document.createTextNode(after));
@@ -808,14 +799,14 @@
         try {
           if (!snippet) await loadSnippet();
           await navigator.clipboard.writeText(snippet);
-          status.textContent = translations[currentLanguage].copied;
+          status.textContent = T.copied[lang()];
         } catch {
-          status.textContent = translations[currentLanguage].copyFailed;
+          status.textContent = T.copyFailed[lang()];
         }
       });
 
       languageToggle.addEventListener("click", () => {
-        applyLanguage(currentLanguage === "tr" ? "en" : "tr");
+        setLanguage(lang() === "tr" ? "en" : "tr");
       });
 
       /* Entry reveals only, and only to establish reading order. Uses
@@ -885,7 +876,7 @@
         });
       }
 
-      applyLanguage(currentLanguage);
+      refreshLanguage();
       loadSnippet();
       loadSource();
       loadVirusTotalSummary();

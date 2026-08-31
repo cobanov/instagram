@@ -1,15 +1,35 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Cobanov Instagram Unfollowers için gizlilik notları."
+      content="Privacy notes for Cobanov Instagram Unfollowers."
     />
     <meta name="theme-color" content="#141210" />
-    <script>document.documentElement.classList.add("js");</script>
-    <title>Gizlilik | Cobanov Instagram Unfollowers</title>
+
+    <script>
+      /* Language is picked before the first paint, so nobody sees the wrong
+         one flash past. English unless a choice was stored earlier. */
+      (function () {
+        var lang = "en";
+        try {
+          /* Seçim daha önce "cobanov_iu_language" altında tutuluyordu.
+             Türkçe'yi bilerek seçmiş biri, anahtar değişti diye onu
+             kaybetmesin. */
+          var stored =
+            localStorage.getItem("lang") ||
+            localStorage.getItem("cobanov_iu_language");
+          lang = stored === "tr" ? "tr" : "en";
+        } catch (e) {}
+        document.documentElement.setAttribute("data-lang", lang);
+        document.documentElement.lang = lang;
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+
+    <title>Privacy | Cobanov Instagram Unfollowers</title>
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23141210'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23e56192'/%3E%3C/svg%3E"
@@ -31,7 +51,9 @@
     ></script>
   </head>
   <body class="page-doc">
-    <a class="skip-link" href="#main" data-i18n="skip">İçeriğe geç</a>
+    <a class="skip-link" href="#main">
+      <span lang="en">Skip to content</span><span lang="tr">İçeriğe geç</span>
+    </a>
 
     <header class="masthead">
       <div class="shell masthead-inner">
@@ -40,7 +62,7 @@
           <span>cobanov</span>
         </a>
         <nav aria-label="Primary">
-          <a class="nav-text" href="/security" data-i18n="navSecurity">Güvenlik</a>
+          <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub" title="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.86 8.37 6.84 9.73.5.09.68-.22.68-.49v-1.9c-2.78.62-3.37-1.21-3.37-1.21-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.97c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.92v2.79c0 .27.18.58.69.48A10.08 10.08 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
@@ -53,124 +75,101 @@
               <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
             </svg>
           </a>
-          <button class="lang-toggle" type="button" data-language-toggle aria-label="Switch to English" title="Türkçe">TR</button>
+          <button class="lang-toggle" type="button" data-language-toggle aria-label="Language / Dil">TR</button>
         </nav>
       </div>
     </header>
 
     <main id="main">
-      <h1 data-i18n="headline">Gizlilik</h1>
-      <p data-i18n="updated">Son güncelleme: 15 Ağustos 2026</p>
+      <h1><span lang="en">Privacy</span><span lang="tr">Gizlilik</span></h1>
+      <p>
+        <span lang="en">Last updated: 15 August 2026</span><span lang="tr">Son güncelleme: 15 Ağustos 2026</span>
+      </p>
 
       <div class="panel">
-        <p data-i18n="intro">
+        <p lang="en">
+          Cobanov Instagram Unfollowers is a static website and a browser console tool. The site never asks you to create an account, pay, or register on a server.
+        </p>
+        <p lang="tr">
           Cobanov Instagram Unfollowers statik bir web sitesi ve tarayıcı konsol aracıdır. Site hesap açmanızı, ödeme yapmanızı veya sunucu tarafında kayıt olmanızı istemez.
         </p>
       </div>
 
-      <h2 data-i18n="storedTitle">Bu site ne saklar?</h2>
-      <p data-i18n="storedBody">
+      <h2><span lang="en">What does this site store?</span><span lang="tr">Bu site ne saklar?</span></h2>
+      <p lang="en">
+        The site may use localStorage to remember simple interface choices such as the language you picked. The console tool may keep some of its own interface preferences in your browser too. All of it stays on your device.
+      </p>
+      <p lang="tr">
         Site, dil seçimi gibi basit arayüz tercihlerini hatırlamak için localStorage kullanabilir. Konsol aracı da bazı arayüz tercihlerini tarayıcınızda tutabilir. Bu bilgiler cihazınızda kalır.
       </p>
 
-      <h2 data-i18n="instagramTitle">Instagram verileri</h2>
-      <p data-i18n="instagramBody">
+      <h2><span lang="en">Instagram data</span><span lang="tr">Instagram verileri</span></h2>
+      <p lang="en">
+        The tool runs in the browser where you are signed in to Instagram. It reads follow-back information from Instagram's own responses and shows it locally in the panel. This project runs no backend that receives or stores your Instagram account data.
+      </p>
+      <p lang="tr">
         Araç, Instagram'a giriş yaptığınız tarayıcıda çalışır. Geri takip bilgisini Instagram yanıtlarından okur ve panelde yerel olarak gösterir. Bu proje Instagram hesap verilerinizi alan veya saklayan bir backend çalıştırmaz.
       </p>
 
-      <h2 data-i18n="analyticsTitle">Analitik</h2>
-      <p data-i18n="analyticsBody">
+      <h2><span lang="en">Analytics</span><span lang="tr">Analitik</span></h2>
+      <p lang="en">
+        Traffic is measured with Cloudflare Web Analytics. It sets no cookies, does not track visitors, and produces only aggregate page view counts.
+      </p>
+      <p lang="tr">
         Trafik Cloudflare Web Analytics ile ölçülür. Bu araç çerez kullanmaz, ziyaretçileri takip etmez ve yalnızca toplu sayfa görüntüleme sayıları üretir.
       </p>
 
-      <h2 data-i18n="contactTitle">İletişim</h2>
+      <h2><span lang="en">Contact</span><span lang="tr">İletişim</span></h2>
       <p>
-        <span data-i18n="contactBody">Gizlilik soruları için yazabilirsiniz:</span>
+        <span lang="en">For privacy questions, write to:</span><span lang="tr">Gizlilik soruları için yazabilirsiniz:</span>
         <a href="mailto:mertcobanov@gmail.com">mertcobanov@gmail.com</a>.
       </p>
     </main>
 
     <footer class="colophon">
       <div class="shell colophon-row">
-        <span data-i18n="copyright">© 2026 Mert Cobanov.</span>
-      <span class="colophon-legal" data-i18n="disclaimer">Instagram ve Meta ile ilişkili değildir.</span>
+        <span>© 2026 Mert Cobanov.</span>
+      <span class="colophon-legal">
+        <span lang="en">Not affiliated with Instagram or Meta.</span><span lang="tr">Instagram ve Meta ile ilişkili değildir.</span>
+      </span>
       <span class="colophon-links">
-        <a href="/privacy" data-i18n="navPrivacy">Gizlilik</a>
-        <a href="/contact" data-i18n="navContact">İletişim</a>
-        <a href="/security" data-i18n="navSecurity">Güvenlik</a>
+        <a href="/privacy"><span lang="en">Privacy</span><span lang="tr">Gizlilik</span></a>
+        <a href="/contact"><span lang="en">Contact</span><span lang="tr">İletişim</span></a>
+        <a href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
         <a href="https://github.com/cobanov/instagram" rel="noreferrer">GitHub</a>
       </span>
       </div>
     </footer>
 
     <script>
+      /* Everything visible ships in both languages and CSS hides one of them.
+         The only strings JS still owns are the ones with no element to sit in. */
       const languageToggle = document.querySelector("[data-language-toggle]");
-      let currentLanguage = localStorage.getItem("cobanov_iu_language")
-        || (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en");
+      const pageTitle = { en: "Privacy", tr: "Gizlilik" };
 
-      const translations = {
-        tr: {
-          metaDescription: "Cobanov Instagram Unfollowers için gizlilik notları.",
-          navContact: "İletişim",
-          skip: "İçeriğe geç",
-          navSecurity: "Güvenlik",
-          navPrivacy: "Gizlilik",
-          headline: "Gizlilik",
-          updated: "Son güncelleme: 15 Ağustos 2026",
-          intro: "Cobanov Instagram Unfollowers statik bir web sitesi ve tarayıcı konsol aracıdır. Site hesap açmanızı, ödeme yapmanızı veya sunucu tarafında kayıt olmanızı istemez.",
-          storedTitle: "Bu site ne saklar?",
-          storedBody: "Site, dil seçimi gibi basit arayüz tercihlerini hatırlamak için localStorage kullanabilir. Konsol aracı da bazı arayüz tercihlerini tarayıcınızda tutabilir. Bu bilgiler cihazınızda kalır.",
-          instagramTitle: "Instagram verileri",
-          instagramBody: "Araç, Instagram'a giriş yaptığınız tarayıcıda çalışır. Geri takip bilgisini Instagram yanıtlarından okur ve panelde yerel olarak gösterir. Bu proje Instagram hesap verilerinizi alan veya saklayan bir backend çalıştırmaz.",
-          analyticsTitle: "Analitik",
-          analyticsBody: "Trafik Cloudflare Web Analytics ile ölçülür. Bu araç çerez kullanmaz, ziyaretçileri takip etmez ve yalnızca toplu sayfa görüntüleme sayıları üretir.",
-          contactTitle: "İletişim",
-          contactBody: "Gizlilik soruları için yazabilirsiniz:",
-          disclaimer: "Instagram ve Meta ile ilişkili değildir.",
-          copyright: "© 2026 Mert Cobanov."
-        },
-        en: {
-          metaDescription: "Privacy notes for Cobanov Instagram Unfollowers.",
-          navContact: "Contact",
-          skip: "Skip to content",
-          navSecurity: "Security",
-          navPrivacy: "Privacy",
-          headline: "Privacy",
-          updated: "Last updated: 15 August 2026",
-          intro: "Cobanov Instagram Unfollowers is a static website and browser-console tool. The site does not require accounts, payments, or server-side registration.",
-          storedTitle: "What does this site store?",
-          storedBody: "The site may use localStorage to remember simple interface choices such as language. The console tool may also store local interface preferences in your browser. This data stays on your device.",
-          instagramTitle: "Instagram data",
-          instagramBody: "The tool runs in your browser while you are signed in to Instagram. It reads follow-back information from Instagram responses and displays it locally. This project does not run a backend that receives or stores your Instagram account data.",
-          analyticsTitle: "Analytics",
-          analyticsBody: "Traffic is measured with Cloudflare Web Analytics. It sets no cookies, does not track visitors, and produces only aggregate page view counts.",
-          contactTitle: "Contact",
-          contactBody: "For privacy questions, contact:",
-          disclaimer: "Not affiliated with Instagram or Meta.",
-          copyright: "© 2026 Mert Cobanov."
-        }
-      };
+      function lang() {
+        return document.documentElement.getAttribute("data-lang") === "tr" ? "tr" : "en";
+      }
 
-      function applyLanguage(language) {
-        currentLanguage = translations[language] ? language : "tr";
-        const dict = translations[currentLanguage];
-        document.documentElement.lang = currentLanguage;
-        document.title = (currentLanguage === "tr" ? "Gizlilik" : "Privacy") + " | Cobanov Instagram Unfollowers";
-        document.querySelector("meta[name='description']").setAttribute("content", dict.metaDescription);
-        document.querySelectorAll("[data-i18n]").forEach((node) => {
-          if (dict[node.dataset.i18n] !== undefined) node.textContent = dict[node.dataset.i18n];
-        });
-        languageToggle.textContent = currentLanguage === "tr" ? "TR" : "EN";
-        languageToggle.setAttribute("aria-label", currentLanguage === "tr" ? "Switch to English" : "Türkçeye geç");
-        languageToggle.setAttribute("title", currentLanguage === "tr" ? "Türkçe" : "English");
-        localStorage.setItem("cobanov_iu_language", currentLanguage);
+      function refreshLanguage() {
+        languageToggle.textContent = lang() === "tr" ? "EN" : "TR";
+        document.title = `${pageTitle[lang()]} | Cobanov Instagram Unfollowers`;
       }
 
       languageToggle.addEventListener("click", () => {
-        applyLanguage(currentLanguage === "tr" ? "en" : "tr");
+        const next = lang() === "tr" ? "en" : "tr";
+        document.documentElement.setAttribute("data-lang", next);
+        document.documentElement.lang = next;
+        try {
+          localStorage.setItem("lang", next);
+        } catch (error) {
+          /* Private window, or storage refused. The switch still works for
+             this visit; it simply will not be remembered. */
+        }
+        refreshLanguage();
       });
 
-      applyLanguage(currentLanguage);
+      refreshLanguage();
     </script>
   </body>
 </html>

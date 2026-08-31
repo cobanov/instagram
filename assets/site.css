@@ -85,6 +85,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Language switch. Every translated string ships in both languages and CSS
+   picks one, so the first paint is already correct and nothing flickers when
+   the script runs. No data-lang attribute means English. */
+:root:not([data-lang="tr"]) [lang="tr"] {
+  display: none !important;
+}
+
+:root[data-lang="tr"] [lang="en"] {
+  display: none !important;
+}
+
 h1,
 h2,
 h3 {
