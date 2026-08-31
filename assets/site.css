@@ -390,6 +390,10 @@ h3 {
   margin: 20px 0 0;
 }
 
+.footer-social { display: flex; align-items: center; gap: 16px; }
+.footer-social a { display: inline-flex; }
+.footer-social svg { width: 18px; height: 18px; display: block; }
+
 /* --------------------------------------------------------------------------
    Motion. MOTION_INTENSITY 5: entry reveals and interaction feedback only.
    Driven by IntersectionObserver, never a scroll listener.
@@ -435,6 +439,9 @@ h3 {
   outline-offset: 3px;
   border-radius: 4px;
 }
+
+/* Secim de accent'ten: pembenin %32 alfasi. */
+::selection { background: rgba(229, 97, 146, 0.32); }
 
 @media (max-width: 640px) {
   .masthead nav {
