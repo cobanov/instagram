@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Instagram Unfollowers",
+  "version": "1.0.0",
+  "description": "Chrome extension wrapper for the cobanov/instagram console script that finds Instagram accounts that don't follow you back. Original project: github.com/cobanov/instagram",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["https://www.instagram.com/*"],
+  "action": {
+    "default_title": "Open Instagram Unfollowers"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
