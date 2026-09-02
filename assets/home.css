@@ -122,6 +122,15 @@
   top: 40px;
 }
 
+/* The extension is a second way in, not the recommended one, so it sits under
+   the console instructions at note size and without the warning rule. */
+.usage-alt {
+  margin: 14px 0 0;
+  max-width: 58ch;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
 .steps {
   margin: 0;
   padding: 0;
