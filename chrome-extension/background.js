@@ -1,6 +1,6 @@
-// Uzantı ikonuna tıklandığında, aktif sekme instagram.com ise
-// paneli sayfaya enjekte eder (script zaten kendi kendine
-// mount/unmount toggle yapıyor, tekrar tıklarsan kapanır).
+// Clicking the toolbar icon injects the panel into the active tab, but only on
+// instagram.com. The script mounts and unmounts itself, so a second click
+// closes the panel again.
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab.id || !tab.url || !tab.url.startsWith("https://www.instagram.com")) {
     return;
