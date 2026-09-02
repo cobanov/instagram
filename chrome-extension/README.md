@@ -15,10 +15,16 @@ extension icon instead of pasting into DevTools.
 
 ### Install
 
-1. Go to chrome://extensions.
-2. Turn on "Developer mode" (top right).
-3. Click "Load unpacked".
-4. Select this folder.
+1. Download `instagram-unfollowers-chrome-extension.zip` from the
+   [latest release](https://github.com/cobanov/instagram/releases/latest) and
+   unpack it. Cloning the repo and using this folder works too.
+2. Go to chrome://extensions.
+3. Turn on "Developer mode" (top right).
+4. Click "Load unpacked".
+5. Select the unpacked folder.
+
+Chrome only installs signed extensions from the Web Store, so an unpacked
+folder is the way in until this is published there.
 
 ### Usage
 
@@ -27,6 +33,8 @@ extension icon instead of pasting into DevTools.
 3. Click "Scan now" in the panel that opens.
 
 ### instagram-unfollower.js is generated
+
+`npm run pack` writes the release zip to `.pack/`.
 
 `instagram-unfollower.js` in this folder is written by `scripts/build.js` from
 `src/instagram-unfollower.js`. Do not edit it by hand, and run `npm run build`
@@ -64,10 +72,16 @@ yapıştırmak yerine eklenti ikonuna tıklıyorsun.
 
 ### Kurulum
 
-1. chrome://extensions adresine git.
-2. Sağ üstten "Geliştirici modu"nu (Developer mode) aç.
-3. "Paketlenmemiş öğe yükle" (Load unpacked) butonuna tıkla.
-4. Bu klasörü seç.
+1. [Son sürümden](https://github.com/cobanov/instagram/releases/latest)
+   `instagram-unfollowers-chrome-extension.zip` dosyasını indir ve klasöre çıkar.
+   Depoyu klonlayıp bu klasörü kullanmak da olur.
+2. chrome://extensions adresine git.
+3. Sağ üstten "Geliştirici modu"nu (Developer mode) aç.
+4. "Paketlenmemiş öğe yükle" (Load unpacked) butonuna tıkla.
+5. Çıkardığın klasörü seç.
+
+Chrome yalnızca Web Store'dan gelen imzalı uzantıları kuruyor, o yüzden mağazaya
+girene kadar tek yol paketlenmemiş klasör.
 
 ### Kullanım
 

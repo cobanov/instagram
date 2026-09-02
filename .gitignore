@@ -19,3 +19,6 @@ skills-lock.json
 
 # wrangler local state/cache
 .wrangler/
+
+# extension release zip, built by npm run pack
+.pack/

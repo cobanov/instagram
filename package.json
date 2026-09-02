@@ -1,10 +1,11 @@
 {
   "name": "instagram-unfollower",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "private": true,
   "description": "Cobanov Instagram Unfollowers site and pasteable console scanner.",
   "scripts": {
     "build": "node scripts/build.js",
+    "pack": "node scripts/build.js && rm -rf .pack && mkdir -p .pack && cp -R chrome-extension .pack/instagram-unfollowers-chrome-extension && cd .pack && zip -qr instagram-unfollowers-chrome-extension.zip instagram-unfollowers-chrome-extension -x '*/.*'",
     "vt": "node scripts/vt-upload.mjs",
     "test": "node --test \"test/**/*.test.js\"",
     "check": "node --check src/instagram-unfollower.js && node --check scripts/build.js && node --check scripts/vt-upload.mjs && npm test"

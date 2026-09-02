@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.2.0",
+    "date": "2026-09-02",
+    "tr": [
+      "Chrome uzantısı eklendi. Konsola kod yapıştırmak istemeyenler uzantıyı kurup araç çubuğundaki düğmeye basabilir; uzantı bu sayfadaki dosyanın aynısını çalıştırıyor. Katkı: yavuzmeteafsar.",
+      "Uzantı, GitHub Releases sayfasından zip olarak iniyor ve chrome://extensions üzerinden \"Paketlenmemiş öğe yükle\" ile kuruluyor.",
+      "Uzantının içindeki dosya elle kopyalanmıyor, her build'de kaynaktan üretiliyor. Güvenlik sayfasındaki SHA-256 uzantıyı da doğruluyor."
+    ],
+    "en": [
+      "Added a Chrome extension. If you would rather not paste into the console, install it and press the toolbar button. It runs the same file this page hands out. Contributed by yavuzmeteafsar.",
+      "The extension downloads as a zip from GitHub Releases and installs through \"Load unpacked\" on chrome://extensions.",
+      "The file inside the extension is generated from the source on every build instead of copied by hand, so the SHA-256 on the security page verifies the extension too."
+    ]
+  },
+  {
     "version": "2.1.1",
     "date": "2026-08-27",
     "tr": [
