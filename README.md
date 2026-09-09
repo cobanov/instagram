@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/cobanov/instagram/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/cobanov/instagram?color=e56192&labelColor=1a1a1a"></a>
-  <img alt="tests" src="https://img.shields.io/badge/tests-22-e56192?labelColor=1a1a1a">
+  <img alt="tests" src="https://img.shields.io/badge/tests-27-e56192?labelColor=1a1a1a">
   <img alt="extension" src="https://img.shields.io/badge/Chrome-MV3%20extension-e56192?labelColor=1a1a1a">
   <a href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml"><img alt="semgrep" src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg"></a>
 </p>
@@ -23,15 +23,15 @@
 
 Every tool that answers this question wants something first: your password, an OAuth
 grant, or your follower list uploaded to somewhere you cannot see. None of that is
-needed. Instagram already tells the logged-in browser, for each account you follow,
-whether that account follows you back. The whole job is reading a field.
+needed. Instagram already makes your following and follower lists available to the
+logged-in browser. The whole job is comparing those lists inside the tab.
 
 So this is a script you paste into your own DevTools console on your own Instagram
 tab. It uses the session already in the browser. Nothing is sent anywhere: the site
 is static, and there is no server on this side to receive anything.
 
-- **It reads only the accounts you follow.** Instagram's `follows_viewer` field on
-  each one, rather than pulling your full follower list down to compare against.
+- **It compares both lists locally.** The scanner reads your following and follower
+  lists from Instagram, then compares their user IDs inside the tab.
 - **Nothing leaves the tab.** No backend, no upload, no key. What the panel shows is
   what the browser already had.
 - **Unfollowing is slow on purpose.** Rate limits, blocks and `checkpoint_required`
@@ -58,8 +58,8 @@ Clicking its toolbar icon injects the same script. Contributed by
 
 ## Use
 
-Click **Scan now**. The panel walks your following list and lists everyone whose
-`follows_viewer` is false.
+Click **Scan now**. The panel walks your following and follower lists, then shows the
+accounts present only in your following list.
 
 Unfollowing from the panel is deliberately unhurried. Instagram answers a burst of
 unfollows with `feedback_required`, a spam flag, a checkpoint, or an HTTP 429, and
@@ -94,7 +94,7 @@ it is byte-identical to `dist/` and the published hash verifies it too.
 
 ```
 npm run build   # bundles src/ into dist/ and writes the new snippet hash
-npm run check   # syntax check plus the 22 tests
+npm run check   # syntax check plus the 27 tests
 npm run vt      # submits the built snippet to VirusTotal
 npm run pack    # builds, then zips chrome-extension/ into .pack/ for a release
 ```
@@ -103,8 +103,9 @@ The tests cover the part that is genuinely dangerous: what counts as a successfu
 unfollow, and which failures must stop the run. An HTTP 200 carrying
 `status: "fail"`, an HTML login page served with 200, a spam flag, a checkpoint, a
 429 and a 401 are each asserted to be handled as themselves rather than as generic
-retryable errors. The rest check that no language file is missing a key or leaves
-one empty.
+retryable errors. The scan tests cover the current friendship-list endpoints,
+pagination, repeated-cursor protection, and the local following/follower comparison.
+The rest check that no language file is missing a key or leaves one empty.
 
 Every build produces a new hash, and the security page reports a hash VirusTotal has
 never seen as unscanned. `npm run vt` closes that gap: run it after any build that

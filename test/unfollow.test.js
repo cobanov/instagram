@@ -44,14 +44,120 @@ function mockFetch(responses) {
     if (!next) throw new Error(`unexpected request #${calls.length} to ${url}`);
     if (next.throws) throw new Error(next.throws);
     return {
+      ok: next.status >= 200 && next.status < 300,
       status: next.status,
-      text: async () => next.body ?? ""
+      text: async () => next.body ?? "",
+      json: async () => next.json ?? JSON.parse(next.body ?? "{}")
     };
   };
   return { impl, calls };
 }
 
-const { evaluateUnfollowResponse, normalizeUser } = loadInternals();
+const {
+  addFollowBackStatus,
+  evaluateUnfollowResponse,
+  friendshipListUrl,
+  normalizeUser
+} = loadInternals();
+
+test("friendship list URLs use Instagram's current REST endpoints", () => {
+  assert.equal(
+    friendshipListUrl("123", "following"),
+    "/api/v1/friendships/123/following/?count=200"
+  );
+  assert.equal(
+    friendshipListUrl("123", "followers", "cursor + /"),
+    "/api/v1/friendships/123/followers/?count=200&max_id=cursor%20%2B%20%2F"
+  );
+});
+
+test("following and followers are diffed by normalized user id", () => {
+  const following = [
+    normalizeUser({ pk: 1, username: "mutual" }),
+    normalizeUser({ pk: "2", username: "not-mutual" })
+  ];
+  const followers = [normalizeUser({ pk: "1", username: "mutual" })];
+
+  const results = addFollowBackStatus(following, followers);
+
+  assert.equal(results[0].follows_viewer, true);
+  assert.equal(results[1].follows_viewer, false);
+});
+
+test("friendship scans paginate the REST endpoint with the web app header", async () => {
+  const { impl, calls } = mockFetch([
+    {
+      status: 200,
+      json: {
+        users: [{ pk: "1", username: "first" }],
+        has_more: true,
+        next_max_id: "next cursor"
+      }
+    },
+    {
+      status: 200,
+      json: {
+        users: [{ pk: "2", username: "second" }],
+        has_more: false
+      }
+    }
+  ]);
+  const { fetchFriendshipList } = loadInternals(impl);
+
+  const results = await fetchFriendshipList("123", "following", () => {});
+
+  assert.equal(results.map((user) => user.id).join(","), "1,2");
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=200");
+  assert.equal(
+    calls[1].url,
+    "/api/v1/friendships/123/following/?count=200&max_id=next%20cursor"
+  );
+  assert.equal(calls[0].init.credentials, "include");
+  assert.equal(calls[0].init.headers["x-ig-app-id"], "936619743392459");
+});
+
+test("friendship scans reject an incomplete empty page", async () => {
+  const { impl } = mockFetch([
+    {
+      status: 200,
+      json: { users: [], has_more: true, next_max_id: "next" }
+    }
+  ]);
+  const { fetchFriendshipList } = loadInternals(impl);
+
+  await assert.rejects(
+    fetchFriendshipList("123", "followers", () => {}),
+    /Scan failed/
+  );
+});
+
+test("friendship scans reject a repeated cursor instead of looping forever", async () => {
+  const { impl } = mockFetch([
+    {
+      status: 200,
+      json: {
+        users: [{ pk: "1", username: "first" }],
+        has_more: true,
+        next_max_id: "same-cursor"
+      }
+    },
+    {
+      status: 200,
+      json: {
+        users: [{ pk: "2", username: "second" }],
+        has_more: true,
+        next_max_id: "same-cursor"
+      }
+    }
+  ]);
+  const { fetchFriendshipList } = loadInternals(impl);
+
+  await assert.rejects(
+    fetchFriendshipList("123", "followers", () => {}),
+    /Scan failed/
+  );
+});
 
 test("HTTP 200 with status ok counts as unfollowed", () => {
   const result = evaluateUnfollowResponse(200, '{"status":"ok"}');

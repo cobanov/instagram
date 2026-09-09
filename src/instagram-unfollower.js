@@ -35,10 +35,11 @@
       title: "Instagram Unfollower",
       subtitle: "See who doesn't follow you back",
       welcomeTitle: "Ready when you are",
-      welcomeBody: "We'll scan only the people you follow and use Instagram's follow-back status to keep the scan fast. Nothing is changed on your account during the scan.",
+      welcomeBody: "We'll compare the people you follow with your followers. Nothing is changed on your account during the scan.",
       scanBtn: "Scan now",
       scanning: "Scanning",
       loadingFollowing: "Loading the people you follow",
+      loadingFollowers: "Loading your followers",
       paused: "Paused",
       pause: "Pause",
       resume: "Resume",
@@ -113,10 +114,11 @@
       title: "Instagram Takip Etmeyenler",
       subtitle: "Seni geri takip etmeyenleri gör",
       welcomeTitle: "Hazır olduğunda başlat",
-      welcomeBody: "Sadece takip ettiklerin taranır ve Instagram'ın geri takip durumuyla hızlıca kontrol edilir. Tarama sırasında hesabında hiçbir şey değişmez.",
+      welcomeBody: "Takip ettiklerin ve takipçilerin karşılaştırılır. Tarama sırasında hesabında hiçbir şey değişmez.",
       scanBtn: "Taramayı başlat",
       scanning: "Taranıyor",
       loadingFollowing: "Takip ettiklerin yükleniyor",
+      loadingFollowers: "Takipçilerin yükleniyor",
       paused: "Duraklatıldı",
       pause: "Duraklat",
       resume: "Devam et",
@@ -827,21 +829,26 @@
       const viewerId = getCookie("ds_user_id");
       if (!viewerId) throw new Error(t("cookieMissing"));
 
-      const onPage = (results, totalGuess) => {
+      const onPage = (label) => (results) => {
         state.progress = {
           current: results.length,
-          total: totalGuess || 0,
-          label: "loadingFollowing",
+          total: 0,
+          label,
           note: ""
         };
         updateProgressDOM();
       };
 
-      const following = await fetchFollowingWithBackStatus(viewerId, onPage);
+      const following = await fetchFriendshipList(viewerId, "following", onPage("loadingFollowing"));
       if (state.scanCancelled) return resetToIdle();
+
+      await sleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
+      const followers = await fetchFriendshipList(viewerId, "followers", onPage("loadingFollowers"));
+      if (state.scanCancelled) return resetToIdle();
+
       state.followingCount = following.length;
-      state.followersCount = following.filter((user) => user.follows_viewer).length;
-      state.users = following;
+      state.followersCount = followers.length;
+      state.users = addFollowBackStatus(following, followers);
 
       state.mode = "results";
       const nonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
@@ -863,36 +870,33 @@
     renderBody();
   }
 
-  async function fetchFollowingWithBackStatus(viewerId, onPage) {
+  async function fetchFriendshipList(viewerId, kind, onPage) {
     const results = [];
     let cursor = "";
     let page = 0;
-    let totalGuess = 0;
+    const seenCursors = new Set();
 
     while (true) {
       await waitWhile(() => state.scanPaused && !state.scanCancelled);
       if (state.scanCancelled) return results;
 
-      const variables = {
-        id: viewerId,
-        include_reel: true,
-        fetch_mutual: false,
-        first: 24
-      };
-      if (cursor) variables.after = cursor;
-      const url = `/graphql/query/?query_hash=3dec7e2c57367ef3da3d987d89f9dbc8&variables=${encodeURIComponent(JSON.stringify(variables))}`;
-      const json = await igFetch(url);
-      const edge = json?.data?.user?.edge_follow;
-      if (!edge?.edges) throw new Error(t("scanFailed"));
-      const users = edge.edges.map((item) => normalizeUser(item.node)).filter((u) => u.id && u.username);
+      const json = await igFetch(friendshipListUrl(viewerId, kind, cursor));
+      if (!Array.isArray(json?.users)) throw new Error(t("scanFailed"));
+
+      const users = json.users.map(normalizeUser).filter((u) => u.id && u.username);
       results.push(...users);
+      onPage(dedupe(results));
 
-      if (!totalGuess && typeof edge.count === "number") totalGuess = edge.count;
-      onPage(results, totalGuess);
+      const nextCursor = json.next_max_id == null ? "" : String(json.next_max_id);
+      if (json.has_more === false || !nextCursor) {
+        if (json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
+        break;
+      }
+      if (!users.length || seenCursors.has(nextCursor)) throw new Error(t("scanFailed"));
 
-      cursor = edge.page_info?.end_cursor || "";
+      seenCursors.add(nextCursor);
+      cursor = nextCursor;
       page += 1;
-      if (!edge.page_info?.has_next_page || !cursor) break;
 
       await sleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
       if (state.timings.scanPauseEveryPages > 0 && page % state.timings.scanPauseEveryPages === 0) {
@@ -900,6 +904,17 @@
       }
     }
     return dedupe(results);
+  }
+
+  function friendshipListUrl(viewerId, kind, cursor = "") {
+    if (kind !== "following" && kind !== "followers") throw new Error("Unknown friendship list");
+    const base = `/api/v1/friendships/${encodeURIComponent(viewerId)}/${kind}/?count=200`;
+    return cursor ? `${base}&max_id=${encodeURIComponent(cursor)}` : base;
+  }
+
+  function addFollowBackStatus(following, followers) {
+    const followerIds = new Set(followers.map((user) => String(user.id)));
+    return following.map((user) => ({ ...user, follows_viewer: followerIds.has(String(user.id)) }));
   }
 
   async function igFetch(url, init = {}) {
@@ -1913,7 +1928,18 @@
   `;
 
   if (globalThis.__IU_TEST__) {
-    globalThis.__IU_TEST__({ evaluateUnfollowResponse, unfollowUser, normalizeUser, isDefaultAvatar, parseRetryAfter, I18N, t });
+    globalThis.__IU_TEST__({
+      addFollowBackStatus,
+      evaluateUnfollowResponse,
+      fetchFriendshipList,
+      friendshipListUrl,
+      unfollowUser,
+      normalizeUser,
+      isDefaultAvatar,
+      parseRetryAfter,
+      I18N,
+      t
+    });
     return;
   }
 
