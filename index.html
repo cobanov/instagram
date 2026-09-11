@@ -147,6 +147,39 @@
     </header>
 
     <main id="main">
+      <!--
+        Outage notice. Instagram changed things on their end and a scan does
+        not come back with the right answer right now, so the band says so
+        before anyone copies the snippet. First thing inside main, so the skip
+        link lands on it rather than past it.
+
+        Temporary, and meant to be easy to take out: this block, and the
+        .outage-bar rules in home.css, come out together once the fix ships.
+        It is deliberately not dismissible and remembers nothing -- an outage
+        someone closed once is an outage they will not see again.
+      -->
+      <aside class="outage-bar">
+        <div class="shell outage-bar-inner">
+          <svg class="outage-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.3 3.9 1.9 18.4a2 2 0 0 0 1.7 3h16.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" />
+            <path d="M12 9v4.5" />
+            <path d="M12 17.2h.01" />
+          </svg>
+          <p class="outage-bar-text" lang="en">
+            <strong>Not working at the moment.</strong> Instagram changed
+            things on their end, so a scan does not come back with the right
+            answer right now. The cause is known and the fix is being worked
+            on; it should be live within a few days.
+          </p>
+          <p class="outage-bar-text" lang="tr">
+            <strong>Şu anda çalışmıyor.</strong> Instagram kendi tarafında bir
+            değişiklik yaptı, tarama şu an doğru sonuç vermiyor. Sorunun
+            kaynağı belli, düzeltme üzerinde çalışılıyor; birkaç gün içinde
+            yayında olacak.
+          </p>
+        </div>
+      </aside>
+
       <section class="hero">
         <div class="shell hero-split">
           <div>

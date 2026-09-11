@@ -739,3 +739,47 @@ kbd {
     min-width: 0;
   }
 }
+
+
+/* --------------------------------------------------------------------------
+   Outage notice: one band under the masthead while the scan is known broken
+
+   Temporary, and paired with the .outage-bar markup in index.html. Both come
+   out together once the fix ships. Warn amber rather than the page accent,
+   because the accent is what every working button on this page wears.
+   -------------------------------------------------------------------------- */
+
+.outage-bar {
+  border-block: 1px solid rgba(217, 164, 65, 0.28);
+  background: rgba(217, 164, 65, 0.1);
+}
+
+.outage-bar-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-block: 14px;
+}
+
+/* Aligns with the first line of the sentence rather than the block, so the
+   triangle does not drift down as the text wraps to two or three lines. */
+.outage-bar-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--warn);
+}
+
+.outage-bar-text {
+  margin: 0;
+  max-width: var(--prose);
+  color: var(--ink);
+  font-size: var(--step--1);
+  line-height: 1.55;
+}
+
+.outage-bar-text strong {
+  color: var(--warn);
+  font-weight: 600;
+}
