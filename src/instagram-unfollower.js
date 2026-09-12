@@ -9,6 +9,8 @@
   const APP_ID = "iu-app";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
+  const CHECKPOINT_KEY = "iu_scan_v1";
+  const CHECKPOINT_TTL = 24 * 60 * 60 * 1000;
   const IG_HEADERS = {
     "x-ig-app-id": "936619743392459",
     "x-requested-with": "XMLHttpRequest"
@@ -100,6 +102,18 @@
       csrfMissing: "Could not read csrftoken cookie.",
       requestFailed: "Request failed: {status}",
       tooManyRequests: "Instagram is rate-limiting requests. Try again later or increase delays in settings.",
+      sessionExpired: "Instagram signed you out. Sign in again, paste the script again and press Resume. The scan continues where it stopped.",
+      scanBlocked: "Instagram temporarily refused list requests for this account. Wait a few hours, paste the script again and press Resume.",
+      networkError: "The connection dropped. Check the network and press Resume.",
+      loadingCounts: "Reading your profile",
+      keepTabVisible: "Keep this tab in front. Chrome slows background tabs down to one step per minute.",
+      resumeScan: "Resume scan",
+      startOver: "Start over",
+      resumeHint: "A previous scan stopped at {loaded} of {total} followers. Continue from there instead of starting again.",
+      resumeHintUnknown: "A previous scan stopped partway. Continue from there instead of starting again.",
+      partialTitle: "Follower list incomplete",
+      partialBody: "{loaded} of {total} followers were loaded. Accounts that do follow you may appear below until the scan finishes.",
+      partialBodyUnknown: "{loaded} followers were loaded before the scan stopped. Accounts that do follow you may appear below until the scan finishes.",
       close: "Close",
       langSwitch: "Switch to Turkish",
       minimize: "Minimize",
@@ -179,6 +193,18 @@
       csrfMissing: "csrftoken çerezi okunamadı.",
       requestFailed: "İstek başarısız: {status}",
       tooManyRequests: "Instagram istekleri kısıtlıyor. Sonra dene veya ayarlardan gecikmeleri artır.",
+      sessionExpired: "Instagram oturumunu kapattı. Tekrar giriş yap, kodu yeniden yapıştır ve Devam et'e bas. Tarama kaldığı yerden sürer.",
+      scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti. Birkaç saat bekle, kodu yeniden yapıştır ve Devam et'e bas.",
+      networkError: "Bağlantı koptu. Ağı kontrol et ve Devam et'e bas.",
+      loadingCounts: "Profilin okunuyor",
+      keepTabVisible: "Bu sekmeyi önde tut. Chrome arka plandaki sekmeleri dakikada bir adıma yavaşlatır.",
+      resumeScan: "Taramaya devam et",
+      startOver: "Baştan başla",
+      resumeHint: "Önceki tarama {total} takipçinin {loaded} tanesinde durdu. Baştan başlamak yerine oradan devam edebilirsin.",
+      resumeHintUnknown: "Önceki tarama yarıda kaldı. Baştan başlamak yerine oradan devam edebilirsin.",
+      partialTitle: "Takipçi listesi eksik",
+      partialBody: "{total} takipçinin {loaded} tanesi yüklendi. Tarama bitene kadar seni takip edenler de aşağıda görünebilir.",
+      partialBodyUnknown: "Tarama durmadan önce {loaded} takipçi yüklendi. Tarama bitene kadar seni takip edenler de aşağıda görünebilir.",
       close: "Kapat",
       langSwitch: "İngilizce'ye geç",
       minimize: "Küçült",
@@ -226,13 +252,16 @@
     language: persisted.language === "tr" || persisted.language === "en"
       ? persisted.language
       : (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en"),
-    error: ""
+    error: "",
+    checkpoint: loadCheckpoint(),
+    partial: false
   };
 
   let countdownTimer = null;
   let toastTimer = null;
   let dialogCounter = 0;
   let closeActiveDialog = null;
+  let wakeSleep = null;
 
   function loadStored() {
     try {
@@ -240,6 +269,80 @@
       return raw ? JSON.parse(raw) : {};
     } catch {
       return {};
+    }
+  }
+
+  /* A scan on a large account is a few hundred requests, and Instagram can end
+     it at any point: a 401 that signs the user out, a 429, a checkpoint. The
+     checkpoint keeps what was already fetched, so pasting the script again
+     after signing back in continues from the last page instead of starting
+     over and running into the same wall. Followers are stored as ids only. */
+  function createCheckpoint(viewerId) {
+    return {
+      viewerId: String(viewerId),
+      savedAt: Date.now(),
+      following: [],
+      followingCursor: "",
+      followingDone: false,
+      followerIds: [],
+      followersCursor: "",
+      followersDone: false,
+      followingTotal: 0,
+      followersTotal: 0,
+      stopReason: ""
+    };
+  }
+
+  function loadCheckpoint() {
+    try {
+      const raw = localStorage.getItem(CHECKPOINT_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || !parsed.viewerId) return null;
+      if (!Array.isArray(parsed.following) || !Array.isArray(parsed.followerIds)) return null;
+      if (Date.now() - Number(parsed.savedAt || 0) > CHECKPOINT_TTL) return null;
+      if (parsed.followingDone && parsed.followersDone) return null;
+      if (!parsed.following.length && !parsed.followerIds.length) return null;
+      return { ...createCheckpoint(parsed.viewerId), ...parsed };
+    } catch {
+      return null;
+    }
+  }
+
+  function saveCheckpoint(checkpoint) {
+    if (!checkpoint) return;
+    checkpoint.savedAt = Date.now();
+    try {
+      localStorage.setItem(CHECKPOINT_KEY, JSON.stringify(checkpoint));
+    } catch {
+      /* quota or disabled storage: resuming after a re-paste is lost, the run itself is not */
+    }
+  }
+
+  function clearCheckpoint() {
+    state.checkpoint = null;
+    state.partial = false;
+    try {
+      localStorage.removeItem(CHECKPOINT_KEY);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function resumeHintText(checkpoint) {
+    const loaded = checkpoint.followerIds.length;
+    if (checkpoint.followersTotal) {
+      return t("resumeHint", { loaded: formatCount(loaded), total: formatCount(checkpoint.followersTotal) });
+    }
+    return t("resumeHintUnknown");
+  }
+
+  function formatCount(value) {
+    const number = Number(value) || 0;
+    try {
+      return number.toLocaleString(state.language === "tr" ? "tr-TR" : "en-US");
+    } catch {
+      return String(number);
     }
   }
 
@@ -285,11 +388,13 @@
     root.id = APP_ID;
     document.body.appendChild(root);
     window.__iuCleanup = unmount;
+    document.addEventListener("visibilitychange", onVisibilityChange);
     renderShell();
   }
 
   function unmount() {
     stopCountdown();
+    document.removeEventListener("visibilitychange", onVisibilityChange);
     closeActiveDialog?.();
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
     document.getElementById(APP_ID)?.remove();
@@ -428,7 +533,7 @@
 
   function pillLabel() {
     if (state.mode === "scanning") {
-      return t("pillScanning", { current: state.progress.current, total: state.progress.total || "?" });
+      return t("pillScanning", { current: formatCount(state.progress.current), total: state.progress.total ? formatCount(state.progress.total) : "?" });
     }
     if (state.mode === "unfollowing") {
       return t("pillUnfollowing", { current: state.progress.current, total: state.progress.total });
@@ -466,13 +571,30 @@
   }
 
   function renderIdleView() {
+    const checkpoint = state.checkpoint;
+    const resumeActions = checkpoint ? `
+        <div class="iu-welcome-actions">
+          <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
+          <button type="button" class="iu-btn iu-btn--ghost" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
+        </div>` : "";
     if (state.error) {
       return `
         <div class="iu-welcome">
           <div class="iu-welcome-icon iu-welcome-icon--error">${SVG.alert}</div>
           <h2>${escapeHTML(t("scanFailed"))}</h2>
           <p>${escapeHTML(state.error)}</p>
-          <button type="button" class="iu-btn iu-btn--primary" data-action="scan">${escapeHTML(t("retry"))}</button>
+          ${checkpoint ? resumeActions : `
+          <button type="button" class="iu-btn iu-btn--primary" data-action="scan">${escapeHTML(t("retry"))}</button>`}
+        </div>
+      `;
+    }
+    if (checkpoint) {
+      return `
+        <div class="iu-welcome">
+          <div class="iu-welcome-icon">${SVG.sparkle}</div>
+          <h2>${escapeHTML(t("welcomeTitle"))}</h2>
+          <p>${escapeHTML(resumeHintText(checkpoint))}</p>
+          ${resumeActions}
         </div>
       `;
     }
@@ -487,7 +609,16 @@
   }
 
   function bindIdle(body) {
-    body.querySelector("[data-action='scan']")?.addEventListener("click", startScan);
+    body.querySelector("[data-action='scan']")?.addEventListener("click", () => startScan());
+    bindScanResume(body);
+  }
+
+  function bindScanResume(body) {
+    body.querySelector("[data-action='resume-scan']")?.addEventListener("click", () => startScan({ resume: true }));
+    body.querySelector("[data-action='restart-scan']")?.addEventListener("click", () => {
+      clearCheckpoint();
+      startScan();
+    });
   }
 
   /* The bar is the only place the panel reports how far along a run is, so it
@@ -505,7 +636,7 @@
   function renderScanView() {
     const { current, total, label, note } = state.progress;
     const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
-    const counter = total ? t("ofTotal", { current, total }) : t("ofUnknown", { current });
+    const counter = progressCounter(current, total);
     return `
       <div class="iu-progress">
         <div class="iu-progress-head">
@@ -532,11 +663,33 @@
       if (btn) btn.textContent = t(state.scanPaused ? "resume" : "pause");
       const label = body.querySelector("[data-progress-label]");
       if (label) label.textContent = state.scanPaused ? t("paused") : t(state.progress.label);
+      wakeUp();
     });
     body.querySelector("[data-action='cancel-scan']")?.addEventListener("click", () => {
       state.scanCancelled = true;
       state.scanPaused = false;
+      wakeUp();
     });
+  }
+
+  function renderPartialNotice() {
+    const checkpoint = state.checkpoint;
+    if (!state.partial || !checkpoint) return "";
+    const loaded = formatCount(checkpoint.followerIds.length);
+    const body = checkpoint.followersTotal
+      ? t("partialBody", { loaded, total: formatCount(checkpoint.followersTotal) })
+      : t("partialBodyUnknown", { loaded });
+    return `
+      <div class="iu-notice" role="status">
+        <strong>${escapeHTML(t("partialTitle"))}</strong>
+        <p>${escapeHTML(body)}</p>
+        ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
+        <div class="iu-notice-actions">
+          <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
+          <button type="button" class="iu-btn iu-btn--ghost iu-btn--small" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
+        </div>
+      </div>
+    `;
   }
 
   function renderResultsView() {
@@ -550,6 +703,7 @@
 
     return `
       <div class="iu-results">
+        ${renderPartialNotice()}
         <div class="iu-results-summary">${escapeHTML(summary)}</div>
         <div class="iu-search-row">
           <input
@@ -710,6 +864,7 @@
 
     body.querySelector("[data-action='copy']")?.addEventListener("click", copyUsernames);
     body.querySelector("[data-action='unfollow']")?.addEventListener("click", confirmUnfollow);
+    bindScanResume(body);
   }
 
   function updateActionBar(body) {
@@ -799,10 +954,12 @@
       if (btn) btn.textContent = t(state.unfollowPaused ? "resume" : "pause");
       const label = body.querySelector("[data-progress-label]");
       if (label) label.textContent = unfollowTitle();
+      wakeUp();
     });
     body.querySelector("[data-action='cancel-unfollow']")?.addEventListener("click", () => {
       state.unfollowCancelled = true;
       state.unfollowPaused = false;
+      wakeUp();
     });
     body.querySelector("[data-action='back-results']")?.addEventListener("click", () => {
       state.mode = "results";
@@ -812,54 +969,87 @@
     });
   }
 
-  async function startScan() {
+  async function startScan(options = {}) {
     state.error = "";
     state.mode = "scanning";
     state.scanPaused = false;
     state.scanCancelled = false;
+    state.partial = false;
     state.users = [];
     state.followingCount = 0;
     state.followersCount = 0;
     state.selected.clear();
     state.log = [];
-    state.progress = { current: 0, total: 0, label: "loadingFollowing", note: "" };
+    state.progress = { current: 0, total: 0, label: "loadingCounts", note: visibilityNote() };
     renderBody();
 
+    let checkpoint = null;
     try {
       const viewerId = getCookie("ds_user_id");
       if (!viewerId) throw new Error(t("cookieMissing"));
 
-      const onPage = (label) => (results) => {
-        state.progress = {
-          current: results.length,
-          total: 0,
-          label,
-          note: ""
-        };
-        updateProgressDOM();
-      };
+      const previous = options.resume ? state.checkpoint : null;
+      checkpoint = previous && previous.viewerId === String(viewerId) ? previous : createCheckpoint(viewerId);
+      checkpoint.stopReason = "";
+      state.checkpoint = checkpoint;
 
-      const following = await fetchFriendshipList(viewerId, "following", onPage("loadingFollowing"));
-      if (state.scanCancelled) return resetToIdle();
+      if (!checkpoint.followingTotal && !checkpoint.followersTotal) {
+        const counts = await fetchProfileCounts(viewerId);
+        checkpoint.followingTotal = counts.following;
+        checkpoint.followersTotal = counts.followers;
+      }
 
-      await sleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
-      const followers = await fetchFriendshipList(viewerId, "followers", onPage("loadingFollowers"));
-      if (state.scanCancelled) return resetToIdle();
+      if (!checkpoint.followingDone) {
+        const following = await scanList(checkpoint, viewerId, "following");
+        if (state.scanCancelled) return resetToIdle();
+        checkpoint.following = following;
+        checkpoint.followingCursor = "";
+        checkpoint.followingDone = true;
+        saveCheckpoint(checkpoint);
+        await interruptibleSleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
+      }
 
-      state.followingCount = following.length;
-      state.followersCount = followers.length;
-      state.users = addFollowBackStatus(following, followers);
+      if (!checkpoint.followersDone) {
+        const followers = await scanList(checkpoint, viewerId, "followers");
+        if (state.scanCancelled) return resetToIdle();
+        checkpoint.followerIds = followers.map((user) => user.id);
+        checkpoint.followersCursor = "";
+        checkpoint.followersDone = true;
+      }
 
-      state.mode = "results";
-      const nonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
-      toast(t("scanCompletedToast", { count: nonFollowers }));
-      renderBody();
+      showResults(checkpoint, true);
+      clearCheckpoint();
     } catch (error) {
       console.error("[iu] scan failed:", error);
-      state.error = error?.message || String(error) || t("scanFailed");
+      const message = error?.message || String(error) || t("scanFailed");
+      if (checkpoint) {
+        checkpoint.stopReason = message;
+        saveCheckpoint(checkpoint);
+      }
+      /* Anything already fetched is worth showing. With the following list
+         complete the result is only missing followers, so it is displayed with
+         the gap called out instead of thrown away. */
+      if (checkpoint && checkpoint.followingDone && checkpoint.following.length) {
+        showResults(checkpoint, false);
+        return;
+      }
+      state.error = message;
       state.mode = "idle";
       renderBody();
     }
+  }
+
+  function showResults(checkpoint, complete) {
+    state.followingCount = checkpoint.following.length;
+    state.followersCount = checkpoint.followerIds.length;
+    state.users = addFollowBackStatus(checkpoint.following, checkpoint.followerIds);
+    state.partial = !complete;
+    state.mode = "results";
+    if (complete) {
+      const nonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
+      toast(t("scanCompletedToast", { count: nonFollowers }));
+    }
+    renderBody();
   }
 
   function resetToIdle() {
@@ -870,35 +1060,70 @@
     renderBody();
   }
 
-  async function fetchFriendshipList(viewerId, kind, onPage) {
-    const results = [];
-    let cursor = "";
+  /* One list, resumed from the checkpoint when it holds a cursor for it. A
+     cursor from a previous session can be rejected with a 400 after signing in
+     again; that list then restarts from its first page, the other list keeps
+     whatever it already has. */
+  async function scanList(checkpoint, viewerId, kind) {
+    const isFollowing = kind === "following";
+    const cursorKey = isFollowing ? "followingCursor" : "followersCursor";
+    const total = isFollowing ? checkpoint.followingTotal : checkpoint.followersTotal;
+    const label = isFollowing ? "loadingFollowing" : "loadingFollowers";
+    const seed = isFollowing ? checkpoint.following : checkpoint.followerIds.map((id) => ({ id }));
+
+    const onPage = (results, nextCursor) => {
+      if (isFollowing) checkpoint.following = results;
+      else checkpoint.followerIds = results.map((user) => user.id);
+      checkpoint[cursorKey] = nextCursor;
+      saveCheckpoint(checkpoint);
+      state.progress = { current: results.length, total, label, note: visibilityNote() };
+      updateProgressDOM();
+    };
+
+    state.progress = { current: seed.length, total, label, note: visibilityNote() };
+    updateProgressDOM();
+
+    try {
+      return await fetchFriendshipList(viewerId, kind, onPage, { cursor: checkpoint[cursorKey], seed });
+    } catch (error) {
+      if (error?.status !== 400 || !checkpoint[cursorKey]) throw error;
+      console.warn(`[iu] stored ${kind} cursor was rejected, restarting that list`);
+      checkpoint[cursorKey] = "";
+      if (isFollowing) checkpoint.following = [];
+      else checkpoint.followerIds = [];
+      return fetchFriendshipList(viewerId, kind, onPage, {});
+    }
+  }
+
+  async function fetchFriendshipList(viewerId, kind, onPage, options = {}) {
+    const results = Array.isArray(options.seed) ? [...options.seed] : [];
+    let cursor = options.cursor || "";
     let page = 0;
-    const seenCursors = new Set();
+    const seenCursors = new Set(cursor ? [cursor] : []);
 
     while (true) {
       await waitWhile(() => state.scanPaused && !state.scanCancelled);
-      if (state.scanCancelled) return results;
+      if (state.scanCancelled) return dedupe(results);
 
       const json = await igFetch(friendshipListUrl(viewerId, kind, cursor));
       if (!Array.isArray(json?.users)) throw new Error(t("scanFailed"));
 
       const users = json.users.map(normalizeUser).filter((u) => u.id && u.username);
       results.push(...users);
-      onPage(dedupe(results));
 
       const nextCursor = json.next_max_id == null ? "" : String(json.next_max_id);
-      if (json.has_more === false || !nextCursor) {
-        if (json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
-        break;
-      }
-      if (!users.length || seenCursors.has(nextCursor)) throw new Error(t("scanFailed"));
+      const finished = json.has_more === false || !nextCursor;
+      if (finished && json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
+      if (!finished && (!users.length || seenCursors.has(nextCursor))) throw new Error(t("scanFailed"));
+
+      onPage(dedupe(results), finished ? "" : nextCursor);
+      if (finished) break;
 
       seenCursors.add(nextCursor);
       cursor = nextCursor;
       page += 1;
 
-      await sleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
+      await interruptibleSleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
       if (state.timings.scanPauseEveryPages > 0 && page % state.timings.scanPauseEveryPages === 0) {
         await sleepWithCountdown(state.timings.scanPauseMs, "scanPause");
       }
@@ -912,32 +1137,81 @@
     return cursor ? `${base}&max_id=${encodeURIComponent(cursor)}` : base;
   }
 
+  /* The list endpoints do not say how long they are, so the totals come from
+     the profile. A failure here only costs the "x of y" counter. */
+  async function fetchProfileCounts(viewerId) {
+    try {
+      const json = await igFetch(`/api/v1/users/${encodeURIComponent(viewerId)}/info/`);
+      return {
+        following: Math.max(0, Number(json?.user?.following_count) || 0),
+        followers: Math.max(0, Number(json?.user?.follower_count) || 0)
+      };
+    } catch (error) {
+      console.warn("[iu] profile counts unavailable:", error);
+      return { following: 0, followers: 0 };
+    }
+  }
+
   function addFollowBackStatus(following, followers) {
-    const followerIds = new Set(followers.map((user) => String(user.id)));
+    const followerIds = new Set(followers.map((entry) => String(entry && typeof entry === "object" ? entry.id : entry)));
     return following.map((user) => ({ ...user, follows_viewer: followerIds.has(String(user.id)) }));
   }
 
+  function scanError(kind, message, status) {
+    const error = new Error(message);
+    error.kind = kind;
+    error.status = status;
+    return error;
+  }
+
+  /* Every way Instagram ends a scan is turned into a message that says what to
+     do next, because the checkpoint makes "paste again and resume" the answer
+     to all of them. A 401 or an HTML login page is a dead session; a 400/403
+     carrying feedback_required or a challenge is a block; 429 and 5xx are
+     retried with a countdown before giving up. */
   async function igFetch(url, init = {}) {
     let attempt = 0;
     while (true) {
-      const response = await fetch(url, {
-        credentials: "include",
-        headers: { ...IG_HEADERS, ...(init.headers || {}) },
-        ...init
-      });
-      if (response.ok) return response.json();
+      let response;
+      try {
+        response = await fetch(url, {
+          credentials: "include",
+          headers: { ...IG_HEADERS, ...(init.headers || {}) },
+          ...init
+        });
+      } catch (error) {
+        if (attempt >= MAX_RETRIES) throw scanError("network", t("networkError"), 0);
+        await sleepWithCountdown(Math.min(30000, 3000 * Math.pow(2, attempt)), "cooldownIn");
+        attempt += 1;
+        continue;
+      }
+      if (response.ok) {
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch {
+          throw scanError("session", t("sessionExpired"), response.status);
+        }
+      }
       if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
         if (attempt >= MAX_RETRIES) {
-          if (response.status === 429) throw new Error(t("tooManyRequests"));
-          throw new Error(t("requestFailed", { status: response.status }));
+          if (response.status === 429) throw scanError("rate", t("tooManyRequests"), 429);
+          throw scanError("http", t("requestFailed", { status: response.status }), response.status);
         }
-        const retryAfter = parseRetryAfter(response.headers.get("retry-after"));
+        const retryAfter = parseRetryAfter(response.headers?.get?.("retry-after"));
         const wait = retryAfter || Math.min(60000, 5000 * Math.pow(2, attempt));
         await sleepWithCountdown(wait, "cooldownIn");
         attempt += 1;
         continue;
       }
-      throw new Error(t("requestFailed", { status: response.status }));
+      const body = await response.text().catch(() => "");
+      if (response.status === 401 || /login_required/i.test(body)) {
+        throw scanError("session", t("sessionExpired"), response.status);
+      }
+      if (response.status === 403 || /feedback_required|checkpoint_required|challenge_required/i.test(body)) {
+        throw scanError("blocked", t("scanBlocked"), response.status);
+      }
+      throw scanError("http", t("requestFailed", { status: response.status }), response.status);
     }
   }
 
@@ -1291,32 +1565,67 @@
     return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
   }
 
+  /* Chrome throttles a background tab to one timer per minute after a few
+     minutes hidden. Waiting in 250ms slices turned an 8s pause into half an
+     hour there, which read as "the scan is stuck". Every wait is now a single
+     timer, and pause/cancel wake it instead of polling. Resolves true when
+     the timer ran out and false when something woke it early. */
+  function interruptibleSleep(ms) {
+    return new Promise((resolve) => {
+      let timer = null;
+      let settled = false;
+      const finish = (expired) => {
+        if (settled) return;
+        settled = true;
+        if (timer) clearTimeout(timer);
+        if (wakeSleep === finish) wakeSleep = null;
+        resolve(expired);
+      };
+      wakeSleep = finish;
+      timer = setTimeout(() => finish(true), Math.max(0, ms));
+    });
+  }
+
+  function wakeUp() {
+    if (typeof wakeSleep === "function") wakeSleep(false);
+  }
+
+  function visibilityNote() {
+    return typeof document !== "undefined" && document.hidden ? t("keepTabVisible") : "";
+  }
+
+  function onVisibilityChange() {
+    if (state.mode !== "scanning") return;
+    state.progress.note = visibilityNote();
+    updateProgressDOM();
+  }
+
   function randomBetween(min, max) {
     const lo = Math.min(min, max);
     const hi = Math.max(min, max);
     return Math.floor(Math.random() * (hi - lo + 1)) + lo;
   }
 
-  async function waitWhile(predicate, interval = 200) {
-    while (predicate()) await sleep(interval);
+  async function waitWhile(predicate, interval = 1000) {
+    while (predicate()) await interruptibleSleep(interval);
   }
 
   async function sleepWithCountdown(ms, reasonKey) {
     state.waitReason = reasonKey;
     let remaining = Math.max(0, ms);
-    state.waitUntil = Date.now() + remaining;
-    updateCountdownDOM();
     while (remaining > 0) {
       if (state.scanCancelled || state.unfollowCancelled) break;
       if (state.scanPaused || state.unfollowPaused) {
-        await waitWhile(() => state.scanPaused || state.unfollowPaused);
-        state.waitUntil = Date.now() + remaining;
+        state.waitUntil = 0;
         updateCountdownDOM();
+        await waitWhile(() => (state.scanPaused || state.unfollowPaused) && !state.scanCancelled && !state.unfollowCancelled);
         continue;
       }
+      state.waitUntil = Date.now() + remaining;
+      updateCountdownDOM();
       const before = Date.now();
-      await sleep(Math.min(250, remaining));
-      remaining -= Date.now() - before;
+      const expired = await interruptibleSleep(remaining);
+      remaining = expired ? 0 : Math.max(0, remaining - (Date.now() - before));
     }
     state.waitUntil = 0;
     state.waitReason = "";
@@ -1347,6 +1656,11 @@
     node.textContent = t(reason, { seconds: remaining });
   }
 
+  function progressCounter(current, total) {
+    if (total) return t("ofTotal", { current: formatCount(current), total: formatCount(total) });
+    return t("ofUnknown", { current: formatCount(current) });
+  }
+
   function setBar(root, percent, valueText, known) {
     const bar = root.querySelector("[data-progress-bar]");
     if (bar) bar.style.width = percent + "%";
@@ -1368,7 +1682,7 @@
     if (!root) return;
     const { current, total, label, note } = state.progress;
     const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
-    const counter = total ? t("ofTotal", { current, total }) : t("ofUnknown", { current });
+    const counter = progressCounter(current, total);
     setBar(root, percent, counter, Boolean(total));
     const counterEl = root.querySelector("[data-progress-counter]");
     if (counterEl) counterEl.textContent = counter;
@@ -1582,6 +1896,20 @@
     #${APP_ID} .iu-welcome-icon--error { background: rgba(240,106,93,0.15); color: var(--iu-danger-text); }
     #${APP_ID} .iu-welcome h2 { margin: 0; font-size: 17px; font-weight: 600; }
     #${APP_ID} .iu-welcome p { margin: 0; color: var(--iu-muted); font-size: 13px; max-width: 300px; }
+    #${APP_ID} .iu-welcome-actions { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 6px; }
+
+    #${APP_ID} .iu-notice {
+      margin: 12px 16px 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(240,180,80,0.45);
+      border-radius: 10px;
+      background: rgba(240,180,80,0.10);
+      font-size: 13px;
+    }
+    #${APP_ID} .iu-notice strong { display: block; margin-bottom: 4px; font-weight: 600; }
+    #${APP_ID} .iu-notice p { margin: 0; color: var(--iu-muted); font-size: 12px; line-height: 1.45; }
+    #${APP_ID} .iu-notice-reason { margin-top: 6px !important; color: var(--iu-text) !important; }
+    #${APP_ID} .iu-notice-actions { display: flex; gap: 8px; margin-top: 10px; }
 
     #${APP_ID} .iu-btn {
       border: 1px solid var(--iu-line);
@@ -1933,6 +2261,11 @@
       evaluateUnfollowResponse,
       fetchFriendshipList,
       friendshipListUrl,
+      igFetch,
+      createCheckpoint,
+      loadCheckpoint,
+      interruptibleSleep,
+      sleepWithCountdown,
       unfollowUser,
       normalizeUser,
       isDefaultAvatar,

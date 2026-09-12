@@ -27,6 +27,48 @@
   align-items: center;
 }
 
+/* The status line sits above the headline because it answers the question a
+   reader from a broken scan brought with them. A dot and a border, no fill:
+   it is a line of news, not a card. */
+.hero-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 58ch;
+  margin: 0 0 26px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: var(--step--1);
+  line-height: 1.6;
+}
+
+.hero-status strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.hero-status a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-strong);
+}
+
+.hero-status a:hover {
+  text-decoration-color: var(--ink);
+}
+
+.hero-status-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 0.55em;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 4px rgba(127, 201, 138, 0.16);
+}
+
 .hero h1 {
   max-width: 13ch;
 }

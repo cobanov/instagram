@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.3.0",
+    "date": "2026-09-12",
+    "tr": [
+      "Instagram 8 Eylül'de tarayıcının kullandığı liste API'sini kapattı; her tarama anında bitip sıfır sonuç veriyordu. Tarayıcı artık Instagram'ın kendi web arayüzünün kullandığı takip edilen ve takipçi uç noktalarını okuyor, iki listeyi sekmenin içinde karşılaştırıyor.",
+      "Instagram takipçileri sayfa başına yaklaşık 24 kişi veriyor, büyük bir hesap birkaç yüz istek demek. Panel artık profil sayılarından gerçek ilerlemeyi gösteriyor: \"1.784 / 6.705\".",
+      "Instagram taramayı keserse (oturumu kapatırsa, istekleri kısıtlarsa, doğrulama isterse) yüklenen kısım artık atılmıyor; uyarıyla birlikte gösteriliyor. Tekrar giriş yap, kodu yeniden yapıştır, Devam et'e bas: tarama baştan değil kaldığı sayfadan sürüyor.",
+      "Arka plandaki sekmede tarama sürünüyordu: Chrome arka plan zamanlayıcılarını dakikada bire düşürüyor ve 8 saniyelik mola yarım saat sürüyordu. Beklemeler artık tek zamanlayıcı, panel sekmeyi önde tutmanı söylüyor."
+    ],
+    "en": [
+      "Instagram retired the list API the scanner used on 8 September, so every scan finished instantly with zero results. The scanner now reads the following and follower endpoints Instagram's own web client uses and compares the two lists inside the tab.",
+      "Instagram serves followers about 24 per page, so a large account is a few hundred requests. The panel now shows real progress read from your profile counts: \"1,784 of 6,705\".",
+      "If Instagram interrupts the scan (signs you out, rate-limits, asks for a checkpoint), what was already loaded is kept and shown with a warning. Sign back in, paste again and press Resume: the scan continues from the last page instead of starting over.",
+      "A scan in a background tab crawled: Chrome slows background timers to one per minute, and the 8-second pause took half an hour. Waits are now a single timer, and the panel tells you to keep the tab in front."
+    ]
+  },
+  {
     "version": "2.2.0",
     "date": "2026-09-02",
     "tr": [

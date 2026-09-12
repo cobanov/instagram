@@ -12,20 +12,35 @@ const SOURCE = fs.readFileSync(
   "utf8"
 );
 
-function loadInternals(fetchImpl) {
+/* The DOM the countdown and progress updaters touch; every lookup misses, which
+   is exactly what happens in the browser before the panel is mounted. */
+function fakeDocument() {
+  return {
+    hidden: false,
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    getElementById: () => null,
+    addEventListener: () => {},
+    removeEventListener: () => {}
+  };
+}
+
+function loadInternals(fetchImpl, overrides = {}) {
   let captured = null;
   const sandbox = {
     __IU_TEST__: (api) => { captured = api; },
     location: { hostname: "www.instagram.com" },
-    localStorage: { getItem: () => null, setItem: () => {} },
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
     navigator: { language: "en-US" },
+    document: fakeDocument(),
     console,
     fetch: fetchImpl,
     /* Fire timers immediately so the inter-attempt backoff does not slow the suite. */
     setTimeout: (fn) => { fn(); return 0; },
     clearTimeout: () => {},
     setInterval: () => 0,
-    clearInterval: () => {}
+    clearInterval: () => {},
+    ...overrides
   };
   vm.createContext(sandbox);
   vm.runInContext(SOURCE, sandbox, { filename: "instagram-unfollower.js" });
@@ -43,11 +58,13 @@ function mockFetch(responses) {
     const next = responses[calls.length - 1];
     if (!next) throw new Error(`unexpected request #${calls.length} to ${url}`);
     if (next.throws) throw new Error(next.throws);
+    const body = next.body ?? (next.json !== undefined ? JSON.stringify(next.json) : "");
     return {
       ok: next.status >= 200 && next.status < 300,
       status: next.status,
-      text: async () => next.body ?? "",
-      json: async () => next.json ?? JSON.parse(next.body ?? "{}")
+      headers: { get: (name) => (next.headers || {})[String(name).toLowerCase()] ?? null },
+      text: async () => body,
+      json: async () => next.json ?? JSON.parse(body || "{}")
     };
   };
   return { impl, calls };
@@ -157,6 +174,163 @@ test("friendship scans reject a repeated cursor instead of looping forever", asy
     fetchFriendshipList("123", "followers", () => {}),
     /Scan failed/
   );
+});
+
+test("a scan resumes from a stored cursor and keeps what was already fetched", async () => {
+  const { impl, calls } = mockFetch([
+    {
+      status: 200,
+      json: { users: [{ pk: "3", username: "third" }], has_more: false }
+    }
+  ]);
+  const { fetchFriendshipList } = loadInternals(impl);
+  const pages = [];
+
+  const results = await fetchFriendshipList(
+    "123",
+    "followers",
+    (users, cursor) => pages.push({ count: users.length, cursor }),
+    { cursor: "page-two", seed: [{ id: "1" }, { id: "2" }] }
+  );
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "/api/v1/friendships/123/followers/?count=200&max_id=page-two");
+  assert.equal(results.map((user) => user.id).join(","), "1,2,3");
+  assert.deepEqual(pages, [{ count: 3, cursor: "" }]);
+});
+
+test("every page hands the next cursor to the caller so it can be checkpointed", async () => {
+  const { impl } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "c1" } },
+    { status: 200, json: { users: [{ pk: "2", username: "b" }], has_more: true, next_max_id: "c2" } },
+    { status: 200, json: { users: [{ pk: "3", username: "c" }], has_more: false } }
+  ]);
+  const { fetchFriendshipList } = loadInternals(impl);
+  const cursors = [];
+
+  await fetchFriendshipList("123", "following", (_, cursor) => cursors.push(cursor));
+
+  assert.deepEqual(cursors, ["c1", "c2", ""]);
+});
+
+test("HTTP 401 on a list request is reported as a dead session", async () => {
+  const { impl } = mockFetch([{ status: 401, body: "" }]);
+  const { igFetch } = loadInternals(impl);
+
+  await assert.rejects(igFetch("/api/v1/x"), (error) => {
+    assert.equal(error.kind, "session");
+    assert.equal(error.status, 401);
+    assert.match(error.message, /signed you out/);
+    return true;
+  });
+});
+
+test("an HTML login page served with 200 is a dead session, not a crash", async () => {
+  const { impl } = mockFetch([{ status: 200, body: "<!DOCTYPE html><html>login</html>" }]);
+  const { igFetch } = loadInternals(impl);
+
+  await assert.rejects(igFetch("/api/v1/x"), (error) => {
+    assert.equal(error.kind, "session");
+    return true;
+  });
+});
+
+test("feedback_required on a list request is a block with a wait-and-resume message", async () => {
+  const { impl } = mockFetch([
+    { status: 400, body: JSON.stringify({ message: "feedback_required", status: "fail" }) }
+  ]);
+  const { igFetch } = loadInternals(impl);
+
+  await assert.rejects(igFetch("/api/v1/x"), (error) => {
+    assert.equal(error.kind, "blocked");
+    assert.equal(error.status, 400);
+    return true;
+  });
+});
+
+test("a plain 400 keeps its status so a stale cursor can be told apart from a block", async () => {
+  const { impl } = mockFetch([{ status: 400, body: JSON.stringify({ message: "invalid max_id" }) }]);
+  const { igFetch } = loadInternals(impl);
+
+  await assert.rejects(igFetch("/api/v1/x"), (error) => {
+    assert.equal(error.kind, "http");
+    assert.equal(error.status, 400);
+    return true;
+  });
+});
+
+test("HTTP 429 is retried with a cooldown and then gives up with the rate-limit message", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 429, body: "" },
+    { status: 429, body: "" },
+    { status: 429, body: "" },
+    { status: 429, body: "" }
+  ]);
+  const { igFetch } = loadInternals(impl);
+
+  await assert.rejects(igFetch("/api/v1/x"), (error) => {
+    assert.equal(error.kind, "rate");
+    return true;
+  });
+  assert.equal(calls.length, 4);
+});
+
+test("a network error is retried and then reported as a dropped connection", async () => {
+  const { impl, calls } = mockFetch([
+    { throws: "Failed to fetch" },
+    { throws: "Failed to fetch" },
+    { throws: "Failed to fetch" },
+    { throws: "Failed to fetch" }
+  ]);
+  const { igFetch } = loadInternals(impl);
+
+  await assert.rejects(igFetch("/api/v1/x"), (error) => {
+    assert.equal(error.kind, "network");
+    return true;
+  });
+  assert.equal(calls.length, 4);
+});
+
+test("a countdown wait is a single timer, not a chain of slices", async () => {
+  const timers = [];
+  const { sleepWithCountdown } = loadInternals(undefined, {
+    setTimeout: (fn, ms) => { timers.push(ms); fn(); return 0; }
+  });
+
+  await sleepWithCountdown(8000, "scanPause");
+
+  assert.deepEqual(timers, [8000]);
+});
+
+test("a stored checkpoint is ignored once it is older than a day or already complete", () => {
+  const make = (fields) => JSON.stringify({
+    viewerId: "123",
+    savedAt: Date.now(),
+    following: [{ id: "1", username: "a" }],
+    followingDone: true,
+    followerIds: ["1"],
+    followersDone: false,
+    ...fields
+  });
+  const load = (raw) => loadInternals(undefined, {
+    localStorage: { getItem: () => raw, setItem: () => {}, removeItem: () => {} }
+  }).loadCheckpoint();
+
+  assert.equal(load(make({})).viewerId, "123");
+  assert.equal(load(make({ savedAt: Date.now() - 2 * 24 * 60 * 60 * 1000 })), null);
+  assert.equal(load(make({ followersDone: true })), null);
+  assert.equal(load("not json"), null);
+  assert.equal(load(null), null);
+});
+
+test("following is diffed against follower ids as well as follower users", () => {
+  const following = [
+    normalizeUser({ pk: 1, username: "mutual" }),
+    normalizeUser({ pk: "2", username: "not-mutual" })
+  ];
+  const marked = addFollowBackStatus(following, ["1"]);
+  assert.equal(marked[0].follows_viewer, true);
+  assert.equal(marked[1].follows_viewer, false);
 });
 
 test("HTTP 200 with status ok counts as unfollowed", () => {

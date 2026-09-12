@@ -61,6 +61,13 @@ Clicking its toolbar icon injects the same script. Contributed by
 Click **Scan now**. The panel walks your following and follower lists, then shows the
 accounts present only in your following list.
 
+Instagram hands followers out about 24 per page, so a large account is a few hundred
+requests and several minutes. Keep the tab in front while it runs: Chrome slows a
+background tab's timers to one per minute. If Instagram cuts the scan short (signs
+you out, rate-limits, asks for a checkpoint), what was loaded is kept in the tab's
+`localStorage` for a day and shown with a warning. Sign back in, paste again and press
+**Resume**; the scan continues from the last page instead of starting over.
+
 Unfollowing from the panel is deliberately unhurried. Instagram answers a burst of
 unfollows with `feedback_required`, a spam flag, a checkpoint, or an HTTP 429, and
 each of those is treated as a stop rather than as something to retry. An HTTP 401
