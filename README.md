@@ -14,7 +14,7 @@
 
 <p align="center">
   <a href="https://github.com/cobanov/instagram/releases/latest"><img alt="release" src="https://img.shields.io/github/v/release/cobanov/instagram?color=e56192&labelColor=1a1a1a"></a>
-  <img alt="tests" src="https://img.shields.io/badge/tests-27-e56192?labelColor=1a1a1a">
+  <img alt="tests" src="https://img.shields.io/badge/tests-passing-e56192?labelColor=1a1a1a">
   <img alt="extension" src="https://img.shields.io/badge/Chrome-MV3%20extension-e56192?labelColor=1a1a1a">
   <a href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml"><img alt="semgrep" src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg"></a>
 </p>
@@ -30,8 +30,9 @@ So this is a script you paste into your own DevTools console on your own Instagr
 tab. It uses the session already in the browser. Nothing is sent anywhere: the site
 is static, and there is no server on this side to receive anything.
 
-- **It compares both lists locally.** The scanner reads your following and follower
-  lists from Instagram, then compares their user IDs inside the tab.
+- **It checks follow-back locally.** The scanner compares following and follower
+  lists inside the tab. If checking individual relationships needs fewer requests,
+  or the follower list is incomplete, it reads the follow-back status directly.
 - **Nothing leaves the tab.** No backend, no upload, no key. What the panel shows is
   what the browser already had.
 - **Unfollowing is slow on purpose.** Rate limits, blocks and `checkpoint_required`
@@ -59,14 +60,24 @@ Clicking its toolbar icon injects the same script. Contributed by
 ## Use
 
 Click **Scan now**. The panel walks your following and follower lists, then shows the
-accounts present only in your following list.
+accounts that do not follow you back. When Instagram omits unavailable followed
+accounts, a notice explains how many accounts the results cover.
 
 Instagram hands followers out about 24 per page, so a large account is a few hundred
-requests and several minutes. Keep the tab in front while it runs: Chrome slows a
-background tab's timers to one per minute. If Instagram cuts the scan short (signs
-you out, rate-limits, asks for a checkpoint), what was loaded is kept in the tab's
-`localStorage` for a day and shown with a warning. Sign back in, paste again and press
-**Resume**; the scan continues from the last page instead of starting over.
+requests and can take 20 minutes or more. Keep the tab in front while it runs:
+Chrome can heavily throttle background timers. Instagram can still interrupt scans,
+especially on large accounts; slower requests do not guarantee completion.
+
+If Instagram cuts the scan short (signs you out, rate-limits, asks for a checkpoint),
+progress is kept in the tab's `localStorage` for a day. **No non-follower results or
+unfollow actions are available before the required checks finish.** Wait for the restriction
+to clear, sign in again if necessary, then press **Resume**. A rate limit stops the
+scan immediately; it is not retried automatically.
+
+When upgrading to **2.3.1**, refresh the Instagram tab before running the new code or
+reloading the updated extension. Earlier versions could keep a scan running after
+closing the panel, so simply pasting over the old panel is not enough to stop those
+old requests. Version 2.3.1 stops its requests when closed or replaced.
 
 Unfollowing from the panel is deliberately unhurried. Instagram answers a burst of
 unfollows with `feedback_required`, a spam flag, a checkpoint, or an HTTP 429, and
@@ -101,7 +112,7 @@ it is byte-identical to `dist/` and the published hash verifies it too.
 
 ```
 npm run build   # bundles src/ into dist/ and writes the new snippet hash
-npm run check   # syntax check plus the 27 tests
+npm run check   # syntax checks and regression tests
 npm run vt      # submits the built snippet to VirusTotal
 npm run pack    # builds, then zips chrome-extension/ into .pack/ for a release
 ```
@@ -112,6 +123,8 @@ unfollow, and which failures must stop the run. An HTTP 200 carrying
 429 and a 401 are each asserted to be handled as themselves rather than as generic
 retryable errors. The scan tests cover the current friendship-list endpoints,
 pagination, repeated-cursor protection, and the local following/follower comparison.
+They also verify cancellation, duplicate-start prevention, immediate rate-limit
+stops, HTTP 200 errors, silently truncated lists, and disabled partial results.
 The rest check that no language file is missing a key or leaves one empty.
 
 Every build produces a new hash, and the security page reports a hash VirusTotal has

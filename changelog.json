@@ -1,5 +1,23 @@
 [
   {
+    "version": "2.3.1",
+    "date": "2026-09-14",
+    "tr": [
+      "Paneli kapatınca veya kodu yeniden çalıştırınca eski tarama arka planda istek göndermeye devam edebiliyordu. Artık eski işlem duruyor, devam eden tarama isteği iptal ediliyor ve çift tıklama ikinci bir tarama başlatmıyor. Eski sürümden geçerken Instagram sekmesini bir kez yenile.",
+      "Eksik takipçi listesindeki kişiler yanlışlıkla geri takip etmiyor diye gösterilebiliyordu. Tarama ve gerekli doğrulamalar tamamlanmadan sonuçlar, kopyalama ve takip bırakma artık açılmıyor; ilerleme kaydedilmeye devam ediyor. Instagram listeyi kısa döndürürse adayların geri takip durumu ayrıca doğrulanıyor; kısıtlama yanıtı ise taramayı durduruyor.",
+      "Takipçi sayısı çok büyük olduğunda daha az istek gerektiriyorsa doğrudan takip edilen hesapların geri takip durumu okunuyor. Instagram'ın listede vermediği erişilemeyen hesaplar için kapsam bilgisi gösteriliyor; bu fark taramayı kilitlemiyor.",
+      "Instagram istek sınırı, doğrulama veya oturum hatası verdiğinde tarama hemen duruyor. HTTP 200 içinde gelen hata mesajları da tanınıyor; engellenen profil isteğinin ardından liste istekleri gönderilmiyor ve engelleme hatası bozuk sayfa imleci sanılmıyor.",
+      "İstek başına sayı 200'den 50'ye indi. Varsayılan bekleme 1,5–3 saniye, her beş sayfada mola 20 saniye oldu; kaydedilmiş eski varsayılanlar da güncelleniyor. Instagram'ın hesap bazlı kısıtlamaları devam edebilir; kesilen taramayı hemen tekrar başlatma."
+    ],
+    "en": [
+      "Closing the panel or running the script again could leave an old scan sending requests in the background. Old runs now stop, active scan requests are aborted, and double-clicking cannot start a second scan. Refresh your Instagram tab once when upgrading from an older version.",
+      "An incomplete follower list could incorrectly label people as non-followers. Results, copying, and unfollowing now stay unavailable until scanning and any required verification finish; progress is still saved. Short follower lists trigger individual follow-back checks; restriction responses stop scanning.",
+      "For large follower audiences, the scanner checks followed accounts directly when that costs fewer requests. Unavailable accounts omitted by Instagram are reported as a coverage gap instead of blocking the scan.",
+      "Rate limits, challenges, and session failures now stop scanning immediately, including errors inside HTTP 200 responses. A blocked profile request no longer leads to list requests, and a block cannot be mistaken for an expired pagination cursor.",
+      "Requested page size changed from 200 to 50. Default pacing is now 1.5–3 seconds, with a 20-second break every five pages; saved old defaults are upgraded too. Instagram may still restrict individual accounts. Do not immediately restart an interrupted scan."
+    ]
+  },
+  {
     "version": "2.3.0",
     "date": "2026-09-12",
     "tr": [

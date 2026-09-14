@@ -7,6 +7,7 @@
   }
 
   const APP_ID = "iu-app";
+  const VERSION = "2.3.1";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
   const CHECKPOINT_KEY = "iu_scan_v1";
@@ -17,10 +18,10 @@
   };
 
   const DEFAULT_TIMINGS = {
-    scanDelayMin: 700,
-    scanDelayMax: 1500,
+    scanDelayMin: 1500,
+    scanDelayMax: 3000,
     scanPauseEveryPages: 5,
-    scanPauseMs: 8000,
+    scanPauseMs: 20000,
     unfollowDelayMin: 5000,
     unfollowDelayMax: 9000,
     unfollowPauseEvery: 5,
@@ -42,6 +43,7 @@
       scanning: "Scanning",
       loadingFollowing: "Loading the people you follow",
       loadingFollowers: "Loading your followers",
+      verifyingFollowers: "Checking who follows you back",
       paused: "Paused",
       pause: "Pause",
       resume: "Resume",
@@ -112,8 +114,13 @@
       resumeHint: "A previous scan stopped at {loaded} of {total} followers. Continue from there instead of starting again.",
       resumeHintUnknown: "A previous scan stopped partway. Continue from there instead of starting again.",
       partialTitle: "Follower list incomplete",
-      partialBody: "{loaded} of {total} followers were loaded. Accounts that do follow you may appear below until the scan finishes.",
-      partialBodyUnknown: "{loaded} followers were loaded before the scan stopped. Accounts that do follow you may appear below until the scan finishes.",
+      partialBody: "{loaded} of {total} followers were loaded. Results and unfollowing stay unavailable until the full list is checked. Your progress is saved.",
+      partialBodyUnknown: "{loaded} followers were loaded before the scan stopped. Results and unfollowing stay unavailable until the full list is checked. Your progress is saved.",
+      incompleteList: "Instagram returned an incomplete list ({loaded} of {total}). No non-follower results can be confirmed. Your progress is saved; wait before resuming.",
+      limitedList: "Instagram is limiting this list. No non-follower results can be confirmed. Wait before trying again.",
+      scanNotice: "Large accounts can take 20 minutes or more. Instagram may still interrupt a scan. If it does, wait before resuming; repeating the scan immediately can prolong restrictions.",
+      followingCoverage: "Instagram returned {loaded} of {total} accounts you follow. Results cover the returned accounts; unavailable accounts may be missing.",
+      partialVerification: "{loaded} of {total} accounts have been checked. Results and unfollowing stay unavailable until verification finishes. Your progress is saved.",
       close: "Close",
       langSwitch: "Switch to Turkish",
       minimize: "Minimize",
@@ -133,6 +140,7 @@
       scanning: "Taranıyor",
       loadingFollowing: "Takip ettiklerin yükleniyor",
       loadingFollowers: "Takipçilerin yükleniyor",
+      verifyingFollowers: "Geri takip durumu doğrulanıyor",
       paused: "Duraklatıldı",
       pause: "Duraklat",
       resume: "Devam et",
@@ -203,8 +211,13 @@
       resumeHint: "Önceki tarama {total} takipçinin {loaded} tanesinde durdu. Baştan başlamak yerine oradan devam edebilirsin.",
       resumeHintUnknown: "Önceki tarama yarıda kaldı. Baştan başlamak yerine oradan devam edebilirsin.",
       partialTitle: "Takipçi listesi eksik",
-      partialBody: "{total} takipçinin {loaded} tanesi yüklendi. Tarama bitene kadar seni takip edenler de aşağıda görünebilir.",
-      partialBodyUnknown: "Tarama durmadan önce {loaded} takipçi yüklendi. Tarama bitene kadar seni takip edenler de aşağıda görünebilir.",
+      partialBody: "{total} takipçinin {loaded} tanesi yüklendi. Listenin tamamı kontrol edilene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
+      partialBodyUnknown: "Tarama durmadan önce {loaded} takipçi yüklendi. Listenin tamamı kontrol edilene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
+      incompleteList: "Instagram eksik liste döndürdü ({loaded} / {total}). Geri takip etmeyenler henüz doğrulanamadı. İlerlemen kaydedildi; devam etmeden önce bekle.",
+      limitedList: "Instagram bu listeyi kısıtlıyor. Geri takip etmeyenler henüz doğrulanamadı. Tekrar denemeden önce bekle.",
+      scanNotice: "Büyük hesaplarda tarama 20 dakika veya daha uzun sürebilir. Instagram yine de taramayı kesebilir. Böyle olursa devam etmeden önce bekle; hemen tekrarlamak kısıtlamayı uzatabilir.",
+      followingCoverage: "Instagram takip ettiğin {total} hesabın {loaded} tanesini döndürdü. Sonuçlar dönen hesapları kapsar; erişilemeyen hesaplar eksik olabilir.",
+      partialVerification: "{total} hesabın {loaded} tanesi kontrol edildi. Doğrulama bitene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
       close: "Kapat",
       langSwitch: "İngilizce'ye geç",
       minimize: "Küçült",
@@ -246,7 +259,7 @@
     log: [],
     search: "",
     filters: persisted.filters || { verified: true, private: true, noAvatar: true, showHidden: false },
-    timings: { ...DEFAULT_TIMINGS, ...(persisted.timings || {}) },
+    timings: loadTimings(persisted.timings),
     panelPos: persisted.panelPos || null,
     minimized: Boolean(persisted.minimized),
     language: persisted.language === "tr" || persisted.language === "en"
@@ -254,7 +267,8 @@
       : (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en"),
     error: "",
     checkpoint: loadCheckpoint(),
-    partial: false
+    partial: false,
+    coverage: ""
   };
 
   let countdownTimer = null;
@@ -262,6 +276,22 @@
   let dialogCounter = 0;
   let closeActiveDialog = null;
   let wakeSleep = null;
+  let destroyed = false;
+  let activeRequest = null;
+
+  function loadTimings(saved = {}) {
+    const timings = { ...DEFAULT_TIMINGS };
+    for (const key of Object.keys(timings)) {
+      if (Number.isFinite(saved?.[key]) && saved[key] >= 0) timings[key] = saved[key];
+    }
+    /* Upgrade old default scan speeds even when Settings previously saved them.
+       Deliberately customized values and all unfollow timings are preserved. */
+    const previous = { scanDelayMin: 700, scanDelayMax: 1500, scanPauseEveryPages: 5, scanPauseMs: 8000 };
+    for (const [key, value] of Object.entries(previous)) {
+      if (timings[key] === value) timings[key] = DEFAULT_TIMINGS[key];
+    }
+    return timings;
+  }
 
   function loadStored() {
     try {
@@ -287,8 +317,10 @@
       followerIds: [],
       followersCursor: "",
       followersDone: false,
-      followingTotal: 0,
-      followersTotal: 0,
+      followingTotal: null,
+      followersTotal: null,
+      verifyIndividually: false,
+      verified: {},
       stopReason: ""
     };
   }
@@ -330,6 +362,9 @@
   }
 
   function resumeHintText(checkpoint) {
+    if (checkpoint.verifyIndividually) {
+      return t("partialVerification", { loaded: formatCount(verifiedCount(checkpoint)), total: formatCount(checkpoint.following.length) });
+    }
     const loaded = checkpoint.followerIds.length;
     if (checkpoint.followersTotal) {
       return t("resumeHint", { loaded: formatCount(loaded), total: formatCount(checkpoint.followersTotal) });
@@ -393,6 +428,13 @@
   }
 
   function unmount() {
+    destroyed = true;
+    state.scanCancelled = true;
+    state.unfollowCancelled = true;
+    state.scanPaused = false;
+    state.unfollowPaused = false;
+    activeRequest?.abort();
+    wakeUp();
     stopCountdown();
     document.removeEventListener("visibilitychange", onVisibilityChange);
     closeActiveDialog?.();
@@ -423,7 +465,7 @@
             <span class="iu-brand-dot"></span>
             <div class="iu-brand-text">
               <strong>${escapeHTML(t("title"))}</strong>
-              <span data-subtitle>${escapeHTML(t("subtitle"))}</span>
+              <span data-subtitle>v${VERSION} · ${escapeHTML(t("subtitle"))}</span>
             </div>
           </div>
           <div class="iu-header-actions">
@@ -539,7 +581,8 @@
       return t("pillUnfollowing", { current: state.progress.current, total: state.progress.total });
     }
     if (state.mode === "results" && state.users.length) {
-      return t("pillResults", { count: state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length });
+      if (state.partial) return t("partialTitle");
+      return t("pillResults", { count: state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length });
     }
     return t("pillIdle");
   }
@@ -594,6 +637,7 @@
           <div class="iu-welcome-icon">${SVG.sparkle}</div>
           <h2>${escapeHTML(t("welcomeTitle"))}</h2>
           <p>${escapeHTML(resumeHintText(checkpoint))}</p>
+          ${checkpoint.stopReason ? `<p>${escapeHTML(checkpoint.stopReason)}</p>` : ""}
           ${resumeActions}
         </div>
       `;
@@ -603,6 +647,7 @@
         <div class="iu-welcome-icon">${SVG.sparkle}</div>
         <h2>${escapeHTML(t("welcomeTitle"))}</h2>
         <p>${escapeHTML(t("welcomeBody"))}</p>
+        <p>${escapeHTML(t("scanNotice"))}</p>
         <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="scan">${escapeHTML(t("scanBtn"))}</button>
       </div>
     `;
@@ -668,6 +713,7 @@
     body.querySelector("[data-action='cancel-scan']")?.addEventListener("click", () => {
       state.scanCancelled = true;
       state.scanPaused = false;
+      activeRequest?.abort();
       wakeUp();
     });
   }
@@ -676,7 +722,9 @@
     const checkpoint = state.checkpoint;
     if (!state.partial || !checkpoint) return "";
     const loaded = formatCount(checkpoint.followerIds.length);
-    const body = checkpoint.followersTotal
+    const body = checkpoint.verifyIndividually
+      ? t("partialVerification", { loaded: formatCount(verifiedCount(checkpoint)), total: formatCount(checkpoint.following.length) })
+      : checkpoint.followersTotal
       ? t("partialBody", { loaded, total: formatCount(checkpoint.followersTotal) })
       : t("partialBodyUnknown", { loaded });
     return `
@@ -693,8 +741,9 @@
   }
 
   function renderResultsView() {
+    if (state.partial) return `<div class="iu-results">${renderPartialNotice()}</div>`;
     const display = getDisplayUsers();
-    const totalNonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
+    const totalNonFollowers = state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length;
     const allSelected = display.length > 0 && display.every((u) => state.selected.has(u.id));
     let summary;
     if (totalNonFollowers === 0) summary = t("foundNone");
@@ -704,6 +753,7 @@
     return `
       <div class="iu-results">
         ${renderPartialNotice()}
+        ${state.coverage ? `<div class="iu-notice" role="status"><p>${escapeHTML(state.coverage)}</p></div>` : ""}
         <div class="iu-results-summary">${escapeHTML(summary)}</div>
         <div class="iu-search-row">
           <input
@@ -970,11 +1020,14 @@
   }
 
   async function startScan(options = {}) {
+    if (destroyed || state.mode === "scanning" || state.mode === "unfollowing") return;
     state.error = "";
     state.mode = "scanning";
     state.scanPaused = false;
     state.scanCancelled = false;
+    state.unfollowCancelled = false;
     state.partial = false;
+    state.coverage = "";
     state.users = [];
     state.followingCount = 0;
     state.followersCount = 0;
@@ -998,37 +1051,56 @@
         checkpoint.followingTotal = counts.following;
         checkpoint.followersTotal = counts.followers;
       }
+      if (state.scanCancelled || destroyed) return resetToIdle();
 
       if (!checkpoint.followingDone) {
         const following = await scanList(checkpoint, viewerId, "following");
-        if (state.scanCancelled) return resetToIdle();
+        if (state.scanCancelled || destroyed) return resetToIdle();
         checkpoint.following = following;
         checkpoint.followingCursor = "";
         checkpoint.followingDone = true;
         saveCheckpoint(checkpoint);
-        await interruptibleSleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
+        await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
       }
 
-      if (!checkpoint.followersDone) {
+      if (state.scanCancelled || destroyed) return resetToIdle();
+
+      /* Prefer the smaller read workload. A large follower audience need not
+         be downloaded if checking each followed account costs fewer requests.
+         24 is the observed server-controlled follower page size. */
+      if (!checkpoint.followersDone && !checkpoint.verifyIndividually && checkpoint.followersTotal > 0) {
+        checkpoint.verifyIndividually = shouldVerifyIndividually(checkpoint);
+      }
+
+      if (!checkpoint.followersDone && !checkpoint.verifyIndividually) {
         const followers = await scanList(checkpoint, viewerId, "followers");
-        if (state.scanCancelled) return resetToIdle();
+        if (state.scanCancelled || destroyed) return resetToIdle();
         checkpoint.followerIds = followers.map((user) => user.id);
         checkpoint.followersCursor = "";
+        checkpoint.verifyIndividually = checkpoint.verifyIndividually ||
+          checkpoint.followerIds.length < checkpoint.followersTotal || !checkpoint.followersTotal;
+        checkpoint.followersDone = !checkpoint.verifyIndividually;
+      }
+
+      if (checkpoint.verifyIndividually && !checkpoint.followersDone) {
+        await verifyFollowBack(checkpoint);
+        if (state.scanCancelled || destroyed) return resetToIdle();
         checkpoint.followersDone = true;
       }
 
       showResults(checkpoint, true);
       clearCheckpoint();
     } catch (error) {
+      if (destroyed) return;
+      if (state.scanCancelled) return resetToIdle();
       console.error("[iu] scan failed:", error);
       const message = error?.message || String(error) || t("scanFailed");
       if (checkpoint) {
         checkpoint.stopReason = message;
         saveCheckpoint(checkpoint);
       }
-      /* Anything already fetched is worth showing. With the following list
-         complete the result is only missing followers, so it is displayed with
-         the gap called out instead of thrown away. */
+      /* Absence from a partial follower list says nothing about follow-back.
+         Keep progress, but never expose candidates as confirmed non-followers. */
       if (checkpoint && checkpoint.followingDone && checkpoint.following.length) {
         showResults(checkpoint, false);
         return;
@@ -1042,7 +1114,15 @@
   function showResults(checkpoint, complete) {
     state.followingCount = checkpoint.following.length;
     state.followersCount = checkpoint.followerIds.length;
-    state.users = addFollowBackStatus(checkpoint.following, checkpoint.followerIds);
+    state.users = addFollowBackStatus(checkpoint.following, checkpoint.followerIds, complete);
+    if (checkpoint.verifyIndividually) {
+      state.users = state.users.map(user => ({ ...user,
+        follows_viewer: typeof checkpoint.verified?.[user.id] === "boolean"
+          ? checkpoint.verified[user.id] : (checkpoint.followerIds.includes(user.id) ? true : null)
+      }));
+    }
+    state.coverage = checkpoint.following.length < checkpoint.followingTotal
+      ? t("followingCoverage", { loaded: formatCount(checkpoint.following.length), total: formatCount(checkpoint.followingTotal) }) : "";
     state.partial = !complete;
     state.mode = "results";
     if (complete) {
@@ -1053,6 +1133,7 @@
   }
 
   function resetToIdle() {
+    if (destroyed) return;
     state.mode = "idle";
     state.users = [];
     state.scanCancelled = false;
@@ -1084,14 +1165,22 @@
     updateProgressDOM();
 
     try {
-      return await fetchFriendshipList(viewerId, kind, onPage, { cursor: checkpoint[cursorKey], seed });
+      return await fetchFriendshipList(viewerId, kind, onPage, {
+        cursor: checkpoint[cursorKey], seed, total,
+        stopWhen: isFollowing ? undefined : () => {
+          if (!shouldVerifyIndividually(checkpoint)) return false;
+          checkpoint.verifyIndividually = true;
+          saveCheckpoint(checkpoint);
+          return true;
+        }
+      });
     } catch (error) {
-      if (error?.status !== 400 || !checkpoint[cursorKey]) throw error;
+      if (error?.kind !== "http" || error?.status !== 400 || !checkpoint[cursorKey]) throw error;
       console.warn(`[iu] stored ${kind} cursor was rejected, restarting that list`);
       checkpoint[cursorKey] = "";
       if (isFollowing) checkpoint.following = [];
       else checkpoint.followerIds = [];
-      return fetchFriendshipList(viewerId, kind, onPage, {});
+      return fetchFriendshipList(viewerId, kind, onPage, { total });
     }
   }
 
@@ -1106,7 +1195,11 @@
       if (state.scanCancelled) return dedupe(results);
 
       const json = await igFetch(friendshipListUrl(viewerId, kind, cursor));
+      if (state.scanCancelled || destroyed) return dedupe(results);
       if (!Array.isArray(json?.users)) throw new Error(t("scanFailed"));
+      if (json.should_limit_list_of_followers === true || json.should_limit_list_of_followings === true) {
+        throw scanError("incomplete", t("limitedList"));
+      }
 
       const users = json.users.map(normalizeUser).filter((u) => u.id && u.username);
       results.push(...users);
@@ -1115,15 +1208,22 @@
       const finished = json.has_more === false || !nextCursor;
       if (finished && json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
       if (!finished && (!users.length || seenCursors.has(nextCursor))) throw new Error(t("scanFailed"));
+      if (finished && !results.length && options.total !== 0) {
+        /* Retain the last usable cursor. Resuming can retry that page without
+           treating a silently truncated list as a completed scan. */
+        throw scanError("incomplete", options.total > 0 ? t("incompleteList", {
+          loaded: formatCount(dedupe(results).length), total: formatCount(options.total)
+        }) : t("scanFailed"));
+      }
 
       onPage(dedupe(results), finished ? "" : nextCursor);
-      if (finished) break;
+      if (finished || options.stopWhen?.()) break;
 
       seenCursors.add(nextCursor);
       cursor = nextCursor;
       page += 1;
 
-      await interruptibleSleep(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax));
+      await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
       if (state.timings.scanPauseEveryPages > 0 && page % state.timings.scanPauseEveryPages === 0) {
         await sleepWithCountdown(state.timings.scanPauseMs, "scanPause");
       }
@@ -1131,9 +1231,50 @@
     return dedupe(results);
   }
 
+  function verifiedCount(checkpoint) {
+    const mutual = new Set(checkpoint.followerIds);
+    return checkpoint.following.filter(user => mutual.has(user.id) ||
+      typeof checkpoint.verified?.[user.id] === "boolean").length;
+  }
+
+  function shouldVerifyIndividually(checkpoint) {
+    const remaining = checkpoint.following.length - verifiedCount(checkpoint);
+    const followerPages = Math.ceil(Math.max(0, checkpoint.followersTotal - checkpoint.followerIds.length) / 24);
+    return remaining <= followerPages;
+  }
+
+  async function verifyFollowBack(checkpoint) {
+    checkpoint.verified = checkpoint.verified || {};
+    const mutual = new Set(checkpoint.followerIds);
+    const pending = checkpoint.following.filter(user => !mutual.has(user.id) &&
+      typeof checkpoint.verified[user.id] !== "boolean");
+    state.progress = { current: verifiedCount(checkpoint), total: checkpoint.following.length,
+      label: "verifyingFollowers", note: visibilityNote() };
+    updateProgressDOM();
+    for (let i = 0; i < pending.length; i += 1) {
+      await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
+      await waitWhile(() => state.scanPaused && !state.scanCancelled);
+      if (state.scanCancelled || destroyed) return;
+      const user = pending[i];
+      const json = await igFetch(`/api/v1/friendships/show/${encodeURIComponent(user.id)}/`);
+      if (state.scanCancelled || destroyed) return;
+      if (typeof json.followed_by !== "boolean" || typeof json.following !== "boolean") {
+        throw scanError("incomplete", t("scanFailed"));
+      }
+      /* A user no longer followed is not an unfollow target either. */
+      checkpoint.verified[user.id] = json.followed_by || !json.following;
+      saveCheckpoint(checkpoint);
+      state.progress.current = verifiedCount(checkpoint);
+      updateProgressDOM();
+      if (i < pending.length - 1 && state.timings.scanPauseEveryPages > 0 && (i + 1) % state.timings.scanPauseEveryPages === 0) {
+        await sleepWithCountdown(state.timings.scanPauseMs, "scanPause");
+      }
+    }
+  }
+
   function friendshipListUrl(viewerId, kind, cursor = "") {
     if (kind !== "following" && kind !== "followers") throw new Error("Unknown friendship list");
-    const base = `/api/v1/friendships/${encodeURIComponent(viewerId)}/${kind}/?count=200`;
+    const base = `/api/v1/friendships/${encodeURIComponent(viewerId)}/${kind}/?count=50`;
     return cursor ? `${base}&max_id=${encodeURIComponent(cursor)}` : base;
   }
 
@@ -1143,18 +1284,19 @@
     try {
       const json = await igFetch(`/api/v1/users/${encodeURIComponent(viewerId)}/info/`);
       return {
-        following: Math.max(0, Number(json?.user?.following_count) || 0),
-        followers: Math.max(0, Number(json?.user?.follower_count) || 0)
+        following: Number.isFinite(json?.user?.following_count) ? Math.max(0, json.user.following_count) : null,
+        followers: Number.isFinite(json?.user?.follower_count) ? Math.max(0, json.user.follower_count) : null
       };
     } catch (error) {
+      if (["session", "blocked", "rate", "cancelled"].includes(error?.kind)) throw error;
       console.warn("[iu] profile counts unavailable:", error);
-      return { following: 0, followers: 0 };
+      return { following: null, followers: null };
     }
   }
 
-  function addFollowBackStatus(following, followers) {
+  function addFollowBackStatus(following, followers, complete = true) {
     const followerIds = new Set(followers.map((entry) => String(entry && typeof entry === "object" ? entry.id : entry)));
-    return following.map((user) => ({ ...user, follows_viewer: followerIds.has(String(user.id)) }));
+    return following.map((user) => ({ ...user, follows_viewer: followerIds.has(String(user.id)) ? true : (complete ? false : null) }));
   }
 
   function scanError(kind, message, status) {
@@ -1167,35 +1309,48 @@
   /* Every way Instagram ends a scan is turned into a message that says what to
      do next, because the checkpoint makes "paste again and resume" the answer
      to all of them. A 401 or an HTML login page is a dead session; a 400/403
-     carrying feedback_required or a challenge is a block; 429 and 5xx are
-     retried with a countdown before giving up. */
+     carrying feedback_required or a challenge is a block, even with HTTP 200.
+     Only network and server failures are retried; rate limits stop immediately. */
   async function igFetch(url, init = {}) {
     let attempt = 0;
     while (true) {
+      if (destroyed || state.scanCancelled) throw scanError("cancelled", "Scan cancelled");
       let response;
+      const controller = new AbortController();
+      activeRequest = controller;
       try {
         response = await fetch(url, {
+          ...init,
           credentials: "include",
           headers: { ...IG_HEADERS, ...(init.headers || {}) },
-          ...init
+          signal: controller.signal
         });
       } catch (error) {
+        if (destroyed || state.scanCancelled) throw scanError("cancelled", "Scan cancelled");
         if (attempt >= MAX_RETRIES) throw scanError("network", t("networkError"), 0);
         await sleepWithCountdown(Math.min(30000, 3000 * Math.pow(2, attempt)), "cooldownIn");
         attempt += 1;
         continue;
+      } finally {
+        if (activeRequest === controller) activeRequest = null;
       }
-      if (response.ok) {
-        const text = await response.text();
-        try {
-          return JSON.parse(text);
-        } catch {
-          throw scanError("session", t("sessionExpired"), response.status);
-        }
+      if (destroyed || state.scanCancelled) throw scanError("cancelled", "Scan cancelled");
+      const body = await response.text();
+      let json;
+      try { json = JSON.parse(body); } catch { /* classified below */ }
+      const message = json ? String(json.message || json.error_type || "") : body;
+      if (response.status === 401 || json?.require_login || /login_required/i.test(message)) {
+        throw scanError("session", t("sessionExpired"), response.status);
       }
-      if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
+      if (response.status === 429 || /rate_limit|too many requests|please wait a few minutes/i.test(message)) {
+        throw scanError("rate", t("tooManyRequests"), response.status);
+      }
+      if (response.status === 403 || json?.spam || json?.challenge || json?.checkpoint_url || json?.feedback_required ||
+          /feedback_required|checkpoint_required|challenge_required/i.test(message)) {
+        throw scanError("blocked", t("scanBlocked"), response.status);
+      }
+      if (response.status >= 500 && response.status < 600) {
         if (attempt >= MAX_RETRIES) {
-          if (response.status === 429) throw scanError("rate", t("tooManyRequests"), 429);
           throw scanError("http", t("requestFailed", { status: response.status }), response.status);
         }
         const retryAfter = parseRetryAfter(response.headers?.get?.("retry-after"));
@@ -1204,12 +1359,10 @@
         attempt += 1;
         continue;
       }
-      const body = await response.text().catch(() => "");
-      if (response.status === 401 || /login_required/i.test(body)) {
-        throw scanError("session", t("sessionExpired"), response.status);
-      }
-      if (response.status === 403 || /feedback_required|checkpoint_required|challenge_required/i.test(body)) {
-        throw scanError("blocked", t("scanBlocked"), response.status);
+      if (response.ok) {
+        if (!json || typeof json !== "object") throw scanError("session", t("sessionExpired"), response.status);
+        if (json.status && json.status !== "ok") throw scanError("http", t("scanFailed"), response.status);
+        return json;
       }
       throw scanError("http", t("requestFailed", { status: response.status }), response.status);
     }
@@ -1255,7 +1408,7 @@
   }
 
   function confirmUnfollow() {
-    if (!state.selected.size) return;
+    if (destroyed || state.partial || !state.selected.size) return;
     const count = state.selected.size;
     showDialog({
       title: t("unfollowConfirmTitle", { count }),
@@ -1267,7 +1420,8 @@
   }
 
   async function startUnfollow() {
-    const targets = state.users.filter((u) => state.selected.has(u.id));
+    if (destroyed || state.partial || state.mode === "scanning" || state.mode === "unfollowing") return;
+    const targets = state.users.filter((u) => u.follows_viewer === false && state.selected.has(u.id));
     if (!targets.length) return;
     const csrf = getCookie("csrftoken");
     if (!csrf) {
@@ -1296,6 +1450,7 @@
         console.error("[iu] unfollow failed for", user.username, error);
         outcome = { ok: false, blocked: false, reason: error?.message || "" };
       }
+      if (destroyed) return;
       state.log.push({ user, ok: outcome.ok, reason: outcome.reason });
       if (outcome.ok) {
         state.selected.delete(user.id);
@@ -1346,6 +1501,7 @@
     let outcome = { ok: false, blocked: false, reason: "" };
     for (let i = 0; i < attempts.length; i += 1) {
       if (i > 0) await sleep(randomBetween(1200, 2500));
+      if (destroyed || state.unfollowCancelled) return { ok: false, blocked: true, reason: "Cancelled" };
       let response;
       try {
         response = await fetch(attempts[i].url, {
@@ -1513,7 +1669,7 @@
   function getDisplayUsers() {
     const query = state.search.trim().toLowerCase();
     return state.users
-      .filter((u) => !u.follows_viewer)
+      .filter((u) => u.follows_viewer === false)
       .filter((u) => state.filters.showHidden ? state.hidden.has(u.id) : !state.hidden.has(u.id))
       .filter((u) => state.filters.verified || !u.is_verified)
       .filter((u) => state.filters.private || !u.is_private)
@@ -2264,6 +2420,17 @@
       igFetch,
       createCheckpoint,
       loadCheckpoint,
+      loadTimings,
+      verifyFollowBack,
+      shouldVerifyIndividually,
+      fetchProfileCounts,
+      startScan,
+      showResults,
+      renderResultsView,
+      getDisplayUsers,
+      startUnfollow,
+      unmount,
+      state,
       interruptibleSleep,
       sleepWithCountdown,
       unfollowUser,

@@ -86,6 +86,10 @@ if (!sorted) {
    together. The changelog is the one the site shows, so package.json follows it. */
 const pkgPath = path.join(root, "package.json");
 const pkgVersion = JSON.parse(fs.readFileSync(pkgPath, "utf8")).version;
+const panelVersion = raw.match(/const VERSION = "([^"]+)";/)?.[1];
+if (panelVersion !== pkgVersion) {
+  throw new Error(`Panel version ${panelVersion} must match package.json ${pkgVersion}`);
+}
 if (pkgVersion !== entries[0].version) {
   throw new Error(
     `package.json is ${pkgVersion} but changelog.json ships ${entries[0].version}`
