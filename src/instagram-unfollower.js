@@ -7,7 +7,8 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.3.1";
+  const VERSION = "2.3.2";
+  const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
   const CHECKPOINT_KEY = "iu_scan_v1";
@@ -404,6 +405,9 @@
   }
 
   function cleanupExisting() {
+    /* DOM events cross Chrome's isolated extension world; window properties
+       do not. Stop a console scan when the extension replaces it, and vice versa. */
+    document.dispatchEvent(new Event(CLEANUP_EVENT));
     if (typeof window.__iuCleanup === "function") {
       try { window.__iuCleanup(); } catch { /* ignore */ }
     }
@@ -423,11 +427,13 @@
     root.id = APP_ID;
     document.body.appendChild(root);
     window.__iuCleanup = unmount;
+    document.addEventListener(CLEANUP_EVENT, unmount);
     document.addEventListener("visibilitychange", onVisibilityChange);
     renderShell();
   }
 
   function unmount() {
+    if (destroyed) return;
     destroyed = true;
     state.scanCancelled = true;
     state.unfollowCancelled = true;
@@ -436,6 +442,7 @@
     activeRequest?.abort();
     wakeUp();
     stopCountdown();
+    document.removeEventListener(CLEANUP_EVENT, unmount);
     document.removeEventListener("visibilitychange", onVisibilityChange);
     closeActiveDialog?.();
     if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }

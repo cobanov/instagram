@@ -74,10 +74,11 @@ unfollow actions are available before the required checks finish.** Wait for the
 to clear, sign in again if necessary, then press **Resume**. A rate limit stops the
 scan immediately; it is not retried automatically.
 
-When upgrading to **2.3.1**, refresh the Instagram tab before running the new code or
+When upgrading to **2.3.2**, refresh the Instagram tab before running the new code or
 reloading the updated extension. Earlier versions could keep a scan running after
 closing the panel, so simply pasting over the old panel is not enough to stop those
-old requests. Version 2.3.1 stops its requests when closed or replaced.
+old requests. Version 2.3.2 stops its requests when closed or replaced, including
+when switching between the console script and Chrome extension.
 
 Unfollowing from the panel is deliberately unhurried. Instagram answers a burst of
 unfollows with `feedback_required`, a spam flag, a checkpoint, or an HTTP 429, and

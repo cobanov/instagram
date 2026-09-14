@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.3.2",
+    "date": "2026-09-14",
+    "tr": [
+      "Konsol kodu ile Chrome uzantısı art arda kullanıldığında da önceki tarama artık duruyor. Chrome bu iki yöntemi ayrı JavaScript ortamlarında çalıştırıyor; durdurma sinyali artık ortak sayfa üzerinden iletiliyor. 2.3.1'in tarama ve sonuç doğrulama düzeltmeleri bu sürüme dahil."
+    ],
+    "en": [
+      "Switching between the console script and Chrome extension now also stops the previous scan. Chrome runs these in separate JavaScript worlds; the stop signal now travels through the shared page. All scanning and result-verification fixes from 2.3.1 are included."
+    ]
+  },
+  {
     "version": "2.3.1",
     "date": "2026-09-14",
     "tr": [
