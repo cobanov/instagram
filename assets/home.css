@@ -69,6 +69,12 @@
   box-shadow: 0 0 0 4px rgba(127, 201, 138, 0.16);
 }
 
+/* Outage state: drop the class when the tool works again. */
+.hero-status-warn .hero-status-dot {
+  background: var(--warn);
+  box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.18);
+}
+
 .hero h1 {
   max-width: 13ch;
 }
