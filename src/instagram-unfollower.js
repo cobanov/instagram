@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.3.2";
+  const VERSION = "2.3.3";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -20,9 +20,10 @@
 
   const DEFAULT_TIMINGS = {
     scanDelayMin: 1500,
-    scanDelayMax: 3000,
-    scanPauseEveryPages: 5,
-    scanPauseMs: 20000,
+    scanDelayMax: 3300,
+    scanPauseEveryPages: 7,
+    scanPauseMs: 10000,
+    usersPerRequest: 50,
     unfollowDelayMin: 5000,
     unfollowDelayMax: 9000,
     unfollowPauseEvery: 5,
@@ -94,6 +95,7 @@
       maxScanDelay: "Max scan delay (ms)",
       scanPauseEvery: "Long pause every N pages",
       scanPauseLength: "Long pause length (ms)",
+      usersPerRequest: "Users requested per page",
       minUnfollowDelay: "Min unfollow delay (ms)",
       maxUnfollowDelay: "Max unfollow delay (ms)",
       unfollowPauseEvery: "Cooldown every N unfollows",
@@ -191,6 +193,7 @@
       maxScanDelay: "Maks tarama gecikmesi (ms)",
       scanPauseEvery: "Her N sayfada uzun mola",
       scanPauseLength: "Uzun mola süresi (ms)",
+      usersPerRequest: "Sayfa başına istenen kullanıcı",
       minUnfollowDelay: "Min takip bırakma gecikmesi (ms)",
       maxUnfollowDelay: "Maks takip bırakma gecikmesi (ms)",
       unfollowPauseEvery: "Her N takip bırakmada mola",
@@ -285,12 +288,17 @@
     for (const key of Object.keys(timings)) {
       if (Number.isFinite(saved?.[key]) && saved[key] >= 0) timings[key] = saved[key];
     }
-    /* Upgrade old default scan speeds even when Settings previously saved them.
-       Deliberately customized values and all unfollow timings are preserved. */
-    const previous = { scanDelayMin: 700, scanDelayMax: 1500, scanPauseEveryPages: 5, scanPauseMs: 8000 };
-    for (const [key, value] of Object.entries(previous)) {
-      if (timings[key] === value) timings[key] = DEFAULT_TIMINGS[key];
+    /* Migrate only complete presets. A user who changed even one scan value
+       keeps the whole custom set rather than having matching fields rewritten. */
+    const scanKeys = ["scanDelayMin", "scanDelayMax", "scanPauseEveryPages", "scanPauseMs"];
+    const oldPresets = [
+      [700, 1500, 5, 8000],
+      [1500, 3000, 5, 20000]
+    ];
+    if (oldPresets.some((preset) => scanKeys.every((key, index) => saved?.[key] === preset[index]))) {
+      for (const key of scanKeys) timings[key] = DEFAULT_TIMINGS[key];
     }
+    timings.usersPerRequest = Math.min(200, Math.max(1, Math.round(timings.usersPerRequest)));
     return timings;
   }
 
@@ -1201,7 +1209,7 @@
       await waitWhile(() => state.scanPaused && !state.scanCancelled);
       if (state.scanCancelled) return dedupe(results);
 
-      const json = await igFetch(friendshipListUrl(viewerId, kind, cursor));
+      const json = await igFetch(friendshipListUrl(viewerId, kind, cursor, state.timings.usersPerRequest));
       if (state.scanCancelled || destroyed) return dedupe(results);
       if (!Array.isArray(json?.users)) throw new Error(t("scanFailed"));
       if (json.should_limit_list_of_followers === true || json.should_limit_list_of_followings === true) {
@@ -1279,9 +1287,10 @@
     }
   }
 
-  function friendshipListUrl(viewerId, kind, cursor = "") {
+  function friendshipListUrl(viewerId, kind, cursor = "", count = DEFAULT_TIMINGS.usersPerRequest) {
     if (kind !== "following" && kind !== "followers") throw new Error("Unknown friendship list");
-    const base = `/api/v1/friendships/${encodeURIComponent(viewerId)}/${kind}/?count=50`;
+    const safeCount = Math.min(200, Math.max(1, Math.round(Number(count) || DEFAULT_TIMINGS.usersPerRequest)));
+    const base = `/api/v1/friendships/${encodeURIComponent(viewerId)}/${kind}/?count=${safeCount}`;
     return cursor ? `${base}&max_id=${encodeURIComponent(cursor)}` : base;
   }
 
@@ -1553,19 +1562,20 @@
 
   function showSettings() {
     const fields = [
-      ["scanDelayMin", "minScanDelay", 100],
-      ["scanDelayMax", "maxScanDelay", 100],
-      ["scanPauseEveryPages", "scanPauseEvery", 1],
-      ["scanPauseMs", "scanPauseLength", 1000],
-      ["unfollowDelayMin", "minUnfollowDelay", 1000],
-      ["unfollowDelayMax", "maxUnfollowDelay", 1000],
-      ["unfollowPauseEvery", "unfollowPauseEvery", 1],
-      ["unfollowPauseMs", "unfollowPauseLength", 1000]
+      ["scanDelayMin", "minScanDelay", 100, 0],
+      ["scanDelayMax", "maxScanDelay", 100, 0],
+      ["scanPauseEveryPages", "scanPauseEvery", 1, 0],
+      ["scanPauseMs", "scanPauseLength", 1000, 0],
+      ["usersPerRequest", "usersPerRequest", 1, 1, 200],
+      ["unfollowDelayMin", "minUnfollowDelay", 1000, 0],
+      ["unfollowDelayMax", "maxUnfollowDelay", 1000, 0],
+      ["unfollowPauseEvery", "unfollowPauseEvery", 1, 0],
+      ["unfollowPauseMs", "unfollowPauseLength", 1000, 0]
     ];
-    const formHTML = fields.map(([key, label, step]) => `
+    const formHTML = fields.map(([key, label, step, min, max]) => `
       <label class="iu-field">
         <span>${escapeHTML(t(label))}</span>
-        <input type="number" min="0" step="${step}" data-setting="${escapeAttr(key)}" value="${Number(state.timings[key])}">
+        <input type="number" min="${min}"${max ? ` max="${max}"` : ""} step="${step}" data-setting="${escapeAttr(key)}" value="${Number(state.timings[key])}">
       </label>
     `).join("");
 
@@ -1579,7 +1589,9 @@
         dialog.querySelectorAll("[data-setting]").forEach((input) => {
           const key = input.getAttribute("data-setting");
           const val = Number(input.value);
-          if (Number.isFinite(val) && val >= 0) state.timings[key] = val;
+          const min = Number(input.min || 0);
+          const max = input.max ? Number(input.max) : Infinity;
+          if (Number.isFinite(val) && val >= min && val <= max) state.timings[key] = val;
         });
         persist();
         toast(t("saved"));

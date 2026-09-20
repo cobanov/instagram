@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.3.3",
+    "date": "2026-09-20",
+    "tr": [
+      "Tarama ritmi David Arroyo'nun güncel sürümüyle eşlendi: istekler arasında yaklaşık 1,5-3,3 saniye bekleniyor ve her yedi sayfada 10 saniye mola veriliyor. Önceki varsayılanlara göre tarama daha hızlı; kullanıcının özel ayarları korunuyor.",
+      "Sayfa başına istenen kullanıcı sayısı Ayarlar'a eklendi ve 1-200 arasında değiştirilebiliyor. Varsayılan 50; Instagram takipçi sayfa boyutunu yine kendisi sınırlayabilir.",
+      "Instagram'ın büyük hesaplarda taramayı kesmesi ve otomasyon algılaması için upstream'de henüz doğrulanmış yeni bir API çözümü yok. Eksik listeler bizde sonuç veya takip bırakma yetkisi vermemeye devam ediyor."
+    ],
+    "en": [
+      "Scan pacing now matches David Arroyo's current release: requests wait roughly 1.5-3.3 seconds, with a 10-second break every seven pages. Scans are faster than the previous defaults, while user-customized values are preserved.",
+      "Settings now exposes the requested users per page from 1 to 200. The default is 50; Instagram may still enforce its own smaller follower page size.",
+      "Upstream still has no verified new API fix for large-account interruptions or automation detection. Incomplete lists continue to unlock neither results nor unfollowing here."
+    ]
+  },
+  {
     "version": "2.3.2",
     "date": "2026-09-14",
     "tr": [

@@ -88,6 +88,14 @@ test("friendship list URLs use Instagram's current REST endpoints", () => {
     friendshipListUrl("123", "followers", "cursor + /"),
     "/api/v1/friendships/123/followers/?count=50&max_id=cursor%20%2B%20%2F"
   );
+  assert.equal(
+    friendshipListUrl("123", "following", "", 200),
+    "/api/v1/friendships/123/following/?count=200"
+  );
+  assert.equal(
+    friendshipListUrl("123", "following", "", 999),
+    "/api/v1/friendships/123/following/?count=200"
+  );
 });
 
 test("following and followers are diffed by normalized user id", () => {
@@ -134,6 +142,18 @@ test("friendship scans paginate the REST endpoint with the web app header", asyn
   );
   assert.equal(calls[0].init.credentials, "include");
   assert.equal(calls[0].init.headers["x-ig-app-id"], "936619743392459");
+});
+
+test("friendship scans use the saved users-per-request setting", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "first" }], has_more: false } }
+  ]);
+  const api = loadInternals(impl);
+  api.state.timings.usersPerRequest = 200;
+
+  await api.fetchFriendshipList("123", "following", () => {});
+
+  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=200");
 });
 
 test("friendship scans reject an incomplete empty page", async () => {
@@ -385,15 +405,28 @@ test("double-clicking Scan does not start a second scan", async () => {
   await running;
 });
 
-test("saved old defaults upgrade while custom slow timing values survive", () => {
+test("saved presets upgrade while custom timing values and request counts survive", () => {
   const { loadTimings } = loadInternals();
-  const upgraded = loadTimings({ scanDelayMin: 700, scanDelayMax: 1500, scanPauseMs: 8000 });
-  assert.equal(upgraded.scanDelayMin, 1500);
-  assert.equal(upgraded.scanDelayMax, 3000);
-  assert.equal(upgraded.scanPauseMs, 20000);
-  const custom = loadTimings({ scanDelayMin: 5000, scanDelayMax: 8000, scanPauseMs: 60000 });
-  assert.equal(custom.scanDelayMin, 5000);
-  assert.equal(custom.scanPauseMs, 60000);
+  const legacy = loadTimings({ scanDelayMin: 700, scanDelayMax: 1500, scanPauseEveryPages: 5, scanPauseMs: 8000 });
+  assert.equal(legacy.scanDelayMin, 1500);
+  assert.equal(legacy.scanDelayMax, 3300);
+  assert.equal(legacy.scanPauseEveryPages, 7);
+  assert.equal(legacy.scanPauseMs, 10000);
+  const previous = loadTimings({ scanDelayMin: 1500, scanDelayMax: 3000, scanPauseEveryPages: 5, scanPauseMs: 20000 });
+  assert.equal(previous.scanDelayMax, 3300);
+  assert.equal(previous.scanPauseEveryPages, 7);
+  assert.equal(previous.scanPauseMs, 10000);
+  const custom = loadTimings({ scanDelayMin: 1500, scanDelayMax: 3000, scanPauseEveryPages: 9, scanPauseMs: 20000, usersPerRequest: 200 });
+  assert.equal(custom.scanDelayMin, 1500);
+  assert.equal(custom.scanDelayMax, 3000);
+  assert.equal(custom.scanPauseEveryPages, 9);
+  assert.equal(custom.scanPauseMs, 20000);
+  assert.equal(custom.usersPerRequest, 200);
+  assert.equal(loadTimings({ usersPerRequest: 999 }).usersPerRequest, 200);
+  assert.equal(loadTimings({ usersPerRequest: 0 }).usersPerRequest, 1);
+  const slower = loadTimings({ scanDelayMin: 5000, scanDelayMax: 8000, scanPauseMs: 60000 });
+  assert.equal(slower.scanDelayMin, 5000);
+  assert.equal(slower.scanPauseMs, 60000);
 });
 
 test("unavailable following accounts do not prevent scanning accessible accounts", async () => {
