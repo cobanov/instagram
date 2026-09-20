@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.3.4",
+    "date": "2026-09-20",
+    "tr": [
+      "Tarama akışı upstream ile eşlendi: ek profil-sayısı isteği ve hesap başına friendships/show doğrulaması kaldırıldı. Tarayıcı artık yalnızca following listesini, ardından followers listesini alıp sonucu yerelde karşılaştırıyor.",
+      "Bekleme algoritması da birebir upstream düzenine geçti: her sayfada 0,5-2 saniye mikro bekleme, ardından 1-1,3 saniye normal bekleme; her yedi sayfada rastgele 5-15 saniye mola. Takip bırakma aralığı 4-4,8 saniye oldu, beş işlemde 5 dakika mola korunuyor.",
+      "Upstream'den farklı olarak yarım kalan followers listesi sonuç veya takip bırakma açmıyor. Checkpoint, devam etme, iptal, 401/403/429 ve hata gövdesi kontrolleri korunuyor."
+    ],
+    "en": [
+      "The scan pipeline now matches upstream: the extra profile-count request and per-account friendships/show verification are gone. The browser now loads following, then followers, and compares the lists locally.",
+      "Pacing now follows upstream exactly: a randomized 0.5-2 second micro-pause plus a 1-1.3 second regular pause per page, and a randomized 5-15 second break every seven pages. Unfollow waits are now 4-4.8 seconds, with the five-minute break every five actions unchanged.",
+      "Unlike upstream, an interrupted followers list still unlocks neither results nor unfollowing. Checkpoints, resume, cancellation, 401/403/429 handling, and error-body checks remain in place."
+    ]
+  },
+  {
     "version": "2.3.3",
     "date": "2026-09-20",
     "tr": [

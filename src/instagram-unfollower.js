@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.3.3";
+  const VERSION = "2.3.4";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -19,16 +19,19 @@
   };
 
   const DEFAULT_TIMINGS = {
-    scanDelayMin: 1500,
-    scanDelayMax: 3300,
+    scanDelayMin: 1000,
+    scanDelayMax: 1300,
     scanPauseEveryPages: 7,
     scanPauseMs: 10000,
     usersPerRequest: 50,
-    unfollowDelayMin: 5000,
-    unfollowDelayMax: 9000,
+    unfollowDelayMin: 4000,
+    unfollowDelayMax: 4800,
     unfollowPauseEvery: 5,
     unfollowPauseMs: 300000
   };
+  const SCAN_MICRO_DELAY_MIN = 500;
+  const SCAN_MICRO_DELAY_MAX = 2000;
+  const SCAN_PAUSE_JITTER_MS = 5000;
 
   const PROGRESS_TITLE_ID = "iu-progress-title";
   const PANEL_WIDTH = 380;
@@ -45,7 +48,6 @@
       scanning: "Scanning",
       loadingFollowing: "Loading the people you follow",
       loadingFollowers: "Loading your followers",
-      verifyingFollowers: "Checking who follows you back",
       paused: "Paused",
       pause: "Pause",
       resume: "Resume",
@@ -110,7 +112,6 @@
       sessionExpired: "Instagram signed you out. Sign in again, paste the script again and press Resume. The scan continues where it stopped.",
       scanBlocked: "Instagram temporarily refused list requests for this account. Wait a few hours, paste the script again and press Resume.",
       networkError: "The connection dropped. Check the network and press Resume.",
-      loadingCounts: "Reading your profile",
       keepTabVisible: "Keep this tab in front. Chrome slows background tabs down to one step per minute.",
       resumeScan: "Resume scan",
       startOver: "Start over",
@@ -122,8 +123,6 @@
       incompleteList: "Instagram returned an incomplete list ({loaded} of {total}). No non-follower results can be confirmed. Your progress is saved; wait before resuming.",
       limitedList: "Instagram is limiting this list. No non-follower results can be confirmed. Wait before trying again.",
       scanNotice: "Large accounts can take 20 minutes or more. Instagram may still interrupt a scan. If it does, wait before resuming; repeating the scan immediately can prolong restrictions.",
-      followingCoverage: "Instagram returned {loaded} of {total} accounts you follow. Results cover the returned accounts; unavailable accounts may be missing.",
-      partialVerification: "{loaded} of {total} accounts have been checked. Results and unfollowing stay unavailable until verification finishes. Your progress is saved.",
       close: "Close",
       langSwitch: "Switch to Turkish",
       minimize: "Minimize",
@@ -143,7 +142,6 @@
       scanning: "Taranıyor",
       loadingFollowing: "Takip ettiklerin yükleniyor",
       loadingFollowers: "Takipçilerin yükleniyor",
-      verifyingFollowers: "Geri takip durumu doğrulanıyor",
       paused: "Duraklatıldı",
       pause: "Duraklat",
       resume: "Devam et",
@@ -208,7 +206,6 @@
       sessionExpired: "Instagram oturumunu kapattı. Tekrar giriş yap, kodu yeniden yapıştır ve Devam et'e bas. Tarama kaldığı yerden sürer.",
       scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti. Birkaç saat bekle, kodu yeniden yapıştır ve Devam et'e bas.",
       networkError: "Bağlantı koptu. Ağı kontrol et ve Devam et'e bas.",
-      loadingCounts: "Profilin okunuyor",
       keepTabVisible: "Bu sekmeyi önde tut. Chrome arka plandaki sekmeleri dakikada bir adıma yavaşlatır.",
       resumeScan: "Taramaya devam et",
       startOver: "Baştan başla",
@@ -220,8 +217,6 @@
       incompleteList: "Instagram eksik liste döndürdü ({loaded} / {total}). Geri takip etmeyenler henüz doğrulanamadı. İlerlemen kaydedildi; devam etmeden önce bekle.",
       limitedList: "Instagram bu listeyi kısıtlıyor. Geri takip etmeyenler henüz doğrulanamadı. Tekrar denemeden önce bekle.",
       scanNotice: "Büyük hesaplarda tarama 20 dakika veya daha uzun sürebilir. Instagram yine de taramayı kesebilir. Böyle olursa devam etmeden önce bekle; hemen tekrarlamak kısıtlamayı uzatabilir.",
-      followingCoverage: "Instagram takip ettiğin {total} hesabın {loaded} tanesini döndürdü. Sonuçlar dönen hesapları kapsar; erişilemeyen hesaplar eksik olabilir.",
-      partialVerification: "{total} hesabın {loaded} tanesi kontrol edildi. Doğrulama bitene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
       close: "Kapat",
       langSwitch: "İngilizce'ye geç",
       minimize: "Küçült",
@@ -293,10 +288,16 @@
     const scanKeys = ["scanDelayMin", "scanDelayMax", "scanPauseEveryPages", "scanPauseMs"];
     const oldPresets = [
       [700, 1500, 5, 8000],
-      [1500, 3000, 5, 20000]
+      [1500, 3000, 5, 20000],
+      [1500, 3300, 7, 10000]
     ];
     if (oldPresets.some((preset) => scanKeys.every((key, index) => saved?.[key] === preset[index]))) {
       for (const key of scanKeys) timings[key] = DEFAULT_TIMINGS[key];
+    }
+    const oldUnfollowPreset = [5000, 9000, 5, 300000];
+    const unfollowKeys = ["unfollowDelayMin", "unfollowDelayMax", "unfollowPauseEvery", "unfollowPauseMs"];
+    if (unfollowKeys.every((key, index) => saved?.[key] === oldUnfollowPreset[index])) {
+      for (const key of unfollowKeys) timings[key] = DEFAULT_TIMINGS[key];
     }
     timings.usersPerRequest = Math.min(200, Math.max(1, Math.round(timings.usersPerRequest)));
     return timings;
@@ -326,10 +327,6 @@
       followerIds: [],
       followersCursor: "",
       followersDone: false,
-      followingTotal: null,
-      followersTotal: null,
-      verifyIndividually: false,
-      verified: {},
       stopReason: ""
     };
   }
@@ -371,9 +368,6 @@
   }
 
   function resumeHintText(checkpoint) {
-    if (checkpoint.verifyIndividually) {
-      return t("partialVerification", { loaded: formatCount(verifiedCount(checkpoint)), total: formatCount(checkpoint.following.length) });
-    }
     const loaded = checkpoint.followerIds.length;
     if (checkpoint.followersTotal) {
       return t("resumeHint", { loaded: formatCount(loaded), total: formatCount(checkpoint.followersTotal) });
@@ -737,9 +731,7 @@
     const checkpoint = state.checkpoint;
     if (!state.partial || !checkpoint) return "";
     const loaded = formatCount(checkpoint.followerIds.length);
-    const body = checkpoint.verifyIndividually
-      ? t("partialVerification", { loaded: formatCount(verifiedCount(checkpoint)), total: formatCount(checkpoint.following.length) })
-      : checkpoint.followersTotal
+    const body = checkpoint.followersTotal
       ? t("partialBody", { loaded, total: formatCount(checkpoint.followersTotal) })
       : t("partialBodyUnknown", { loaded });
     return `
@@ -1048,7 +1040,7 @@
     state.followersCount = 0;
     state.selected.clear();
     state.log = [];
-    state.progress = { current: 0, total: 0, label: "loadingCounts", note: visibilityNote() };
+    state.progress = { current: 0, total: 0, label: "loadingFollowing", note: visibilityNote() };
     renderBody();
 
     let checkpoint = null;
@@ -1061,13 +1053,6 @@
       checkpoint.stopReason = "";
       state.checkpoint = checkpoint;
 
-      if (!checkpoint.followingTotal && !checkpoint.followersTotal) {
-        const counts = await fetchProfileCounts(viewerId);
-        checkpoint.followingTotal = counts.following;
-        checkpoint.followersTotal = counts.followers;
-      }
-      if (state.scanCancelled || destroyed) return resetToIdle();
-
       if (!checkpoint.followingDone) {
         const following = await scanList(checkpoint, viewerId, "following");
         if (state.scanCancelled || destroyed) return resetToIdle();
@@ -1075,31 +1060,15 @@
         checkpoint.followingCursor = "";
         checkpoint.followingDone = true;
         saveCheckpoint(checkpoint);
-        await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
       }
 
       if (state.scanCancelled || destroyed) return resetToIdle();
 
-      /* Prefer the smaller read workload. A large follower audience need not
-         be downloaded if checking each followed account costs fewer requests.
-         24 is the observed server-controlled follower page size. */
-      if (!checkpoint.followersDone && !checkpoint.verifyIndividually && checkpoint.followersTotal > 0) {
-        checkpoint.verifyIndividually = shouldVerifyIndividually(checkpoint);
-      }
-
-      if (!checkpoint.followersDone && !checkpoint.verifyIndividually) {
+      if (!checkpoint.followersDone) {
         const followers = await scanList(checkpoint, viewerId, "followers");
         if (state.scanCancelled || destroyed) return resetToIdle();
         checkpoint.followerIds = followers.map((user) => user.id);
         checkpoint.followersCursor = "";
-        checkpoint.verifyIndividually = checkpoint.verifyIndividually ||
-          checkpoint.followerIds.length < checkpoint.followersTotal || !checkpoint.followersTotal;
-        checkpoint.followersDone = !checkpoint.verifyIndividually;
-      }
-
-      if (checkpoint.verifyIndividually && !checkpoint.followersDone) {
-        await verifyFollowBack(checkpoint);
-        if (state.scanCancelled || destroyed) return resetToIdle();
         checkpoint.followersDone = true;
       }
 
@@ -1130,14 +1099,7 @@
     state.followingCount = checkpoint.following.length;
     state.followersCount = checkpoint.followerIds.length;
     state.users = addFollowBackStatus(checkpoint.following, checkpoint.followerIds, complete);
-    if (checkpoint.verifyIndividually) {
-      state.users = state.users.map(user => ({ ...user,
-        follows_viewer: typeof checkpoint.verified?.[user.id] === "boolean"
-          ? checkpoint.verified[user.id] : (checkpoint.followerIds.includes(user.id) ? true : null)
-      }));
-    }
-    state.coverage = checkpoint.following.length < checkpoint.followingTotal
-      ? t("followingCoverage", { loaded: formatCount(checkpoint.following.length), total: formatCount(checkpoint.followingTotal) }) : "";
+    state.coverage = "";
     state.partial = !complete;
     state.mode = "results";
     if (complete) {
@@ -1181,13 +1143,7 @@
 
     try {
       return await fetchFriendshipList(viewerId, kind, onPage, {
-        cursor: checkpoint[cursorKey], seed, total,
-        stopWhen: isFollowing ? undefined : () => {
-          if (!shouldVerifyIndividually(checkpoint)) return false;
-          checkpoint.verifyIndividually = true;
-          saveCheckpoint(checkpoint);
-          return true;
-        }
+        cursor: checkpoint[cursorKey], seed, total
       });
     } catch (error) {
       if (error?.kind !== "http" || error?.status !== 400 || !checkpoint[cursorKey]) throw error;
@@ -1206,7 +1162,7 @@
     const seenCursors = new Set(cursor ? [cursor] : []);
 
     while (true) {
-      await waitWhile(() => state.scanPaused && !state.scanCancelled);
+      if (state.scanPaused) await waitWhile(() => state.scanPaused && !state.scanCancelled);
       if (state.scanCancelled) return dedupe(results);
 
       const json = await igFetch(friendshipListUrl(viewerId, kind, cursor, state.timings.usersPerRequest));
@@ -1223,67 +1179,26 @@
       const finished = json.has_more === false || !nextCursor;
       if (finished && json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
       if (!finished && (!users.length || seenCursors.has(nextCursor))) throw new Error(t("scanFailed"));
-      if (finished && !results.length && options.total !== 0) {
-        /* Retain the last usable cursor. Resuming can retry that page without
-           treating a silently truncated list as a completed scan. */
-        throw scanError("incomplete", options.total > 0 ? t("incompleteList", {
-          loaded: formatCount(dedupe(results).length), total: formatCount(options.total)
-        }) : t("scanFailed"));
-      }
-
       onPage(dedupe(results), finished ? "" : nextCursor);
-      if (finished || options.stopWhen?.()) break;
+      if (finished) break;
 
       seenCursors.add(nextCursor);
       cursor = nextCursor;
       page += 1;
 
-      await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
-      if (state.timings.scanPauseEveryPages > 0 && page % state.timings.scanPauseEveryPages === 0) {
-        await sleepWithCountdown(state.timings.scanPauseMs, "scanPause");
-      }
+      await waitBeforeNextScanPage(page);
     }
     return dedupe(results);
   }
 
-  function verifiedCount(checkpoint) {
-    const mutual = new Set(checkpoint.followerIds);
-    return checkpoint.following.filter(user => mutual.has(user.id) ||
-      typeof checkpoint.verified?.[user.id] === "boolean").length;
-  }
-
-  function shouldVerifyIndividually(checkpoint) {
-    const remaining = checkpoint.following.length - verifiedCount(checkpoint);
-    const followerPages = Math.ceil(Math.max(0, checkpoint.followersTotal - checkpoint.followerIds.length) / 24);
-    return remaining <= followerPages;
-  }
-
-  async function verifyFollowBack(checkpoint) {
-    checkpoint.verified = checkpoint.verified || {};
-    const mutual = new Set(checkpoint.followerIds);
-    const pending = checkpoint.following.filter(user => !mutual.has(user.id) &&
-      typeof checkpoint.verified[user.id] !== "boolean");
-    state.progress = { current: verifiedCount(checkpoint), total: checkpoint.following.length,
-      label: "verifyingFollowers", note: visibilityNote() };
-    updateProgressDOM();
-    for (let i = 0; i < pending.length; i += 1) {
-      await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
-      await waitWhile(() => state.scanPaused && !state.scanCancelled);
-      if (state.scanCancelled || destroyed) return;
-      const user = pending[i];
-      const json = await igFetch(`/api/v1/friendships/show/${encodeURIComponent(user.id)}/`);
-      if (state.scanCancelled || destroyed) return;
-      if (typeof json.followed_by !== "boolean" || typeof json.following !== "boolean") {
-        throw scanError("incomplete", t("scanFailed"));
-      }
-      /* A user no longer followed is not an unfollow target either. */
-      checkpoint.verified[user.id] = json.followed_by || !json.following;
-      saveCheckpoint(checkpoint);
-      state.progress.current = verifiedCount(checkpoint);
-      updateProgressDOM();
-      if (i < pending.length - 1 && state.timings.scanPauseEveryPages > 0 && (i + 1) % state.timings.scanPauseEveryPages === 0) {
-        await sleepWithCountdown(state.timings.scanPauseMs, "scanPause");
-      }
+  async function waitBeforeNextScanPage(page) {
+    await sleepWithCountdown(randomBetween(SCAN_MICRO_DELAY_MIN, SCAN_MICRO_DELAY_MAX), "scanPause");
+    await sleepWithCountdown(randomBetween(state.timings.scanDelayMin, state.timings.scanDelayMax), "scanPause");
+    if (state.timings.scanPauseEveryPages > 0 && page % state.timings.scanPauseEveryPages === 0) {
+      await sleepWithCountdown(Math.max(
+        0,
+        state.timings.scanPauseMs + (Math.random() * SCAN_PAUSE_JITTER_MS * 2 - SCAN_PAUSE_JITTER_MS)
+      ), "scanPause");
     }
   }
 
@@ -1292,22 +1207,6 @@
     const safeCount = Math.min(200, Math.max(1, Math.round(Number(count) || DEFAULT_TIMINGS.usersPerRequest)));
     const base = `/api/v1/friendships/${encodeURIComponent(viewerId)}/${kind}/?count=${safeCount}`;
     return cursor ? `${base}&max_id=${encodeURIComponent(cursor)}` : base;
-  }
-
-  /* The list endpoints do not say how long they are, so the totals come from
-     the profile. A failure here only costs the "x of y" counter. */
-  async function fetchProfileCounts(viewerId) {
-    try {
-      const json = await igFetch(`/api/v1/users/${encodeURIComponent(viewerId)}/info/`);
-      return {
-        following: Number.isFinite(json?.user?.following_count) ? Math.max(0, json.user.following_count) : null,
-        followers: Number.isFinite(json?.user?.follower_count) ? Math.max(0, json.user.follower_count) : null
-      };
-    } catch (error) {
-      if (["session", "blocked", "rate", "cancelled"].includes(error?.kind)) throw error;
-      console.warn("[iu] profile counts unavailable:", error);
-      return { following: null, followers: null };
-    }
   }
 
   function addFollowBackStatus(following, followers, complete = true) {
@@ -1778,7 +1677,7 @@
   function randomBetween(min, max) {
     const lo = Math.min(min, max);
     const hi = Math.max(min, max);
-    return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+    return Math.floor(Math.random() * (hi - lo)) + lo;
   }
 
   async function waitWhile(predicate, interval = 1000) {
@@ -2440,9 +2339,7 @@
       createCheckpoint,
       loadCheckpoint,
       loadTimings,
-      verifyFollowBack,
-      shouldVerifyIndividually,
-      fetchProfileCounts,
+      waitBeforeNextScanPage,
       startScan,
       showResults,
       renderResultsView,

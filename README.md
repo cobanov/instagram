@@ -30,9 +30,8 @@ So this is a script you paste into your own DevTools console on your own Instagr
 tab. It uses the session already in the browser. Nothing is sent anywhere: the site
 is static, and there is no server on this side to receive anything.
 
-- **It checks follow-back locally.** The scanner compares following and follower
-  lists inside the tab. If checking individual relationships needs fewer requests,
-  or the follower list is incomplete, it reads the follow-back status directly.
+- **It checks follow-back locally.** Like upstream, the scanner loads following first,
+  then followers, and compares the two lists inside the tab.
 - **Nothing leaves the tab.** No backend, no upload, no key. What the panel shows is
   what the browser already had.
 - **Unfollowing is slow on purpose.** Rate limits, blocks and `checkpoint_required`
@@ -64,8 +63,8 @@ accounts that do not follow you back. When Instagram omits unavailable followed
 accounts, a notice explains how many accounts the results cover.
 
 Instagram hands followers out about 24 per page, so a large account is a few hundred
-requests and can still take many minutes. Version 2.3.3 follows upstream's current
-scan pacing and lets you set the requested page size from 1 to 200 under Settings;
+requests and can still take many minutes. Version 2.3.4 follows upstream's current
+two-stage randomized scan pacing and lets you set the requested page size from 1 to 200 under Settings;
 Instagram can ignore that value and return smaller pages. Keep the tab in front while it runs:
 Chrome can heavily throttle background timers. Instagram can still interrupt scans,
 especially on large accounts; slower requests do not guarantee completion.

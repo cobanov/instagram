@@ -312,11 +312,12 @@ test("soft HTTP 200 failures stop and never become valid list responses", async 
   }
 });
 
-test("a blocked profile count request stops the scan before fetching any list", async () => {
+test("a scan starts directly on the following list without a profile preflight", async () => {
   const { impl, calls } = mockFetch([{ status: 403, json: { message: "checkpoint_required" } }]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
   assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=50");
   assert.equal(api.state.mode, "idle");
   assert.match(api.state.error, /temporarily refused/);
 });
@@ -333,13 +334,16 @@ test("a block on a resumed cursor never restarts that list", async () => {
   assert.match(api.state.error, /temporarily refused/);
 });
 
-test("a silent empty list is not committed when the profile has followers", async () => {
-  const { impl } = mockFetch([{ status: 200, json: { users: [], has_more: false } }]);
-  let committed = false;
-  await assert.rejects(loadInternals(impl).fetchFriendshipList("123", "followers", () => {
-    committed = true;
-  }, { total: 100 }), error => error.kind === "incomplete");
-  assert.equal(committed, false);
+test("empty REST lists complete without the removed profile-count request", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 200, json: { users: [], has_more: false } },
+    { status: 200, json: { users: [], has_more: false } }
+  ]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.users.length, 0);
+  assert.equal(calls.length, 2);
 });
 
 test("server-limited lists cannot produce non-follower results", async () => {
@@ -408,14 +412,18 @@ test("double-clicking Scan does not start a second scan", async () => {
 test("saved presets upgrade while custom timing values and request counts survive", () => {
   const { loadTimings } = loadInternals();
   const legacy = loadTimings({ scanDelayMin: 700, scanDelayMax: 1500, scanPauseEveryPages: 5, scanPauseMs: 8000 });
-  assert.equal(legacy.scanDelayMin, 1500);
-  assert.equal(legacy.scanDelayMax, 3300);
+  assert.equal(legacy.scanDelayMin, 1000);
+  assert.equal(legacy.scanDelayMax, 1300);
   assert.equal(legacy.scanPauseEveryPages, 7);
   assert.equal(legacy.scanPauseMs, 10000);
   const previous = loadTimings({ scanDelayMin: 1500, scanDelayMax: 3000, scanPauseEveryPages: 5, scanPauseMs: 20000 });
-  assert.equal(previous.scanDelayMax, 3300);
+  assert.equal(previous.scanDelayMin, 1000);
+  assert.equal(previous.scanDelayMax, 1300);
   assert.equal(previous.scanPauseEveryPages, 7);
   assert.equal(previous.scanPauseMs, 10000);
+  const latest = loadTimings({ scanDelayMin: 1500, scanDelayMax: 3300, scanPauseEveryPages: 7, scanPauseMs: 10000 });
+  assert.equal(latest.scanDelayMin, 1000);
+  assert.equal(latest.scanDelayMax, 1300);
   const custom = loadTimings({ scanDelayMin: 1500, scanDelayMax: 3000, scanPauseEveryPages: 9, scanPauseMs: 20000, usersPerRequest: 200 });
   assert.equal(custom.scanDelayMin, 1500);
   assert.equal(custom.scanDelayMax, 3000);
@@ -427,103 +435,48 @@ test("saved presets upgrade while custom timing values and request counts surviv
   const slower = loadTimings({ scanDelayMin: 5000, scanDelayMax: 8000, scanPauseMs: 60000 });
   assert.equal(slower.scanDelayMin, 5000);
   assert.equal(slower.scanPauseMs, 60000);
+  const oldUnfollow = loadTimings({ unfollowDelayMin: 5000, unfollowDelayMax: 9000, unfollowPauseEvery: 5, unfollowPauseMs: 300000 });
+  assert.equal(oldUnfollow.unfollowDelayMin, 4000);
+  assert.equal(oldUnfollow.unfollowDelayMax, 4800);
 });
 
-test("unavailable following accounts do not prevent scanning accessible accounts", async () => {
+test("a scan follows the upstream following-then-followers request flow", async () => {
   const { impl, calls } = mockFetch([
-    { status: 200, json: { user: { following_count: 3, follower_count: 1 } } },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "2", username: "b" }], has_more: false } },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: false } }
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "not-mutual" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } }
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
-  assert.equal(api.state.mode, "results");
   assert.equal(api.state.partial, false);
   assert.equal(api.getDisplayUsers().map(user => user.id).join(","), "2");
-  assert.match(api.state.coverage, /2 of 3/);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=50");
+  assert.equal(calls[1].url, "/api/v1/friendships/123/followers/?count=50");
+  assert.equal(calls.some(call => call.url.includes("/users/") || call.url.includes("/friendships/show/")), false);
 });
 
-test("a short follower list verifies missing candidates instead of guessing follow-back", async () => {
+test("an interrupted followers request keeps results locked", async () => {
   const { impl, calls } = mockFetch([
-    { status: 200, json: { user: { following_count: 3, follower_count: 2 } } },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "2", username: "b" }, { pk: "3", username: "c" }], has_more: false } },
     { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: false } },
-    { status: 200, json: { status: "ok", following: true, followed_by: true } },
-    { status: 200, json: { status: "ok", following: true, followed_by: false } }
+    { status: 429, body: "" }
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
-  assert.equal(api.state.mode, "results");
-  assert.equal(api.state.partial, false);
-  assert.equal(api.getDisplayUsers().map(user => user.id).join(","), "3");
-  assert.equal(calls[3].url, "/api/v1/friendships/show/2/");
-  assert.equal(calls[4].url, "/api/v1/friendships/show/3/");
-  assert.equal(api.state.checkpoint, null);
-});
-
-test("large audiences use individual checks when that costs fewer requests", async () => {
-  const { impl, calls } = mockFetch([
-    { status: 200, json: { user: { following_count: 1, follower_count: 100000 } } },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: false } },
-    { status: 200, json: { status: "ok", following: true, followed_by: false } }
-  ]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
-  await api.startScan();
-  assert.equal(api.state.partial, false);
-  assert.equal(api.getDisplayUsers().length, 1);
-  assert.equal(calls.length, 3);
-  assert.equal(calls.some(call => call.url.includes("/followers/")), false);
-});
-
-test("individual verification resumes only unchecked users after a block", async () => {
-  const { impl, calls } = mockFetch([
-    { status: 429, body: "" },
-    { status: 200, json: { status: "ok", following: true, followed_by: false } }
-  ]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
-  api.state.checkpoint = { ...api.createCheckpoint("123"), followingDone: true,
-    followingTotal: 2, followersTotal: 100, verifyIndividually: true, verified: { "1": true },
-    following: [{ id: "1", username: "a" }, { id: "2", username: "b" }]
-  };
-  await api.startScan({ resume: true });
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
   assert.equal(api.state.partial, true);
   assert.equal(api.getDisplayUsers().length, 0);
-  await api.startScan({ resume: true });
-  assert.equal(calls.length, 2);
-  assert.equal(calls.every(call => call.url === "/api/v1/friendships/show/2/"), true);
-  assert.equal(api.state.partial, false);
-  assert.equal(api.getDisplayUsers().map(user => user.id).join(","), "2");
 });
 
-test("missing individual follow-back fields cannot be mistaken for false", async () => {
-  const { impl } = mockFetch([{ status: 200, json: { status: "ok", following: true } }]);
-  const api = loadInternals(impl);
-  const checkpoint = { ...api.createCheckpoint("123"), following: [{ id: "1", username: "a" }] };
-  await assert.rejects(api.verifyFollowBack(checkpoint), error => error.kind === "incomplete");
-  assert.equal(checkpoint.verified["1"], undefined);
-});
-
-test("a scan switches to direct verification once it needs fewer remaining requests", async () => {
-  const { impl, calls } = mockFetch([
-    { status: 200, json: { user: { following_count: 3, follower_count: 48 } } },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "2", username: "b" }, { pk: "3", username: "c" }], has_more: false } },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "2", username: "b" }], has_more: true, next_max_id: "not-needed" } },
-    { status: 200, json: { status: "ok", following: true, followed_by: false } }
-  ]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
-  await api.startScan();
-  assert.equal(api.state.partial, false);
-  assert.equal(calls.length, 4);
-  assert.equal(calls[3].url, "/api/v1/friendships/show/3/");
-  assert.equal(api.getDisplayUsers().map(user => user.id).join(","), "3");
-});
-
-test("an unknown profile count and empty API list never claim everyone follows back", async () => {
-  const { impl } = mockFetch([{ status: 200, json: { users: [], has_more: false } }]);
-  await assert.rejects(loadInternals(impl).fetchFriendshipList("123", "following", () => {}, { total: null }),
-    error => error.kind === "incomplete");
+test("scan pacing uses upstream micro, regular, and long pauses", async () => {
+  const timers = [];
+  const fixedMath = Object.create(Math);
+  fixedMath.random = () => 0.5;
+  const api = loadInternals(undefined, {
+    Math: fixedMath,
+    setTimeout: (fn, ms) => { timers.push(ms); fn(); return 0; }
+  });
+  await api.waitBeforeNextScanPage(7);
+  assert.deepEqual(timers, [1250, 1150, 10000]);
 });
 
 test("a network error is retried and then reported as a dropped connection", async () => {
