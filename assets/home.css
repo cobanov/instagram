@@ -191,54 +191,6 @@
   font-size: var(--step--1);
 }
 
-.steps {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: step;
-}
-
-.steps li {
-  display: grid;
-  grid-template-columns: 2.5rem minmax(0, 1fr);
-  gap: 4px 18px;
-  padding: 20px 0;
-  border-top: 1px solid var(--line);
-  counter-increment: step;
-}
-
-.steps li:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-
-.steps li::before {
-  content: counter(step);
-  grid-row: span 2;
-  color: var(--accent);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--step--1);
-  line-height: 1.6;
-}
-
-.steps p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: var(--step--1);
-  line-height: 1.65;
-}
-
-kbd {
-  display: inline-block;
-  padding: 2px 7px;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
-  background: var(--surface-2);
-  color: var(--ink);
-  font: 500 0.75rem/1.4 "JetBrains Mono", ui-monospace, monospace;
-}
-
 /* --------------------------------------------------------------------------
    Changelog: dated list, no containers
    -------------------------------------------------------------------------- */

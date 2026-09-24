@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Find who does not follow you back from your own Instagram data export. The file is read in your browser; nothing is sent to Instagram."
+    />
+    <meta name="theme-color" content="#141210" />
+
+    <script>
+      /* Language is picked before the first paint, so nobody sees the wrong
+         one flash past. English unless a choice was stored earlier. */
+      (function () {
+        var lang = "en";
+        try {
+          var stored =
+            localStorage.getItem("lang") ||
+            localStorage.getItem("cobanov_iu_language");
+          lang = stored === "tr" ? "tr" : "en";
+        } catch (e) {}
+        document.documentElement.setAttribute("data-lang", lang);
+        document.documentElement.lang = lang;
+        document.documentElement.classList.add("js");
+      })();
+    </script>
+
+    <title>Data export | Cobanov Instagram Unfollowers</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23141210'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%23e56192'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/site.css" />
+    <link rel="stylesheet" href="assets/pages.css" />
+
+    <script
+      async
+      src="https://oa-c.cobanov.run/oa.js"
+      data-key="oa_pk_1V50QL02EmGtL3NGvTNH8AQygsoS4hkz"
+      data-collector="https://oa-c.cobanov.run"
+    ></script>
+  </head>
+  <body class="page-doc page-export">
+    <a class="skip-link" href="#main">
+      <span lang="en">Skip to content</span><span lang="tr">İçeriğe geç</span>
+    </a>
+
+    <header class="masthead">
+      <div class="shell masthead-inner">
+        <a class="wordmark" href="/">
+          <span class="wordmark-mark" aria-hidden="true"></span>
+          <span>cobanov</span>
+        </a>
+        <nav aria-label="Primary">
+          <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
+          <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub" title="GitHub">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.86 8.37 6.84 9.73.5.09.68-.22.68-.49v-1.9c-2.78.62-3.37-1.21-3.37-1.21-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.97c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.92v2.79c0 .27.18.58.69.48A10.08 10.08 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
+            </svg>
+          </a>
+          <a class="nav-icon" href="https://www.instagram.com/mertcobanov/" rel="noreferrer" aria-label="Instagram" title="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" />
+              <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
+            </svg>
+          </a>
+          <button class="lang-toggle" type="button" data-language-toggle aria-label="Language / Dil">TR</button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="shell">
+      <h1>
+        <span lang="en">Find non-followers with your own data</span><span lang="tr">Kendi verinle geri takip etmeyenleri bul</span>
+      </h1>
+      <p class="lead" lang="en">
+        Instagram is cutting the live scan off. This method never talks to Instagram: you download your own
+        followers list from Instagram, drop it here, and this page compares the two lists in your browser.
+      </p>
+      <p class="lead" lang="tr">
+        Instagram canlı taramayı kesiyor. Bu yöntem Instagram'a hiç istek atmaz: takipçi listeni Instagram'dan
+        kendin indirirsin, buraya bırakırsın, bu sayfa iki listeyi tarayıcında karşılaştırır.
+      </p>
+      <p class="export-skip">
+        <span lang="en">Already have the file? <a href="#drop">Go to step 5</a></span>
+        <span lang="tr">Dosyan hazır mı? <a href="#drop">5. adıma geç</a></span>
+      </p>
+
+      <ol class="steps export-steps">
+        <li>
+          <h3><span lang="en">Open Instagram's export page</span><span lang="tr">Instagram'ın indirme sayfasını aç</span></h3>
+          <p lang="en">
+            While signed in to Instagram, open
+            <a href="https://accountscenter.instagram.com/info_and_permissions/dyi/" rel="noreferrer" target="_blank" data-oa-event="export-open-dyi">Export your information</a>.
+            In the app it is under Profile → ☰ → Accounts Center → Your information and permissions.
+          </p>
+          <p lang="tr">
+            Instagram'a giriş yapmışken
+            <a href="https://accountscenter.instagram.com/info_and_permissions/dyi/" rel="noreferrer" target="_blank" data-oa-event="export-open-dyi">bilgilerini indirme sayfasını</a>
+            aç. Uygulamada: Profil → ☰ → Hesaplar Merkezi → Bilgilerin ve izinlerin.
+          </p>
+        </li>
+        <li>
+          <h3><span lang="en">Export to your device</span><span lang="tr">Cihazına aktar</span></h3>
+          <p lang="en">
+            Create a new export, pick your Instagram account and choose to export to your device, not to Google Drive or Dropbox.
+          </p>
+          <p lang="tr">
+            Yeni bir dışa aktarma oluştur, Instagram hesabını seç ve cihazına aktarmayı seç. Google Drive ya da Dropbox'ı seçme.
+          </p>
+        </li>
+        <li>
+          <h3><span lang="en">Only "Followers and following", in JSON</span><span lang="tr">Sadece "Takipçiler ve takip edilenler", JSON olarak</span></h3>
+          <p lang="en">
+            Customize the information, clear everything, then tick only <strong>Followers and following</strong>.
+            Set the date range to <strong>All time</strong>, the format to <strong>JSON</strong>, and start the export.
+          </p>
+          <p lang="tr">
+            Bilgileri özelleştir kısmında hepsini kaldır, yalnızca <strong>Takipçiler ve takip edilenler</strong> seçeneğini işaretle.
+            Tarih aralığını <strong>Tüm zamanlar</strong>, biçimi <strong>JSON</strong> yap ve dışa aktarmayı başlat.
+          </p>
+        </li>
+        <li>
+          <h3><span lang="en">Wait, then download</span><span lang="tr">Bekle, sonra indir</span></h3>
+          <p lang="en">
+            Instagram sends a notification and an email when the file is ready, usually within minutes, sometimes a few hours.
+            Go back to the same page and download it. You get a .zip file.
+          </p>
+          <p lang="tr">
+            Dosya hazır olunca Instagram bildirim ve e-posta gönderir. Genelde birkaç dakika, bazen birkaç saat sürer.
+            Aynı sayfaya dönüp dosyayı indir. Elinde bir .zip dosyası olacak.
+          </p>
+        </li>
+        <li id="drop">
+          <h3><span lang="en">Drop it here</span><span lang="tr">Buraya bırak</span></h3>
+          <p lang="en">
+            Drag the zip onto the box below, or tap the box to choose it. If your Mac already unzipped it, drop the folder.
+          </p>
+          <p lang="tr">
+            Zip dosyasını aşağıdaki alana sürükle ya da alana dokunup seç. Mac zip'i kendisi açtıysa klasörü bırak.
+          </p>
+        </li>
+      </ol>
+
+      <label class="drop" data-drop>
+        <input type="file" multiple accept=".zip,.json,.html,application/zip" data-file-input />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 4v11" />
+          <path d="m7 10 5 5 5-5" />
+          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+        </svg>
+        <span class="drop-title" data-drop-idle>
+          <span lang="en">Drop the zip or folder here</span><span lang="tr">Zip dosyasını ya da klasörü buraya bırak</span>
+        </span>
+        <span class="drop-title" data-drop-busy hidden>
+          <span lang="en">Reading your file…</span><span lang="tr">Dosyan okunuyor…</span>
+        </span>
+        <span class="drop-hint">
+          <span lang="en">or tap to choose a file</span><span lang="tr">ya da dokunup dosya seç</span>
+        </span>
+      </label>
+      <p class="drop-privacy">
+        <span lang="en">The file is read on this device. Nothing is uploaded, not to us and not to Instagram.</span>
+        <span lang="tr">Dosya bu cihazda okunur. Hiçbir yere yüklenmez, ne bize ne Instagram'a.</span>
+      </p>
+      <p class="note" data-error role="alert" hidden></p>
+
+      <section class="results" data-results hidden>
+        <h2 data-summary></h2>
+        <p class="results-sub" data-summary-sub></p>
+        <div class="results-tools">
+          <input class="results-filter" type="search" autocomplete="off" spellcheck="false" data-filter />
+          <button class="btn" type="button" data-copy-list>
+            <span lang="en">Copy list</span><span lang="tr">Listeyi kopyala</span>
+          </button>
+          <button class="btn" type="button" data-reset>
+            <span lang="en">Start over</span><span lang="tr">Baştan başla</span>
+          </button>
+        </div>
+        <p class="results-status" data-results-status aria-live="polite"></p>
+        <ol class="people" data-people></ol>
+        <p class="note" lang="en">
+          Tap a name to open the profile and unfollow there. Go slowly: unfollowing many accounts in a row can still hit
+          Instagram's limits. The list shows the moment you requested the file, so accounts renamed or deleted since may appear.
+        </p>
+        <p class="note" lang="tr">
+          Bir isme dokununca profil açılır, takibi oradan bırak. Yavaş git: art arda çok sayıda takip bırakmak Instagram'ın
+          sınırlarına yine takılabilir. Liste, dosyayı istediğin anı gösterir; o günden beri adı değişen ya da silinen hesaplar görünebilir.
+        </p>
+      </section>
+    </main>
+
+    <footer class="colophon">
+      <div class="shell colophon-row">
+        <span>© 2026 Mert Cobanov.</span>
+        <span class="colophon-links">
+          <a href="/privacy"><span lang="en">Privacy</span><span lang="tr">Gizlilik</span></a>
+          <a href="/contact"><span lang="en">Contact</span><span lang="tr">İletişim</span></a>
+          <a href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
+          <a href="https://github.com/cobanov/instagram" rel="noreferrer"><span lang="en">Source</span><span lang="tr">Kaynak</span></a>
+        </span>
+        <span class="footer-social">
+          <a href="https://x.com/mertcobanov" rel="noreferrer" aria-label="X">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+          <a href="https://github.com/cobanov" rel="noreferrer" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.27-.01-1.17-.02-2.12-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18.92-.26 1.91-.38 2.89-.39.98.01 1.97.13 2.89.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.77 1.05.77 2.12 0 1.53-.01 2.76-.01 3.14 0 .3.21.67.8.55C20.22 21.38 23.5 17.08 23.5 12c0-6.35-5.15-11.5-11.5-11.5z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/mertcobanoglu/" rel="noreferrer" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z"/></svg>
+          </a>
+          <a href="mailto:mertcobanov@gmail.com" aria-label="E-mail">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4.24-8 5-8-5V6.5l8 5 8-5v1.74z"/></svg>
+          </a>
+        </span>
+        <span class="colophon-legal">
+          <span lang="en">Not affiliated with Instagram or Meta.</span><span lang="tr">Instagram ve Meta ile ilişkili değildir.</span>
+        </span>
+      </div>
+    </footer>
+
+    <script src="assets/export.js"></script>
+    <script>
+      const { analyze } = window.InstagramExport;
+      const languageToggle = document.querySelector("[data-language-toggle]");
+      const drop = document.querySelector("[data-drop]");
+      const fileInput = document.querySelector("[data-file-input]");
+      const idleLabel = document.querySelector("[data-drop-idle]");
+      const busyLabel = document.querySelector("[data-drop-busy]");
+      const errorBox = document.querySelector("[data-error]");
+      const results = document.querySelector("[data-results]");
+      const summary = document.querySelector("[data-summary]");
+      const summarySub = document.querySelector("[data-summary-sub]");
+      const filter = document.querySelector("[data-filter]");
+      const people = document.querySelector("[data-people]");
+      const resultsStatus = document.querySelector("[data-results-status]");
+      let result = null;
+      let lastError = null;
+
+      /* Page copy lives in the markup in both languages; CSS hides one of them.
+         Only the strings JS writes itself need a table. */
+      const T = {
+        pageTitle: { en: "Data export", tr: "Veri dosyası" },
+        summaryMany: { en: "{count} accounts do not follow you back", tr: "{count} hesap seni geri takip etmiyor" },
+        summaryOne: { en: "1 account does not follow you back", tr: "1 hesap seni geri takip etmiyor" },
+        summaryNone: { en: "Everyone you follow follows you back", tr: "Takip ettiğin herkes seni geri takip ediyor" },
+        summarySub: {
+          en: "You follow {following} accounts and {followers} follow you.",
+          tr: "{following} hesabı takip ediyorsun, {followers} hesap seni takip ediyor."
+        },
+        filter: { en: "Search usernames", tr: "Kullanıcı adı ara" },
+        noMatch: { en: "No username matches that search.", tr: "Bu aramaya uyan kullanıcı adı yok." },
+        copied: { en: "Copied {count} usernames.", tr: "{count} kullanıcı adı kopyalandı." },
+        copyFailed: { en: "Copying failed. Select the list and copy it by hand.", tr: "Kopyalanamadı. Listeyi seçip elle kopyala." },
+        notZip: {
+          en: "That file is not a zip. Drop the .zip Instagram gave you, or the folder it unzips into.",
+          tr: "Bu dosya zip değil. Instagram'ın verdiği .zip dosyasını ya da açılmış klasörünü bırak."
+        },
+        zip64: {
+          en: "This zip is too large to read here. Unzip it first, then drop the folder.",
+          tr: "Bu zip burada okunamayacak kadar büyük. Önce zip'i aç, sonra klasörü bırak."
+        },
+        badZip: {
+          en: "This zip could not be read. Unzip it first, then drop the folder.",
+          tr: "Bu zip okunamadı. Önce zip'i aç, sonra klasörü bırak."
+        },
+        unreadable: {
+          en: "{file} could not be read. Request a new export with the format set to JSON.",
+          tr: "{file} okunamadı. Biçimi JSON seçerek yeni bir dışa aktarma iste."
+        },
+        nothingFound: {
+          en: "There is no followers list in what you dropped. In step 3, tick \"Followers and following\".",
+          tr: "Bıraktığın dosyada takipçi listesi yok. 3. adımda \"Takipçiler ve takip edilenler\"i işaretle."
+        },
+        noFollowing: {
+          en: "Your followers are there, but the accounts you follow (following.json) are missing. Drop the whole zip or folder.",
+          tr: "Takipçilerin var ama takip ettiklerin (following.json) eksik. Zip dosyasının ya da klasörün tamamını bırak."
+        },
+        noFollowers: {
+          en: "The accounts you follow are there, but your followers (followers_1.json) are missing. Drop the whole zip or folder.",
+          tr: "Takip ettiklerin var ama takipçilerin (followers_1.json) eksik. Zip dosyasının ya da klasörün tamamını bırak."
+        },
+        emptyFollowing: {
+          en: "The list of accounts you follow is empty. If that is wrong, request a new export with the format set to JSON.",
+          tr: "Takip ettiğin hesapların listesi boş. Bu yanlışsa biçimi JSON seçerek yeni bir dışa aktarma iste."
+        },
+        failed: {
+          en: "Something went wrong while reading the file. Unzip it and drop the folder instead.",
+          tr: "Dosya okunurken bir sorun çıktı. Zip'i açıp klasörü bırakmayı dene."
+        }
+      };
+
+      function lang() {
+        return document.documentElement.getAttribute("data-lang") === "tr" ? "tr" : "en";
+      }
+
+      function t(key, values = {}) {
+        return T[key][lang()].replace(/\{(\w+)\}/g, (_, name) => values[name] ?? "");
+      }
+
+      function number(value) {
+        return new Intl.NumberFormat(lang()).format(value);
+      }
+
+      function setBusy(busy) {
+        drop.classList.toggle("is-busy", busy);
+        idleLabel.hidden = busy;
+        busyLabel.hidden = !busy;
+        fileInput.disabled = busy;
+      }
+
+      function showError(error) {
+        lastError = error;
+        const code = error && error.code && T[error.code] ? error.code : "failed";
+        errorBox.textContent = t(code, { file: error && error.detail });
+        errorBox.hidden = false;
+        results.hidden = true;
+        if (code === "failed") console.error(error);
+      }
+
+      function renderPeople() {
+        const query = filter.value.trim().toLowerCase().replace(/^@/, "");
+        const dates = new Intl.DateTimeFormat(lang(), { dateStyle: "medium" });
+        const fragment = document.createDocumentFragment();
+        let shown = 0;
+        for (const account of result.notFollowingBack) {
+          if (query && !account.username.includes(query)) continue;
+          const item = document.createElement("li");
+          const link = document.createElement("a");
+          link.href = `https://www.instagram.com/${account.username}/`;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = account.username;
+          item.append(link);
+          if (account.timestamp) {
+            const date = document.createElement("time");
+            const when = new Date(account.timestamp * 1000);
+            date.dateTime = when.toISOString().slice(0, 10);
+            date.textContent = dates.format(when);
+            item.append(date);
+          }
+          fragment.append(item);
+          shown += 1;
+        }
+        people.replaceChildren(fragment);
+        resultsStatus.textContent = query && !shown ? t("noMatch") : "";
+      }
+
+      function renderResults() {
+        if (!result) return;
+        const count = result.notFollowingBack.length;
+        summary.textContent = count === 0
+          ? t("summaryNone")
+          : count === 1 ? t("summaryOne") : t("summaryMany", { count: number(count) });
+        summarySub.textContent = t("summarySub", {
+          following: number(result.following),
+          followers: number(result.followers)
+        });
+        results.querySelector(".results-tools").hidden = count === 0;
+        renderPeople();
+      }
+
+      async function handle(files) {
+        if (!files.length) return;
+        errorBox.hidden = true;
+        lastError = null;
+        setBusy(true);
+        try {
+          result = await analyze(files);
+          filter.value = "";
+          results.hidden = false;
+          renderResults();
+          results.scrollIntoView({ behavior: "smooth", block: "start" });
+        } catch (error) {
+          result = null;
+          showError(error);
+        } finally {
+          setBusy(false);
+          fileInput.value = "";
+        }
+      }
+
+      /* A dropped folder only arrives as a directory entry, and entries have
+         to be taken synchronously inside the drop event. Only the files that
+         can matter are opened, so dropping a full export with every photo in
+         it stays quick. */
+      function worthReading(name) {
+        return /\.zip$/i.test(name) || /^follow(ers|ing)(_\d+)?\.(json|html)$/i.test(name);
+      }
+
+      async function filesFromEntries(entries) {
+        const files = [];
+        async function walk(entry, prefix) {
+          if (entry.isFile) {
+            if (!worthReading(entry.name)) return;
+            const file = await new Promise((resolve, reject) => entry.file(resolve, reject));
+            files.push({ path: prefix + file.name, blob: file });
+            return;
+          }
+          const reader = entry.createReader();
+          let batch;
+          do {
+            batch = await new Promise((resolve, reject) => reader.readEntries(resolve, reject));
+            for (const child of batch) await walk(child, `${prefix}${entry.name}/`);
+          } while (batch.length);
+        }
+        for (const entry of entries) await walk(entry, "");
+        return files;
+      }
+
+      drop.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        drop.classList.add("is-over");
+      });
+      drop.addEventListener("dragleave", () => drop.classList.remove("is-over"));
+      drop.addEventListener("drop", (event) => {
+        event.preventDefault();
+        drop.classList.remove("is-over");
+        if (drop.classList.contains("is-busy")) return;
+        const items = [...(event.dataTransfer.items || [])];
+        const entries = items.map((item) => item.webkitGetAsEntry && item.webkitGetAsEntry()).filter(Boolean);
+        const loose = [...event.dataTransfer.files].map((file) => ({ path: file.name, blob: file }));
+        if (!entries.length) {
+          handle(loose);
+          return;
+        }
+        setBusy(true);
+        filesFromEntries(entries)
+          .then((files) => handle(files.length ? files : loose))
+          .catch(showError)
+          .finally(() => setBusy(false));
+      });
+
+      /* Dropping a file anywhere else would make the browser navigate to it,
+         losing the page. */
+      window.addEventListener("dragover", (event) => event.preventDefault());
+      window.addEventListener("drop", (event) => event.preventDefault());
+
+      fileInput.addEventListener("change", () => {
+        handle([...fileInput.files].map((file) => ({ path: file.webkitRelativePath || file.name, blob: file })));
+      });
+
+      filter.addEventListener("input", renderPeople);
+
+      document.querySelector("[data-copy-list]").addEventListener("click", async () => {
+        if (!result) return;
+        const names = result.notFollowingBack.map((account) => account.username);
+        try {
+          await navigator.clipboard.writeText(names.join("\n"));
+          resultsStatus.textContent = t("copied", { count: number(names.length) });
+        } catch {
+          resultsStatus.textContent = t("copyFailed");
+        }
+      });
+
+      document.querySelector("[data-reset]").addEventListener("click", () => {
+        result = null;
+        results.hidden = true;
+        errorBox.hidden = true;
+        lastError = null;
+        people.replaceChildren();
+        drop.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+
+      function refreshLanguage() {
+        languageToggle.textContent = lang() === "tr" ? "EN" : "TR";
+        document.title = `${T.pageTitle[lang()]} | Cobanov Instagram Unfollowers`;
+        filter.placeholder = t("filter");
+        filter.setAttribute("aria-label", t("filter"));
+        if (lastError) showError(lastError);
+        renderResults();
+      }
+
+      languageToggle.addEventListener("click", () => {
+        const next = lang() === "tr" ? "en" : "tr";
+        document.documentElement.setAttribute("data-lang", next);
+        document.documentElement.lang = next;
+        try {
+          localStorage.setItem("lang", next);
+        } catch (error) {
+          /* Private window, or storage refused. The switch still works for
+             this visit; it simply will not be remembered. */
+        }
+        refreshLanguage();
+      });
+
+      refreshLanguage();
+    </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 /* ===========================================================================
-   security.html, privacy.html, contact.html
+   security.html, privacy.html, contact.html, export.html
 
    These are documents, not landing pages, so they use one narrow measure and
    inherit every token from site.css. No cards unless a container is genuinely
@@ -164,6 +164,184 @@
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   export.html: numbered steps, one drop target, one plain list of results.
+   The drop target is the only container, because it is the one thing on the
+   page you act on.
+   -------------------------------------------------------------------------- */
+
+.page-export [hidden] {
+  display: none !important;
+}
+
+.page-export .export-skip {
+  margin: 16px 0 0;
+  font-size: var(--step--1);
+}
+
+.page-export .export-steps {
+  margin-top: 48px;
+}
+
+.page-export .steps li {
+  margin-top: 0;
+}
+
+.page-export .steps h3 {
+  color: var(--ink);
+}
+
+.page-export .steps p {
+  font-size: var(--step-0);
+}
+
+.page-export .steps strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.page-export #drop {
+  scroll-margin-top: 24px;
+}
+
+.drop {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: clamp(32px, 6vw, 48px) 24px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+
+.drop:hover,
+.drop.is-over {
+  border-color: var(--accent);
+  background: var(--accent-quiet);
+}
+
+.drop:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.drop.is-busy {
+  cursor: progress;
+}
+
+.drop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.drop svg {
+  width: 26px;
+  height: 26px;
+  margin-bottom: 6px;
+  color: var(--accent);
+}
+
+.drop-title {
+  color: var(--ink);
+  font-size: var(--step-1);
+  font-weight: 500;
+}
+
+.drop-hint {
+  font-size: var(--step--1);
+}
+
+.page-doc .drop-privacy {
+  margin: 14px 0 0;
+  font-size: var(--step--1);
+}
+
+.results {
+  margin-top: 56px;
+  scroll-margin-top: 24px;
+}
+
+.page-doc main .results h2 {
+  margin: 0;
+  font-size: var(--step-3);
+  letter-spacing: -0.02em;
+}
+
+.page-doc .results-sub {
+  margin: 10px 0 0;
+}
+
+.results-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.results-filter {
+  flex: 1 1 220px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font: 400 var(--step-0)/1 Geist, ui-sans-serif, sans-serif;
+}
+
+.results-filter::placeholder {
+  color: var(--muted);
+}
+
+.page-doc .results-status {
+  min-height: 1.6em;
+  margin: 12px 0 0;
+  font-size: var(--step--1);
+}
+
+.people {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.page-doc .people li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.page-doc .people a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.page-doc .people a:hover {
+  color: var(--accent);
+}
+
+.people time {
+  flex: none;
+  color: var(--muted);
+  font: 400 var(--step--1)/1.4 "JetBrains Mono", ui-monospace, monospace;
 }
 
 @media (max-width: 600px) {
