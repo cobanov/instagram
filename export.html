@@ -38,7 +38,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/site.css" />
-    <link rel="stylesheet" href="assets/pages.css" />
+    <link rel="stylesheet" href="assets/export.css" />
 
     <script
       async
@@ -47,7 +47,7 @@
       data-collector="https://oa-c.cobanov.run"
     ></script>
   </head>
-  <body class="page-doc page-export">
+  <body class="page-export">
     <a class="skip-link" href="#main">
       <span lang="en">Skip to content</span><span lang="tr">İçeriğe geç</span>
     </a>
@@ -59,6 +59,7 @@
           <span>cobanov</span>
         </a>
         <nav aria-label="Primary">
+          <a class="nav-text nav-new" href="/export" aria-current="page" data-oa-event="nav-export"><span class="nav-new-dot" aria-hidden="true"></span><span lang="en">Data file</span><span lang="tr">Veri dosyası</span></a>
           <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub" title="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -77,113 +78,131 @@
       </div>
     </header>
 
-    <main id="main" class="shell">
-      <h1>
-        <span lang="en">Find non-followers with your own data</span><span lang="tr">Kendi verinle geri takip etmeyenleri bul</span>
-      </h1>
-      <p class="lead" lang="en">
-        Instagram is cutting the live scan off. This method never talks to Instagram: you download your own
-        followers list from Instagram, drop it here, and this page compares the two lists in your browser.
-      </p>
-      <p class="lead" lang="tr">
-        Instagram canlı taramayı kesiyor. Bu yöntem Instagram'a hiç istek atmaz: takipçi listeni Instagram'dan
-        kendin indirirsin, buraya bırakırsın, bu sayfa iki listeyi tarayıcında karşılaştırır.
-      </p>
-      <p class="export-skip">
-        <span lang="en">Already have the file? <a href="#drop">Go to step 5</a></span>
-        <span lang="tr">Dosyan hazır mı? <a href="#drop">5. adıma geç</a></span>
-      </p>
+    <main id="main" class="shell export">
+      <header class="export-head">
+        <div>
+          <p class="export-meta">
+            <span class="export-meta-dot" aria-hidden="true"></span>
+            <span lang="en">Second method, no requests to Instagram</span><span lang="tr">İkinci yöntem, Instagram'a istek atmaz</span>
+          </p>
+          <h1>
+            <span lang="en">Find non-followers with your own data</span><span lang="tr">Kendi verinle geri takip etmeyenleri bul</span>
+          </h1>
+        </div>
+        <div class="export-head-side">
+          <p class="export-lead" lang="en">
+            Instagram gives you a copy of your followers and the accounts you follow. Download it, drop it here, and this
+            page compares the two lists in your browser. Nothing is sent to Instagram, so your account takes no risk.
+          </p>
+          <p class="export-lead" lang="tr">
+            Instagram takipçilerinin ve takip ettiklerinin bir kopyasını sana veriyor. Onu indir, buraya bırak, bu sayfa
+            iki listeyi tarayıcında karşılaştırsın. Instagram'a hiçbir şey gönderilmez, hesabın risk almaz.
+          </p>
+          <p class="export-jump">
+            <span lang="en">Already have the file? <a href="#drop">Go to the drop area</a></span>
+            <span lang="tr">Dosyan hazır mı? <a href="#drop">Bırakma alanına geç</a></span>
+          </p>
+        </div>
+      </header>
 
-      <ol class="steps export-steps">
-        <li>
-          <h3><span lang="en">Open Instagram's export page</span><span lang="tr">Instagram'ın indirme sayfasını aç</span></h3>
-          <p lang="en">
-            While signed in to Instagram, open
-            <a href="https://accountscenter.instagram.com/info_and_permissions/dyi/" rel="noreferrer" target="_blank" data-oa-event="export-open-dyi">Export your information</a>.
-            In the app it is under Profile → ☰ → Accounts Center → Your information and permissions.
-          </p>
-          <p lang="tr">
-            Instagram'a giriş yapmışken
-            <a href="https://accountscenter.instagram.com/info_and_permissions/dyi/" rel="noreferrer" target="_blank" data-oa-event="export-open-dyi">bilgilerini indirme sayfasını</a>
-            aç. Uygulamada: Profil → ☰ → Hesaplar Merkezi → Bilgilerin ve izinlerin.
-          </p>
-        </li>
-        <li>
-          <h3><span lang="en">Export to your device</span><span lang="tr">Cihazına aktar</span></h3>
-          <p lang="en">
-            Create a new export, pick your Instagram account and choose to export to your device, not to Google Drive or Dropbox.
-          </p>
-          <p lang="tr">
-            Yeni bir dışa aktarma oluştur, Instagram hesabını seç ve cihazına aktarmayı seç. Google Drive ya da Dropbox'ı seçme.
-          </p>
-        </li>
-        <li>
-          <h3><span lang="en">Only "Followers and following", in JSON</span><span lang="tr">Sadece "Takipçiler ve takip edilenler", JSON olarak</span></h3>
-          <p lang="en">
-            Customize the information, clear everything, then tick only <strong>Followers and following</strong>.
-            Set the date range to <strong>All time</strong>, the format to <strong>JSON</strong>, and start the export.
-          </p>
-          <p lang="tr">
-            Bilgileri özelleştir kısmında hepsini kaldır, yalnızca <strong>Takipçiler ve takip edilenler</strong> seçeneğini işaretle.
-            Tarih aralığını <strong>Tüm zamanlar</strong>, biçimi <strong>JSON</strong> yap ve dışa aktarmayı başlat.
-          </p>
-        </li>
-        <li>
-          <h3><span lang="en">Wait, then download</span><span lang="tr">Bekle, sonra indir</span></h3>
-          <p lang="en">
-            Instagram sends a notification and an email when the file is ready, usually within minutes, sometimes a few hours.
-            Go back to the same page and download it. You get a .zip file.
-          </p>
-          <p lang="tr">
-            Dosya hazır olunca Instagram bildirim ve e-posta gönderir. Genelde birkaç dakika, bazen birkaç saat sürer.
-            Aynı sayfaya dönüp dosyayı indir. Elinde bir .zip dosyası olacak.
-          </p>
-        </li>
-        <li id="drop">
-          <h3><span lang="en">Drop it here</span><span lang="tr">Buraya bırak</span></h3>
-          <p lang="en">
-            Drag the zip onto the box below, or tap the box to choose it. If your Mac already unzipped it, drop the folder.
-          </p>
-          <p lang="tr">
-            Zip dosyasını aşağıdaki alana sürükle ya da alana dokunup seç. Mac zip'i kendisi açtıysa klasörü bırak.
-          </p>
-        </li>
-      </ol>
+      <div class="export-grid">
+        <ol class="steps export-steps">
+          <li>
+            <h3><span lang="en">Open Instagram's export page</span><span lang="tr">Instagram'ın indirme sayfasını aç</span></h3>
+            <p lang="en">
+              While signed in to Instagram, open
+              <a href="https://accountscenter.instagram.com/info_and_permissions/dyi/" rel="noreferrer" target="_blank" data-oa-event="export-open-dyi">Export your information</a>.
+              In the app it is under Profile → ☰ → Accounts Center → Your information and permissions.
+            </p>
+            <p lang="tr">
+              Instagram'a giriş yapmışken
+              <a href="https://accountscenter.instagram.com/info_and_permissions/dyi/" rel="noreferrer" target="_blank" data-oa-event="export-open-dyi">bilgilerini indirme sayfasını</a>
+              aç. Uygulamada: Profil → ☰ → Hesaplar Merkezi → Bilgilerin ve izinlerin.
+            </p>
+          </li>
+          <li>
+            <h3><span lang="en">Export to your device</span><span lang="tr">Cihazına aktar</span></h3>
+            <p lang="en">
+              Create a new export, pick your Instagram account and choose to export to your device, not to Google Drive or Dropbox.
+            </p>
+            <p lang="tr">
+              Yeni bir dışa aktarma oluştur, Instagram hesabını seç ve cihazına aktarmayı seç. Google Drive ya da Dropbox'ı seçme.
+            </p>
+          </li>
+          <li>
+            <h3><span lang="en">Only "Followers and following", in JSON</span><span lang="tr">Sadece "Takipçiler ve takip edilenler", JSON olarak</span></h3>
+            <p lang="en">
+              Customize the information, clear everything, then tick only <strong>Followers and following</strong>.
+              Set the date range to <strong>All time</strong>, the format to <strong>JSON</strong>, and start the export.
+            </p>
+            <p lang="tr">
+              Bilgileri özelleştir kısmında hepsini kaldır, yalnızca <strong>Takipçiler ve takip edilenler</strong> seçeneğini işaretle.
+              Tarih aralığını <strong>Tüm zamanlar</strong>, biçimi <strong>JSON</strong> yap ve dışa aktarmayı başlat.
+            </p>
+          </li>
+          <li>
+            <h3><span lang="en">Wait, then download</span><span lang="tr">Bekle, sonra indir</span></h3>
+            <p lang="en">
+              Instagram sends a notification and an email when the file is ready, usually within minutes, sometimes a few hours.
+              Go back to the same page and download it. You get a .zip file.
+            </p>
+            <p lang="tr">
+              Dosya hazır olunca Instagram bildirim ve e-posta gönderir. Genelde birkaç dakika, bazen birkaç saat sürer.
+              Aynı sayfaya dönüp dosyayı indir. Elinde bir .zip dosyası olacak.
+            </p>
+          </li>
+          <li>
+            <h3><span lang="en">Drop the zip</span><span lang="tr">Zip dosyasını bırak</span></h3>
+            <p lang="en">
+              Drag it onto the drop area, or tap the area to choose it. If your Mac already unzipped it, drop the folder instead.
+            </p>
+            <p lang="tr">
+              Dosyayı bırakma alanına sürükle ya da alana dokunup seç. Mac zip'i kendisi açtıysa klasörü bırak.
+            </p>
+          </li>
+        </ol>
 
-      <label class="drop" data-drop>
-        <input type="file" multiple accept=".zip,.json,.html,application/zip" data-file-input />
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 4v11" />
-          <path d="m7 10 5 5 5-5" />
-          <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
-        </svg>
-        <span class="drop-title" data-drop-idle>
-          <span lang="en">Drop the zip or folder here</span><span lang="tr">Zip dosyasını ya da klasörü buraya bırak</span>
-        </span>
-        <span class="drop-title" data-drop-busy hidden>
-          <span lang="en">Reading your file…</span><span lang="tr">Dosyan okunuyor…</span>
-        </span>
-        <span class="drop-hint">
-          <span lang="en">or tap to choose a file</span><span lang="tr">ya da dokunup dosya seç</span>
-        </span>
-      </label>
-      <p class="drop-privacy">
-        <span lang="en">The file is read on this device. Nothing is uploaded, not to us and not to Instagram.</span>
-        <span lang="tr">Dosya bu cihazda okunur. Hiçbir yere yüklenmez, ne bize ne Instagram'a.</span>
-      </p>
-      <p class="note" data-error role="alert" hidden></p>
+        <aside class="export-side" id="drop">
+          <label class="drop" data-drop>
+            <input type="file" multiple accept=".zip,.json,.html,application/zip" data-file-input />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 4v11" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2" />
+            </svg>
+            <span class="drop-title" data-drop-idle>
+              <span lang="en">Drop the zip or folder here</span><span lang="tr">Zip dosyasını ya da klasörü buraya bırak</span>
+            </span>
+            <span class="drop-title" data-drop-busy hidden>
+              <span lang="en">Reading your file…</span><span lang="tr">Dosyan okunuyor…</span>
+            </span>
+            <span class="drop-hint">
+              <span lang="en">or tap to choose a file</span><span lang="tr">ya da dokunup dosya seç</span>
+            </span>
+          </label>
+          <p class="drop-privacy">
+            <span lang="en">The file is read on this device. Nothing is uploaded, not to us and not to Instagram.</span>
+            <span lang="tr">Dosya bu cihazda okunur. Hiçbir yere yüklenmez, ne bize ne Instagram'a.</span>
+          </p>
+          <p class="note" data-error role="alert" hidden></p>
+        </aside>
+      </div>
 
       <section class="results" data-results hidden>
-        <h2 data-summary></h2>
-        <p class="results-sub" data-summary-sub></p>
-        <div class="results-tools">
-          <input class="results-filter" type="search" autocomplete="off" spellcheck="false" data-filter />
-          <button class="btn" type="button" data-copy-list>
-            <span lang="en">Copy list</span><span lang="tr">Listeyi kopyala</span>
-          </button>
-          <button class="btn" type="button" data-reset>
-            <span lang="en">Start over</span><span lang="tr">Baştan başla</span>
-          </button>
+        <div class="results-head">
+          <div>
+            <h2 data-summary></h2>
+            <p class="results-sub" data-summary-sub></p>
+          </div>
+          <div class="results-tools">
+            <input class="results-filter" type="search" autocomplete="off" spellcheck="false" data-filter />
+            <button class="btn" type="button" data-copy-list>
+              <span lang="en">Copy list</span><span lang="tr">Listeyi kopyala</span>
+            </button>
+            <button class="btn" type="button" data-reset>
+              <span lang="en">Start over</span><span lang="tr">Baştan başla</span>
+            </button>
+          </div>
         </div>
         <p class="results-status" data-results-status aria-live="polite"></p>
         <ol class="people" data-people></ol>

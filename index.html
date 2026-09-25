@@ -128,6 +128,7 @@
           <span>cobanov</span>
         </a>
         <nav aria-label="Primary">
+          <a class="nav-text nav-new" href="/export" data-oa-event="nav-export"><span class="nav-new-dot" aria-hidden="true"></span><span lang="en">Data file</span><span lang="tr">Veri dosyası</span></a>
           <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -150,24 +151,6 @@
       <section class="hero">
         <div class="shell hero-split">
           <div>
-            <!--
-              Status line for the readers who arrive from a broken scan and want
-              to know, before anything else, whether it works today. Dated so a
-              stale notice reads as stale. Update it when the answer changes.
-            -->
-            <p class="hero-status hero-status-warn" role="status">
-              <span class="hero-status-dot" aria-hidden="true"></span>
-              <span lang="en">
-                <strong>24 September 2026: the scan is unreliable, but there is a second method.</strong>
-                Instagram now flags reading a full follower list as automation: scans stop partway and some people get logged out. The new method uses the data file Instagram gives you, so nothing is sent to Instagram and your account takes no risk.
-                <a href="/export" data-oa-event="notice-export">Use your data file</a>
-              </span>
-              <span lang="tr">
-                <strong>24 Eylül 2026: Tarama şu an güvenilir değil, ama ikinci bir yöntem var.</strong>
-                Instagram takipçi listesini baştan sona okumayı otomasyon sayıyor: tarama yarıda kalıyor, bazı kullanıcılar oturumdan atılıyor. Yeni yöntem Instagram'ın sana verdiği veri dosyasını kullanır; Instagram'a hiçbir şey gönderilmez, hesabın risk almaz.
-                <a href="/export" data-oa-event="notice-export">Veri dosyasıyla bul</a>
-              </span>
-            </p>
             <h1><span lang="en">See who does not follow you back</span><span lang="tr">Seni geri takip etmeyenleri gör</span></h1>
             <p class="hero-sub" lang="en">
               It scans the accounts you follow and lists the ones that do not follow back. Your data never leaves the browser.
@@ -175,12 +158,6 @@
             <p class="hero-sub" lang="tr">
               Takip ettiğin hesapları tarar, geri takip etmeyenleri listeler. Veri tarayıcından çıkmaz.
             </p>
-            <div class="related-projects">
-              <span lang="en">More guides</span><span lang="tr">Bunlar da var</span>
-              <a class="btn btn-sm" href="https://tv.cobanov.dev/?ref=instagram" data-oa-event="visit-tv-guide">tv.cobanov.dev</a>
-              <a class="btn btn-sm" href="https://3dprinter.cobanov.dev/?ref=instagram" data-oa-event="visit-3dprinter-guide">3dprinter.cobanov.dev</a>
-            </div>
-
             <div class="hero-actions">
               <button class="btn btn-primary" type="button" data-copy data-oa-event="copy-snippet">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -208,6 +185,57 @@
               </span>
             </div>
             <div class="code-body" data-code></div>
+          </div>
+        </div>
+      </section>
+
+      <!--
+        Status for the readers who arrive from a broken scan and want to know
+        whether it works today. It sits under the hero rather than inside it, so
+        the headline keeps its place. Dated so a stale notice reads as stale;
+        update it when the answer changes.
+      -->
+      <section id="status" class="status" aria-labelledby="status-title">
+        <div class="shell">
+          <p class="status-meta">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span lang="en">Status, 24 September 2026</span><span lang="tr">Durum, 24 Eylül 2026</span>
+          </p>
+          <h2 id="status-title">
+            <span lang="en"><span class="status-quiet">The scan is unreliable right now.</span> There is a second method.</span><span lang="tr"><span class="status-quiet">Tarama şu an güvenilir değil.</span> İkinci bir yöntem var.</span>
+          </h2>
+          <div class="status-split">
+            <div class="status-col">
+              <h3><span lang="en">Why scans fail</span><span lang="tr">Neden hata alıyorsun</span></h3>
+              <p lang="en">
+                Instagram now treats reading a full follower list as automation. Scans stop partway, mostly on larger
+                accounts, and some people get logged out. Every tool that reads the list this way is affected.
+              </p>
+              <p lang="tr">
+                Instagram takipçi listesini baştan sona okumayı artık otomasyon sayıyor. Tarama yarıda kalıyor, en çok
+                büyük hesaplarda, ve bazı kullanıcılar oturumdan atılıyor. Listeyi bu şekilde okuyan tüm araçlar etkileniyor.
+              </p>
+            </div>
+            <div class="status-col">
+              <h3><span lang="en">The second method</span><span lang="tr">İkinci yöntem</span></h3>
+              <p lang="en">
+                It uses the data file Instagram gives you. Request it from your account, drop it on the page, and the two
+                lists are compared in your browser. Nothing is sent to Instagram, so your account takes no risk.
+              </p>
+              <p lang="tr">
+                Instagram'ın sana verdiği veri dosyasını kullanır. Dosyayı hesabından istersin, sayfaya bırakırsın, iki
+                liste tarayıcında karşılaştırılır. Instagram'a hiçbir şey gönderilmez, hesabın risk almaz.
+              </p>
+              <div class="status-actions">
+                <a class="btn btn-primary" href="/export" data-oa-event="status-export">
+                  <span lang="en">Use your data file</span><span lang="tr">Veri dosyasıyla bul</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14" />
+                    <path d="m13 6 6 6-6 6" />
+                  </svg>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>

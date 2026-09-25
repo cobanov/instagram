@@ -504,3 +504,38 @@ kbd {
     padding: 8px;
   }
 }
+
+/* The second method, reachable from every page. The accent dot marks it as the
+   one that works today; aria-current marks the page you are on. */
+.nav-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+
+.nav-new-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.nav-text[aria-current="page"] {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+/* Two text links and three controls do not fit beside the wordmark on a
+   phone. The GitHub and Instagram icons are repeated in the footer. */
+@media (max-width: 480px) {
+  .masthead nav .nav-icon {
+    display: none;
+  }
+
+  /* On a phone the number column costs a fifth of the line; narrow it. */
+  .steps li {
+    grid-template-columns: 1.25rem minmax(0, 1fr);
+    gap: 4px 12px;
+  }
+}

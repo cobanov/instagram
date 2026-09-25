@@ -1,0 +1,289 @@
+/* ===========================================================================
+   export.html only.
+
+   A tool, not a document, so it sits on the home page's grid instead of the
+   narrow reading measure: the steps on the left, the drop target held beside
+   them where it stays in reach, the results across the full width below.
+   The drop target is the only container, because it is the one thing on the
+   page you act on.
+   =========================================================================== */
+
+.page-export [hidden] {
+  display: none !important;
+}
+
+.export {
+  padding-block: clamp(40px, 6vw, 80px) clamp(72px, 9vw, 128px);
+}
+
+.export a {
+  color: var(--ink);
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.export a:hover {
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   Head
+   -------------------------------------------------------------------------- */
+
+.export-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  color: var(--muted);
+  font: 400 var(--step--1)/1.4 "JetBrains Mono", ui-monospace, monospace;
+}
+
+.export-meta-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-quiet);
+}
+
+/* Headline and explanation side by side, on the same columns as the grid
+   below, so the drop target reaches the first screen. */
+.export-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 24px clamp(40px, 6vw, 88px);
+  align-items: end;
+}
+
+/* A step below the home hero: this page is a tool, the headline only names it. */
+.export-head h1 {
+  max-width: 18ch;
+  font-size: clamp(2.25rem, 1.2rem + 3.4vw, 3.5rem);
+  text-wrap: balance;
+}
+
+.export-lead {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--muted);
+  font-size: var(--step-1);
+  line-height: 1.55;
+}
+
+/* Only needed where the drop target falls below the steps. */
+.export-jump {
+  display: none;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+/* --------------------------------------------------------------------------
+   Steps beside the drop target, on the hero's column ratio
+   -------------------------------------------------------------------------- */
+
+.export-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(40px, 6vw, 88px);
+  align-items: start;
+  margin-top: clamp(48px, 6vw, 80px);
+  padding-top: clamp(32px, 4vw, 48px);
+  border-top: 1px solid var(--line);
+}
+
+/* The instructions are the page, so they read at body size, not note size. */
+.export-steps p {
+  font-size: var(--step-0);
+}
+
+.export-steps strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.export-side {
+  position: sticky;
+  top: 32px;
+  scroll-margin-top: 24px;
+}
+
+.drop {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  min-height: clamp(240px, 26vw, 340px);
+  padding: 32px 24px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+}
+
+.drop:hover,
+.drop.is-over {
+  border-color: var(--accent);
+  background: var(--accent-quiet);
+}
+
+.drop:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.drop.is-busy {
+  cursor: progress;
+}
+
+.drop input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.drop svg {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 8px;
+  color: var(--accent);
+}
+
+.drop-title {
+  max-width: 22ch;
+  color: var(--ink);
+  font-size: var(--step-1);
+  font-weight: 500;
+  text-wrap: balance;
+}
+
+.drop-hint {
+  font-size: var(--step--1);
+}
+
+.drop-privacy {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+/* --------------------------------------------------------------------------
+   Results: the count and the tools on one line, then the names in columns
+   -------------------------------------------------------------------------- */
+
+.results {
+  margin-top: clamp(56px, 7vw, 96px);
+  padding-top: clamp(32px, 4vw, 48px);
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 24px;
+}
+
+.results-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 24px clamp(40px, 6vw, 88px);
+  align-items: end;
+}
+
+.results-sub {
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+
+.results-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.results-filter {
+  flex: 1 1 200px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font: 400 var(--step-0)/1 Geist, ui-sans-serif, sans-serif;
+}
+
+.results-filter::placeholder {
+  color: var(--muted);
+}
+
+.results-status {
+  min-height: 1.4em;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+.people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  column-gap: 40px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.people li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.people a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.people time {
+  flex: none;
+  color: var(--muted);
+  font: 400 var(--step--1)/1.4 "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.results .note {
+  max-width: 72ch;
+  margin-top: 36px;
+}
+
+.export-side .note {
+  margin-top: 20px;
+}
+
+/* --------------------------------------------------------------------------
+   One column
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .export-head,
+  .export-grid,
+  .results-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .export-side {
+    position: static;
+  }
+
+  .export-jump {
+    display: block;
+  }
+}

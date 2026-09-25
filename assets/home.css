@@ -4,6 +4,7 @@
    Every section uses a different layout family, so the page never settles into
    one repeated rhythm:
      hero      asymmetric split
+     status    heading beside its explanation, full width
      support   single inline row
      usage     sticky heading beside a numbered flow
      changelog plain dated list
@@ -27,54 +28,6 @@
   align-items: center;
 }
 
-/* The status line sits above the headline because it answers the question a
-   reader from a broken scan brought with them. A dot and a border, no fill:
-   it is a line of news, not a card. */
-.hero-status {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  max-width: 58ch;
-  margin: 0 0 26px;
-  padding: 0 0 18px;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: var(--step--1);
-  line-height: 1.6;
-}
-
-.hero-status strong {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.hero-status a {
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--line-strong);
-}
-
-.hero-status a:hover {
-  text-decoration-color: var(--ink);
-}
-
-.hero-status-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  margin-top: 0.55em;
-  border-radius: 50%;
-  background: var(--ok);
-  box-shadow: 0 0 0 4px rgba(127, 201, 138, 0.16);
-}
-
-/* Outage state: drop the class when the tool works again. */
-.hero-status-warn .hero-status-dot {
-  background: var(--warn);
-  box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.18);
-}
-
 .hero h1 {
   max-width: 13ch;
 }
@@ -86,18 +39,6 @@
   font-size: var(--step-1);
   line-height: 1.55;
 }
-
-.related-projects {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 24px;
-  color: var(--muted);
-  font-size: var(--step--1);
-}
-
-.related-projects > span { margin-right: 4px; }
 
 .hero-actions {
   display: flex;
@@ -135,6 +76,69 @@
   border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: var(--step--1);
+}
+
+/* --------------------------------------------------------------------------
+   Status: why the scan fails and where the second method lives. Directly under
+   the hero, across the full shell, as a heading beside its explanation. A dot
+   and hairlines, no card: it is news, not a feature.
+   -------------------------------------------------------------------------- */
+
+.status-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font: 400 var(--step--1)/1.4 "JetBrains Mono", ui-monospace, monospace;
+}
+
+.status-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warn);
+  box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.18);
+}
+
+/* One sentence per line: the problem in the quiet tone, the way out in ink. */
+.status h2 {
+  max-width: 24ch;
+  text-wrap: balance;
+}
+
+.status-quiet {
+  display: block;
+  color: var(--muted);
+}
+
+/* Same columns as the hero above, so the two halves line up with the headline
+   and the code window. */
+.status-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(28px, 6vw, 88px);
+  margin-top: clamp(32px, 4vw, 48px);
+}
+
+.status-col {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.status-col p {
+  margin: 10px 0 0;
+  max-width: 58ch;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
 }
 
 /* --------------------------------------------------------------------------
@@ -470,6 +474,7 @@
 
 @media (max-width: 900px) {
   .hero-split,
+  .status-split,
   .usage-split {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -728,7 +733,7 @@
      and a way out are the whole point of the bar, and everything else pushed it
      into a three-row slab that shoved the page sideways. What is left is one
      row of two chips wearing the short name. min-width is what actually stops
-     the overflow — a flex item will not shrink past its content without it. */
+     the overflow: a flex item will not shrink past its content without it. */
   .promo-bar-text,
   .promo-bar-actions .btn-more,
   .promo-full {
