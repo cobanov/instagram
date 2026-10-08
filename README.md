@@ -63,7 +63,7 @@ accounts that do not follow you back. When Instagram omits unavailable followed
 accounts, a notice explains how many accounts the results cover.
 
 Instagram hands followers out about 24 per page, so a large account is a few hundred
-requests and can still take many minutes. Version 2.3.4 follows upstream's current
+requests and can still take many minutes. Version 2.3.5 follows upstream's current
 two-stage randomized scan pacing and lets you set the requested page size from 1 to 200 under Settings;
 Instagram can ignore that value and return smaller pages. Keep the tab in front while it runs:
 Chrome can heavily throttle background timers. Instagram can still interrupt scans,
@@ -74,6 +74,12 @@ progress is kept in the tab's `localStorage` for a day. **No non-follower result
 unfollow actions are available before the required checks finish.** Wait for the restriction
 to clear, sign in again if necessary, then press **Resume**. A rate limit stops the
 scan immediately; it is not retried automatically.
+
+Instagram can also answer a follower page with nothing in it while saying more follow.
+The scan steps over up to ten such pages in a row, but only shows results once it has
+loaded as many followers as your profile shows. It reads that count from Instagram
+once; if Instagram refuses, the panel asks you to type in the follower count from your
+profile.
 
 When upgrading from a version older than **2.3.2**, refresh the Instagram tab before running the new code or
 reloading the updated extension. Earlier versions could keep a scan running after

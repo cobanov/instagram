@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.3.4";
+  const VERSION = "2.3.5";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -37,6 +37,7 @@
   const PANEL_WIDTH = 380;
   const PANEL_MARGIN = 18;
   const MAX_RETRIES = 3;
+  const MAX_EMPTY_PAGES = 10;
 
   const I18N = {
     en: {
@@ -122,6 +123,9 @@
       partialBodyUnknown: "{loaded} followers were loaded before the scan stopped. Results and unfollowing stay unavailable until the full list is checked. Your progress is saved.",
       incompleteList: "Instagram returned an incomplete list ({loaded} of {total}). No non-follower results can be confirmed. Your progress is saved; wait before resuming.",
       limitedList: "Instagram is limiting this list. No non-follower results can be confirmed. Wait before trying again.",
+      emptyPage: "Instagram is sending empty pages where more of this list should be. Wait a few hours before resuming, or use the Data file method at instagram.cobanov.dev/export.",
+      followerCountNeeded: "Instagram sent empty pages in your follower list and wouldn't share your follower count. Enter the exact number from your profile: the scan continues past the empty pages and only shows results if it finds that many followers.",
+      followerCountLabel: "Followers on your profile",
       scanNotice: "Large accounts can take 20 minutes or more. Instagram may still interrupt a scan. If it does, wait before resuming; repeating the scan immediately can prolong restrictions.",
       close: "Close",
       langSwitch: "Switch to Turkish",
@@ -216,6 +220,9 @@
       partialBodyUnknown: "Tarama durmadan önce {loaded} takipçi yüklendi. Listenin tamamı kontrol edilene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
       incompleteList: "Instagram eksik liste döndürdü ({loaded} / {total}). Geri takip etmeyenler henüz doğrulanamadı. İlerlemen kaydedildi; devam etmeden önce bekle.",
       limitedList: "Instagram bu listeyi kısıtlıyor. Geri takip etmeyenler henüz doğrulanamadı. Tekrar denemeden önce bekle.",
+      emptyPage: "Instagram bu listenin devamı yerine boş sayfalar gönderiyor. Devam etmeden önce birkaç saat bekle ya da instagram.cobanov.dev/export adresindeki Veri dosyası yöntemini kullan.",
+      followerCountNeeded: "Instagram takipçi listende boş sayfalar gönderdi ve takipçi sayını paylaşmadı. Profilindeki tam sayıyı gir: tarama boş sayfaları geçip devam eder ve sonuçları ancak o kadar takipçi bulursa gösterir.",
+      followerCountLabel: "Profilindeki takipçi sayısı",
       scanNotice: "Büyük hesaplarda tarama 20 dakika veya daha uzun sürebilir. Instagram yine de taramayı kesebilir. Böyle olursa devam etmeden önce bekle; hemen tekrarlamak kısıtlamayı uzatabilir.",
       close: "Kapat",
       langSwitch: "İngilizce'ye geç",
@@ -327,6 +334,9 @@
       followerIds: [],
       followersCursor: "",
       followersDone: false,
+      followersTotal: null,
+      followersGap: false,
+      needsFollowerCount: false,
       stopReason: ""
     };
   }
@@ -625,8 +635,9 @@
   function renderIdleView() {
     const checkpoint = state.checkpoint;
     const resumeActions = checkpoint ? `
+        ${checkpoint.needsFollowerCount ? renderFollowerCountForm(checkpoint) : ""}
         <div class="iu-welcome-actions">
-          <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
+          ${checkpoint.needsFollowerCount ? "" : `<button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>`}
           <button type="button" class="iu-btn iu-btn--ghost" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
         </div>` : "";
     if (state.error) {
@@ -673,6 +684,36 @@
       clearCheckpoint();
       startScan();
     });
+    body.querySelector("[data-follower-count-form]")?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = event.currentTarget.querySelector("[data-follower-count]");
+      if (!resumeWithFollowerCount(Number(input?.value))) input?.focus();
+    });
+  }
+
+  /* Replaces Resume while the scan waits for a follower count Instagram would
+     not send. The minimum rejects a number below what is already loaded. */
+  function renderFollowerCountForm(checkpoint) {
+    return `
+      <form class="iu-count-form" data-follower-count-form>
+        <label class="iu-field">
+          <span>${escapeHTML(t("followerCountLabel"))}</span>
+          <input type="number" min="${checkpoint.followerIds.length}" step="1" inputmode="numeric" required data-follower-count>
+        </label>
+        <button type="submit" class="iu-btn iu-btn--primary iu-btn--small">${escapeHTML(t("resumeScan"))}</button>
+      </form>
+    `;
+  }
+
+  /* The count a user reads off their own profile stands in for the one
+     Instagram would not send, and is checked the same way afterwards. */
+  function resumeWithFollowerCount(count) {
+    const checkpoint = state.checkpoint;
+    if (!checkpoint || !Number.isInteger(count) || count < checkpoint.followerIds.length) return null;
+    checkpoint.followersTotal = count;
+    checkpoint.needsFollowerCount = false;
+    saveCheckpoint(checkpoint);
+    return startScan({ resume: true });
   }
 
   /* The bar is the only place the panel reports how far along a run is, so it
@@ -739,8 +780,9 @@
         <strong>${escapeHTML(t("partialTitle"))}</strong>
         <p>${escapeHTML(body)}</p>
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
+        ${checkpoint.needsFollowerCount ? renderFollowerCountForm(checkpoint) : ""}
         <div class="iu-notice-actions">
-          <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
+          ${checkpoint.needsFollowerCount ? "" : `<button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>`}
           <button type="button" class="iu-btn iu-btn--ghost iu-btn--small" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
         </div>
       </div>
@@ -1069,6 +1111,7 @@
         if (state.scanCancelled || destroyed) return resetToIdle();
         checkpoint.followerIds = followers.map((user) => user.id);
         checkpoint.followersCursor = "";
+        verifyFollowerGap(checkpoint);
         checkpoint.followersDone = true;
       }
 
@@ -1141,9 +1184,10 @@
     state.progress = { current: seed.length, total, label, note: visibilityNote() };
     updateProgressDOM();
 
+    const canSkipEmptyPage = isFollowing ? undefined : () => allowFollowerGap(checkpoint, viewerId);
     try {
       return await fetchFriendshipList(viewerId, kind, onPage, {
-        cursor: checkpoint[cursorKey], seed, total
+        cursor: checkpoint[cursorKey], seed, total, canSkipEmptyPage
       });
     } catch (error) {
       if (error?.kind !== "http" || error?.status !== 400 || !checkpoint[cursorKey]) throw error;
@@ -1151,14 +1195,56 @@
       checkpoint[cursorKey] = "";
       if (isFollowing) checkpoint.following = [];
       else checkpoint.followerIds = [];
-      return fetchFriendshipList(viewerId, kind, onPage, { total });
+      return fetchFriendshipList(viewerId, kind, onPage, { total, canSkipEmptyPage });
     }
+  }
+
+  /* A follower list can contain a run of empty pages that still claim more,
+     with the remaining followers arriving after it. Stepping over the run is
+     only safe if the result is then checked against the profile's follower
+     count. That count is read once, at the first empty page; when Instagram
+     will not send it, the scan stops and asks for the number on the profile. */
+  async function allowFollowerGap(checkpoint, viewerId) {
+    if (!Number.isFinite(checkpoint.followersTotal)) {
+      checkpoint.followersTotal = await fetchFollowerCount(viewerId);
+    }
+    checkpoint.needsFollowerCount = !Number.isFinite(checkpoint.followersTotal);
+    if (checkpoint.needsFollowerCount) throw scanError("incomplete", t("followerCountNeeded"));
+    checkpoint.followersGap = true;
+    return true;
+  }
+
+  async function fetchFollowerCount(viewerId) {
+    try {
+      const json = await igFetch(`/api/v1/users/${encodeURIComponent(viewerId)}/info/`);
+      const count = json?.user?.follower_count;
+      return Number.isFinite(count) && count >= 0 ? count : null;
+    } catch (error) {
+      /* A 429 here is about this one profile request; list pages keep loading
+         fine, so it should not read as "increase delays in settings". */
+      if (error?.kind !== "http" && error?.kind !== "rate") throw error;
+      console.warn("[iu] follower count unavailable:", error);
+      return null;
+    }
+  }
+
+  /* Followers missing from a stepped-over list would show up as non-followers.
+     If the list came up short of the profile count, the next attempt starts
+     from the first page and reads the count again. */
+  function verifyFollowerGap(checkpoint) {
+    const loaded = checkpoint.followerIds.length;
+    const total = checkpoint.followersTotal;
+    if (!checkpoint.followersGap || (Number.isFinite(total) && loaded >= total)) return;
+    checkpoint.followersGap = false;
+    checkpoint.followersTotal = null;
+    throw scanError("incomplete", t("incompleteList", { loaded: formatCount(loaded), total: formatCount(total) }));
   }
 
   async function fetchFriendshipList(viewerId, kind, onPage, options = {}) {
     const results = Array.isArray(options.seed) ? [...options.seed] : [];
     let cursor = options.cursor || "";
     let page = 0;
+    let emptyRun = 0;
     const seenCursors = new Set(cursor ? [cursor] : []);
 
     while (true) {
@@ -1177,8 +1263,17 @@
 
       const nextCursor = json.next_max_id == null ? "" : String(json.next_max_id);
       const finished = json.has_more === false || !nextCursor;
+      const empty = !json.users.length;
+      emptyRun = empty ? emptyRun + 1 : 0;
       if (finished && json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
-      if (!finished && (!users.length || seenCursors.has(nextCursor))) throw new Error(t("scanFailed"));
+      if (!finished && seenCursors.has(nextCursor)) throw new Error(t("scanFailed"));
+      /* Instagram can send empty pages that still claim more. Only a caller that
+         checks the finished list may step over them, and never more than
+         MAX_EMPTY_PAGES in a row; otherwise a resume asks for this page again. */
+      if (!finished && empty && (emptyRun > MAX_EMPTY_PAGES || !(await options.canSkipEmptyPage?.()))) {
+        throw scanError("incomplete", t("emptyPage"));
+      }
+      if (!finished && !empty && !users.length) throw new Error(t("scanFailed"));
       onPage(dedupe(results), finished ? "" : nextCursor);
       if (finished) break;
 
@@ -1984,6 +2079,8 @@
     #${APP_ID} .iu-notice p { margin: 0; color: var(--iu-muted); font-size: 12px; line-height: 1.45; }
     #${APP_ID} .iu-notice-reason { margin-top: 6px !important; color: var(--iu-text) !important; }
     #${APP_ID} .iu-notice-actions { display: flex; gap: 8px; margin-top: 10px; }
+    #${APP_ID} .iu-count-form { display: flex; align-items: center; gap: 8px; margin-top: 10px; text-align: left; }
+    #${APP_ID} .iu-count-form .iu-field { flex: 1; grid-template-columns: 1fr 80px; }
 
     #${APP_ID} .iu-btn {
       border: 1px solid var(--iu-line);
@@ -2342,7 +2439,9 @@
       waitBeforeNextScanPage,
       startScan,
       showResults,
+      renderIdleView,
       renderResultsView,
+      resumeWithFollowerCount,
       getDisplayUsers,
       startUnfollow,
       unmount,

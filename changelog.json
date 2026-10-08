@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.3.5",
+    "date": "2026-10-08",
+    "tr": [
+      "Instagram bazen bir takipçi sayfasını boş döndürüp yine de devamı olduğunu söylüyor; listenin geri kalanı birkaç boş sayfadan sonra geliyor. Tarama burada yalnızca \"Tarama başarısız\" diyerek duruyor, Taramaya devam et de aynı boş sayfayı yeniden istiyordu. Takipçi taraması artık art arda en fazla on boş sayfayı atlıyor.",
+      "Atlamaya yalnızca sonuç doğrulanabiliyorsa izin veriliyor: tarama ilk boş sayfada takipçi sayını bir kez okuyor ve sonuçları ancak en az o kadar takipçi yüklendiyse açıyor. Liste eksik kalırsa sonuçlar kapalı kalıyor ve Taramaya devam et takipçi listesini baştan okuyor.",
+      "Instagram takipçi sayısını paylaşmazsa panel, Taramaya devam et yerine profilinde görünen sayıyı soruyor. Takip edilenler listesindeki boş sayfa taramayı yine durduruyor; artık \"Tarama başarısız\" yerine nedenini söyleyen bir mesajla."
+    ],
+    "en": [
+      "Instagram can answer a follower page with nothing in it while still saying more follow, and the rest of the list arrives after a few such pages. The scan used to stop there with a bare \"Scan failed\", and Resume asked for the same empty page again. Follower scans now step over up to ten empty pages in a row.",
+      "Stepping over is only allowed when the result can be checked: at the first empty page the scan reads your follower count once, and results unlock only if at least that many followers were loaded. If the list comes up short, results stay locked and Resume reads the follower list again from the start.",
+      "If Instagram refuses to share the follower count, the panel asks for the number shown on your profile in place of Resume. An empty page in the following list still stops the scan, now with a message that says why instead of \"Scan failed\"."
+    ]
+  },
+  {
     "version": "2.3.4",
     "date": "2026-09-20",
     "tr": [

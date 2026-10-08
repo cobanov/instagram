@@ -164,11 +164,13 @@ test("friendship scans reject an incomplete empty page", async () => {
     }
   ]);
   const { fetchFriendshipList } = loadInternals(impl);
+  const cursors = [];
 
   await assert.rejects(
-    fetchFriendshipList("123", "followers", () => {}),
-    /Scan failed/
+    fetchFriendshipList("123", "followers", (_, cursor) => cursors.push(cursor)),
+    (error) => error.kind === "incomplete" && /empty page/.test(error.message)
   );
+  assert.deepEqual(cursors, []);
 });
 
 test("friendship scans reject a repeated cursor instead of looping forever", async () => {
@@ -196,6 +198,150 @@ test("friendship scans reject a repeated cursor instead of looping forever", asy
     fetchFriendshipList("123", "followers", () => {}),
     /Scan failed/
   );
+});
+
+/* A resumed scan whose following list is done, so every request is a follower
+   page or the profile read that a run of empty follower pages triggers. */
+function followerScan(responses, following) {
+  const { impl, calls } = mockFetch(responses);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  const checkpoint = { ...api.createCheckpoint("123"), followingDone: true, following };
+  api.state.checkpoint = checkpoint;
+  return { api, calls, checkpoint };
+}
+
+test("empty follower pages are stepped over when the total matches the profile", async () => {
+  const { api, calls } = followerScan([
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: true, next_max_id: "c1" } },
+    { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
+    { status: 200, json: { user: { follower_count: 2 } } },
+    { status: 200, json: { users: [], has_more: true, next_max_id: "c3" } },
+    { status: 200, json: { users: [{ pk: "3", username: "late" }], has_more: false } }
+  ], [{ id: "1", username: "mutual" }, { id: "2", username: "not-mutual" }]);
+
+  await api.startScan({ resume: true });
+
+  assert.deepEqual(calls.map((call) => call.url), [
+    "/api/v1/friendships/123/followers/?count=50",
+    "/api/v1/friendships/123/followers/?count=50&max_id=c1",
+    "/api/v1/users/123/info/",
+    "/api/v1/friendships/123/followers/?count=50&max_id=c2",
+    "/api/v1/friendships/123/followers/?count=50&max_id=c3"
+  ]);
+  assert.equal(api.state.partial, false);
+  assert.deepEqual(api.state.users.map((user) => user.follows_viewer), [true, false]);
+});
+
+test("a stepped-over follower list short of the profile stays locked and starts over", async () => {
+  const { api, checkpoint } = followerScan([
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: true, next_max_id: "c1" } },
+    { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
+    { status: 200, json: { user: { follower_count: 3 } } },
+    { status: 200, json: { users: [{ pk: "3", username: "late" }], has_more: false } }
+  ], [{ id: "1", username: "mutual" }, { id: "2", username: "unknown" }]);
+
+  await api.startScan({ resume: true });
+
+  assert.equal(api.state.partial, true);
+  assert.match(checkpoint.stopReason, /2 of 3/);
+  assert.equal(checkpoint.followerIds.join(","), "1,3");
+  assert.equal(checkpoint.followersCursor, "");
+  assert.equal(checkpoint.followersTotal, null);
+});
+
+test("an empty follower page stops in place when the profile count cannot be read", async () => {
+  for (const [info, reason, needsCount] of [
+    [{ status: 404, json: { message: "not found" } }, /follower count/, true],
+    [{ status: 429, body: "" }, /follower count/, true],
+    [{ status: 401, body: "" }, /signed you out/, false]
+  ]) {
+    const { api, calls, checkpoint } = followerScan([
+      { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: true, next_max_id: "c1" } },
+      { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
+      info
+    ], [{ id: "1", username: "mutual" }]);
+
+    await api.startScan({ resume: true });
+
+    assert.equal(calls.length, 3);
+    assert.equal(api.state.partial, true);
+    assert.equal(checkpoint.followersCursor, "c1");
+    assert.equal(checkpoint.followersGap, false);
+    assert.equal(checkpoint.needsFollowerCount, needsCount);
+    assert.match(checkpoint.stopReason, reason);
+  }
+});
+
+test("a follower count typed in from the profile resumes past the empty pages", async () => {
+  const { api, calls, checkpoint } = followerScan([
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: true, next_max_id: "c1" } },
+    { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
+    { status: 429, body: "" },
+    { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
+    { status: 200, json: { users: [{ pk: "3", username: "late" }], has_more: false } }
+  ], [{ id: "1", username: "mutual" }, { id: "2", username: "not-mutual" }]);
+
+  await api.startScan({ resume: true });
+  const notice = api.renderResultsView();
+  assert.match(notice, /data-follower-count-form/);
+  assert.match(notice, /min="1"/);
+  assert.doesNotMatch(notice, /data-action="resume-scan"/);
+
+  assert.equal(api.resumeWithFollowerCount(0), null);
+  assert.equal(calls.length, 3);
+
+  await api.resumeWithFollowerCount(2);
+
+  assert.deepEqual(calls.slice(3).map((call) => call.url), [
+    "/api/v1/friendships/123/followers/?count=50&max_id=c1",
+    "/api/v1/friendships/123/followers/?count=50&max_id=c2"
+  ]);
+  assert.equal(checkpoint.needsFollowerCount, false);
+  assert.equal(api.state.partial, false);
+  assert.deepEqual(api.state.users.map((user) => user.follows_viewer), [true, false]);
+});
+
+test("a saved scan waiting for a follower count asks for it after pasting again", () => {
+  const saved = JSON.stringify({
+    viewerId: "123", savedAt: Date.now(), followingDone: true,
+    following: [{ id: "1", username: "mutual" }], followerIds: ["1"],
+    followersCursor: "c1", needsFollowerCount: true
+  });
+  const api = loadInternals(undefined, {
+    localStorage: { getItem: (key) => (key === "iu_scan_v1" ? saved : null), setItem: () => {}, removeItem: () => {} }
+  });
+
+  const view = api.renderIdleView();
+
+  assert.match(view, /data-follower-count-form/);
+  assert.doesNotMatch(view, /data-action="resume-scan"/);
+  assert.match(view, /data-action="restart-scan"/);
+});
+
+test("no more than ten empty pages in a row are stepped over", async () => {
+  const { impl, calls } = mockFetch(Array.from({ length: 11 }, (_, i) => ({
+    status: 200, json: { users: [], has_more: true, next_max_id: `e${i + 1}` }
+  })));
+  const { fetchFriendshipList } = loadInternals(impl);
+  const cursors = [];
+
+  await assert.rejects(
+    fetchFriendshipList("123", "followers", (_, cursor) => cursors.push(cursor), { canSkipEmptyPage: async () => true }),
+    /empty pages/
+  );
+  assert.equal(calls.length, 11);
+  assert.equal(cursors.length, 10);
+});
+
+test("an empty page in the following list stops without reading the profile", async () => {
+  const { impl, calls } = mockFetch([{ status: 200, json: { users: [], has_more: true, next_max_id: "c1" } }]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+
+  await api.startScan();
+
+  assert.equal(calls.length, 1);
+  assert.equal(api.state.mode, "idle");
+  assert.match(api.state.error, /empty pages/);
 });
 
 test("a scan resumes from a stored cursor and keeps what was already fetched", async () => {
