@@ -22,6 +22,12 @@
             localStorage.getItem("lang") ||
             localStorage.getItem("cobanov_iu_language");
           lang = stored === "en" ? "en" : "tr";
+          /* Links from the English sites (tv.cobanov.dev) carry ?lang=en. */
+          var asked = new URLSearchParams(location.search).get("lang");
+          if (asked === "en" || asked === "tr") {
+            lang = asked;
+            localStorage.setItem("lang", asked);
+          }
         } catch (e) {}
         document.documentElement.setAttribute("data-lang", lang);
         document.documentElement.lang = lang;
