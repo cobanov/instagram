@@ -7,16 +7,26 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.3.4";
+  const VERSION = "2.4.0";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
   const CHECKPOINT_KEY = "iu_scan_v1";
   const CHECKPOINT_TTL = 24 * 60 * 60 * 1000;
+  /* The last finished result, so opening the panel again the same day costs
+     Instagram no requests. Older than a day it is too stale to unfollow from. */
+  const LAST_SCAN_KEY = "iu_last_scan_v1";
+  const IG_ASBD_ID = "129477";
   const IG_HEADERS = {
     "x-ig-app-id": "936619743392459",
+    "x-asbd-id": IG_ASBD_ID,
     "x-requested-with": "XMLHttpRequest"
   };
+  /* The persisted query behind instagram.com's own Unfollow button. Instagram
+     can rotate the doc id on a deploy; if unfollows fail with a GraphQL error,
+     copy the new one from the button's /api/graphql request in DevTools. */
+  const UNFOLLOW_DOC_ID = "27789106940691111";
+  const UNFOLLOW_FRIENDLY_NAME = "usePolarisUnfollowMutation";
 
   const DEFAULT_TIMINGS = {
     scanDelayMin: 1000,
@@ -43,17 +53,25 @@
       title: "Instagram Unfollower",
       subtitle: "See who doesn't follow you back",
       welcomeTitle: "Ready when you are",
-      welcomeBody: "We'll compare the people you follow with your followers. Nothing is changed on your account during the scan.",
+      welcomeBody: "Your followers are loaded first, then everyone you follow is checked against them. Non-followers appear as they are found. Nothing is changed on your account during the scan.",
       scanBtn: "Scan now",
       scanning: "Scanning",
-      loadingFollowing: "Loading the people you follow",
-      loadingFollowers: "Loading your followers",
+      loadingFollowing: "Step 2 of 2: checking the people you follow",
+      loadingFollowers: "Step 1 of 2: loading your followers",
+      liveFound: "Found so far: {count}",
+      liveWaiting: "Non-followers will appear here as soon as your followers are loaded.",
+      liveHint: "You can select accounts now. Unfollowing opens when the scan finishes.",
+      showLastScan: "Show last result ({count}, {age})",
+      lastScanNotice: "This list is from a scan {age}. Rescan for the current state.",
+      rescan: "Rescan",
       paused: "Paused",
       pause: "Pause",
       resume: "Resume",
       cancel: "Cancel",
       ofTotal: "{current} of {total}",
       ofUnknown: "{current} so far",
+      countFollowers: "{current} followers loaded",
+      countFollowing: "{current} accounts checked",
       scanCompletedToast: "{count} non-followers found",
       scanFailed: "Scan failed",
       retry: "Try again",
@@ -115,11 +133,9 @@
       keepTabVisible: "Keep this tab in front. Chrome slows background tabs down to one step per minute.",
       resumeScan: "Resume scan",
       startOver: "Start over",
-      resumeHint: "A previous scan stopped at {loaded} of {total} followers. Continue from there instead of starting again.",
-      resumeHintUnknown: "A previous scan stopped partway. Continue from there instead of starting again.",
-      partialTitle: "Follower list incomplete",
-      partialBody: "{loaded} of {total} followers were loaded. Results and unfollowing stay unavailable until the full list is checked. Your progress is saved.",
-      partialBodyUnknown: "{loaded} followers were loaded before the scan stopped. Results and unfollowing stay unavailable until the full list is checked. Your progress is saved.",
+      resumeHint: "A previous scan stopped partway. Continue from there instead of starting again.",
+      partialTitle: "Scan stopped partway",
+      partialBody: "{loaded} of the accounts you follow were checked. The non-followers below are confirmed; resume to check the rest. Your progress is saved.",
       incompleteList: "Instagram returned an incomplete list ({loaded} of {total}). No non-follower results can be confirmed. Your progress is saved; wait before resuming.",
       limitedList: "Instagram is limiting this list. No non-follower results can be confirmed. Wait before trying again.",
       scanNotice: "Large accounts can take 20 minutes or more. Instagram may still interrupt a scan. If it does, wait before resuming; repeating the scan immediately can prolong restrictions.",
@@ -135,19 +151,27 @@
     },
     tr: {
       title: "Instagram Takip Etmeyenler",
-      subtitle: "Seni geri takip etmeyenleri gör",
+      subtitle: "Geri takip etmeyenleri gör",
       welcomeTitle: "Hazır olduğunda başlat",
-      welcomeBody: "Takip ettiklerin ve takipçilerin karşılaştırılır. Tarama sırasında hesabında hiçbir şey değişmez.",
+      welcomeBody: "Önce takipçilerin yüklenir, sonra takip ettiğin herkes onlarla karşılaştırılır. Takip etmeyenler bulundukça listede belirir. Tarama sırasında hesabında hiçbir şey değişmez.",
       scanBtn: "Taramayı başlat",
       scanning: "Taranıyor",
-      loadingFollowing: "Takip ettiklerin yükleniyor",
-      loadingFollowers: "Takipçilerin yükleniyor",
+      loadingFollowing: "Adım 2/2: Takip ettiklerin kontrol ediliyor",
+      loadingFollowers: "Adım 1/2: Takipçilerin yükleniyor",
+      liveFound: "Şu ana kadar bulunan: {count}",
+      liveWaiting: "Takipçilerin yüklenir yüklenmez takip etmeyenler burada belirecek.",
+      liveHint: "Hesapları şimdiden seçebilirsin. Takibi bırakma tarama bitince açılır.",
+      showLastScan: "Son sonucu göster ({count} kişi, {age})",
+      lastScanNotice: "Bu liste {age} yapılan taramadan. Güncel durum için yeniden tara.",
+      rescan: "Yeniden tara",
       paused: "Duraklatıldı",
       pause: "Duraklat",
       resume: "Devam et",
       cancel: "İptal",
       ofTotal: "{current} / {total}",
       ofUnknown: "Şu ana kadar {current}",
+      countFollowers: "{current} takipçi yüklendi",
+      countFollowing: "{current} hesap kontrol edildi",
       scanCompletedToast: "{count} takip etmeyen bulundu",
       scanFailed: "Tarama başarısız",
       retry: "Tekrar dene",
@@ -209,11 +233,9 @@
       keepTabVisible: "Bu sekmeyi önde tut. Chrome arka plandaki sekmeleri dakikada bir adıma yavaşlatır.",
       resumeScan: "Taramaya devam et",
       startOver: "Baştan başla",
-      resumeHint: "Önceki tarama {total} takipçinin {loaded} tanesinde durdu. Baştan başlamak yerine oradan devam edebilirsin.",
-      resumeHintUnknown: "Önceki tarama yarıda kaldı. Baştan başlamak yerine oradan devam edebilirsin.",
-      partialTitle: "Takipçi listesi eksik",
-      partialBody: "{total} takipçinin {loaded} tanesi yüklendi. Listenin tamamı kontrol edilene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
-      partialBodyUnknown: "Tarama durmadan önce {loaded} takipçi yüklendi. Listenin tamamı kontrol edilene kadar sonuçlar ve takip bırakma kapalı. İlerlemen kaydedildi.",
+      resumeHint: "Önceki tarama yarıda kaldı. Baştan başlamak yerine oradan devam edebilirsin.",
+      partialTitle: "Tarama yarıda kaldı",
+      partialBody: "Takip ettiğin hesaplardan {loaded} tanesi kontrol edildi. Aşağıdakiler kesin olarak seni takip etmiyor; kalanlar için taramaya devam et. İlerlemen kaydedildi.",
       incompleteList: "Instagram eksik liste döndürdü ({loaded} / {total}). Geri takip etmeyenler henüz doğrulanamadı. İlerlemen kaydedildi; devam etmeden önce bekle.",
       limitedList: "Instagram bu listeyi kısıtlıyor. Geri takip etmeyenler henüz doğrulanamadı. Tekrar denemeden önce bekle.",
       scanNotice: "Büyük hesaplarda tarama 20 dakika veya daha uzun sürebilir. Instagram yine de taramayı kesebilir. Böyle olursa devam etmeden önce bekle; hemen tekrarlamak kısıtlamayı uzatabilir.",
@@ -261,9 +283,7 @@
     timings: loadTimings(persisted.timings),
     panelPos: persisted.panelPos || null,
     minimized: Boolean(persisted.minimized),
-    language: persisted.language === "tr" || persisted.language === "en"
-      ? persisted.language
-      : (String(navigator.language || "").toLowerCase().startsWith("tr") ? "tr" : "en"),
+    language: persisted.language === "en" ? "en" : "tr",
     error: "",
     checkpoint: loadCheckpoint(),
     partial: false,
@@ -277,6 +297,7 @@
   let wakeSleep = null;
   let destroyed = false;
   let activeRequest = null;
+  let webTokens = null;
 
   function loadTimings(saved = {}) {
     const timings = { ...DEFAULT_TIMINGS };
@@ -316,7 +337,8 @@
      it at any point: a 401 that signs the user out, a 429, a checkpoint. The
      checkpoint keeps what was already fetched, so pasting the script again
      after signing back in continues from the last page instead of starting
-     over and running into the same wall. Followers are stored as ids only. */
+     over and running into the same wall. Followers are stored as ids and
+     usernames only. */
   function createCheckpoint(viewerId) {
     return {
       viewerId: String(viewerId),
@@ -325,6 +347,7 @@
       followingCursor: "",
       followingDone: false,
       followerIds: [],
+      followerUsernames: [],
       followersCursor: "",
       followersDone: false,
       stopReason: ""
@@ -367,12 +390,45 @@
     }
   }
 
-  function resumeHintText(checkpoint) {
-    const loaded = checkpoint.followerIds.length;
-    if (checkpoint.followersTotal) {
-      return t("resumeHint", { loaded: formatCount(loaded), total: formatCount(checkpoint.followersTotal) });
+  function saveLastScan(savedAt = Date.now()) {
+    try {
+      localStorage.setItem(LAST_SCAN_KEY, JSON.stringify({
+        viewerId: getCookie("ds_user_id"),
+        savedAt,
+        users: state.users.filter((u) => u.follows_viewer === false)
+      }));
+    } catch {
+      /* quota or disabled storage: the next visit simply scans again */
     }
-    return t("resumeHintUnknown");
+  }
+
+  function loadLastScan() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAST_SCAN_KEY) || "null");
+      if (!saved || !Array.isArray(saved.users) || !saved.viewerId) return null;
+      if (String(saved.viewerId) !== String(getCookie("ds_user_id"))) return null;
+      if (Date.now() - Number(saved.savedAt || 0) > CHECKPOINT_TTL) return null;
+      return saved;
+    } catch {
+      return null;
+    }
+  }
+
+  function showLastScan() {
+    const saved = loadLastScan();
+    if (!saved) return renderBody();
+    state.users = saved.users.map((user) => ({ ...user, follows_viewer: false }));
+    state.selected.clear();
+    state.partial = false;
+    state.coverage = t("lastScanNotice", { age: timeAgo(saved.savedAt) });
+    state.mode = "results";
+    renderBody();
+  }
+
+  function timeAgo(timestamp) {
+    const minutes = Math.max(1, Math.round((Date.now() - Number(timestamp)) / 60000));
+    const format = new Intl.RelativeTimeFormat(state.language, { numeric: "auto" });
+    return minutes < 60 ? format.format(-minutes, "minute") : format.format(-Math.round(minutes / 60), "hour");
   }
 
   function formatCount(value) {
@@ -590,7 +646,6 @@
       return t("pillUnfollowing", { current: state.progress.current, total: state.progress.total });
     }
     if (state.mode === "results" && state.users.length) {
-      if (state.partial) return t("partialTitle");
       return t("pillResults", { count: state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length });
     }
     return t("pillIdle");
@@ -645,25 +700,30 @@
         <div class="iu-welcome">
           <div class="iu-welcome-icon">${SVG.sparkle}</div>
           <h2>${escapeHTML(t("welcomeTitle"))}</h2>
-          <p>${escapeHTML(resumeHintText(checkpoint))}</p>
+          <p>${escapeHTML(t("resumeHint"))}</p>
           ${checkpoint.stopReason ? `<p>${escapeHTML(checkpoint.stopReason)}</p>` : ""}
           ${resumeActions}
         </div>
       `;
     }
+    const last = loadLastScan();
     return `
       <div class="iu-welcome">
         <div class="iu-welcome-icon">${SVG.sparkle}</div>
         <h2>${escapeHTML(t("welcomeTitle"))}</h2>
         <p>${escapeHTML(t("welcomeBody"))}</p>
         <p>${escapeHTML(t("scanNotice"))}</p>
-        <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="scan">${escapeHTML(t("scanBtn"))}</button>
+        <div class="iu-welcome-actions">
+          <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="scan">${escapeHTML(t("scanBtn"))}</button>
+          ${last ? `<button type="button" class="iu-btn iu-btn--ghost" data-action="show-last">${escapeHTML(t("showLastScan", { count: formatCount(last.users.length), age: timeAgo(last.savedAt) }))}</button>` : ""}
+        </div>
       </div>
     `;
   }
 
   function bindIdle(body) {
     body.querySelector("[data-action='scan']")?.addEventListener("click", () => startScan());
+    body.querySelector("[data-action='show-last']")?.addEventListener("click", showLastScan);
     bindScanResume(body);
   }
 
@@ -692,25 +752,55 @@
     const percent = total ? Math.min(100, Math.round((current / total) * 100)) : 0;
     const counter = progressCounter(current, total);
     return `
-      <div class="iu-progress">
-        <div class="iu-progress-head">
-          <h2 id="${PROGRESS_TITLE_ID}" data-progress-label>${escapeHTML(state.scanPaused ? t("paused") : t(label))}</h2>
-          <p data-progress-note>${escapeHTML(note)}</p>
+      <div class="iu-results">
+        <div class="iu-progress">
+          <div class="iu-progress-head">
+            <h2 id="${PROGRESS_TITLE_ID}" data-progress-label>${escapeHTML(state.scanPaused ? t("paused") : t(label))}</h2>
+            <p data-progress-note>${escapeHTML(note)}</p>
+          </div>
+          ${renderBar(percent, counter, Boolean(total))}
+          <div class="iu-progress-meta">
+            <span data-progress-counter>${escapeHTML(counter)}</span>
+            <span data-countdown class="iu-muted"></span>
+          </div>
+          <div class="iu-progress-actions">
+            <button type="button" class="iu-btn" data-action="pause-scan">${escapeHTML(t(state.scanPaused ? "resume" : "pause"))}</button>
+            <button type="button" class="iu-btn iu-btn--ghost" data-action="cancel-scan">${escapeHTML(t("cancel"))}</button>
+          </div>
         </div>
-        ${renderBar(percent, counter, Boolean(total))}
-        <div class="iu-progress-meta">
-          <span data-progress-counter>${escapeHTML(counter)}</span>
-          <span data-countdown class="iu-muted"></span>
-        </div>
-        <div class="iu-progress-actions">
-          <button type="button" class="iu-btn" data-action="pause-scan">${escapeHTML(t(state.scanPaused ? "resume" : "pause"))}</button>
-          <button type="button" class="iu-btn iu-btn--ghost" data-action="cancel-scan">${escapeHTML(t("cancel"))}</button>
-        </div>
+        ${renderLiveResults()}
       </div>
     `;
   }
 
+  /* With the follower list complete, every followed account missing from it
+     is a confirmed non-follower, so they can be listed while the scan runs. */
+  function liveUsers() {
+    return state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id));
+  }
+
+  function renderLiveResults() {
+    if (!state.checkpoint?.followersDone) {
+      return `<div class="iu-results-summary">${escapeHTML(t("liveWaiting"))}</div>`;
+    }
+    const found = liveUsers();
+    return `
+      <div class="iu-results-summary"><strong data-live-count>${escapeHTML(t("liveFound", { count: formatCount(found.length) }))}</strong> · ${escapeHTML(t("liveHint"))}</div>
+      <div class="iu-list" data-live-list>${found.map(renderUserRow).join("")}</div>`;
+  }
+
+  function updateLiveResults() {
+    const list = document.querySelector(`#${APP_ID} [data-live-list]`);
+    if (!list) return;
+    const found = liveUsers();
+    const shown = list.querySelectorAll("[data-row]").length;
+    if (found.length > shown) list.insertAdjacentHTML("beforeend", found.slice(shown).map(renderUserRow).join(""));
+    const count = document.querySelector(`#${APP_ID} [data-live-count]`);
+    if (count) count.textContent = t("liveFound", { count: formatCount(found.length) });
+  }
+
   function bindScan(body) {
+    bindRows(body);
     body.querySelector("[data-action='pause-scan']")?.addEventListener("click", () => {
       state.scanPaused = !state.scanPaused;
       const btn = body.querySelector("[data-action='pause-scan']");
@@ -730,14 +820,10 @@
   function renderPartialNotice() {
     const checkpoint = state.checkpoint;
     if (!state.partial || !checkpoint) return "";
-    const loaded = formatCount(checkpoint.followerIds.length);
-    const body = checkpoint.followersTotal
-      ? t("partialBody", { loaded, total: formatCount(checkpoint.followersTotal) })
-      : t("partialBodyUnknown", { loaded });
     return `
       <div class="iu-notice" role="status">
         <strong>${escapeHTML(t("partialTitle"))}</strong>
-        <p>${escapeHTML(body)}</p>
+        <p>${escapeHTML(t("partialBody", { loaded: formatCount(checkpoint.following.length) }))}</p>
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
         <div class="iu-notice-actions">
           <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
@@ -748,7 +834,6 @@
   }
 
   function renderResultsView() {
-    if (state.partial) return `<div class="iu-results">${renderPartialNotice()}</div>`;
     const display = getDisplayUsers();
     const totalNonFollowers = state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length;
     const allSelected = display.length > 0 && display.every((u) => state.selected.has(u.id));
@@ -760,7 +845,8 @@
     return `
       <div class="iu-results">
         ${renderPartialNotice()}
-        ${state.coverage ? `<div class="iu-notice" role="status"><p>${escapeHTML(state.coverage)}</p></div>` : ""}
+        ${state.coverage ? `<div class="iu-notice" role="status"><p>${escapeHTML(state.coverage)}</p>
+          <div class="iu-notice-actions"><button type="button" class="iu-btn iu-btn--small" data-action="scan">${escapeHTML(t("rescan"))}</button></div></div>` : ""}
         <div class="iu-results-summary">${escapeHTML(summary)}</div>
         <div class="iu-search-row">
           <input
@@ -860,6 +946,29 @@
       });
     });
 
+    bindRows(body);
+
+    body.querySelector("[data-action='select-all']")?.addEventListener("click", () => {
+      const display = getDisplayUsers();
+      const allSelected = display.length && display.every((u) => state.selected.has(u.id));
+      if (allSelected) display.forEach((u) => state.selected.delete(u.id));
+      else display.forEach((u) => state.selected.add(u.id));
+      renderBody();
+    });
+
+    body.querySelector("[data-action='copy']")?.addEventListener("click", copyUsernames);
+    body.querySelector("[data-action='unfollow']")?.addEventListener("click", confirmUnfollow);
+    body.querySelector("[data-action='scan']")?.addEventListener("click", () => startScan());
+    bindScanResume(body);
+  }
+
+  /* Row clicks are delegated to the body element, which outlives every
+     re-render. Binding them on each render stacked the handlers, so after one
+     filter change a click toggled a row twice and undid itself. */
+  function bindRows(body) {
+    if (body.iuRowsBound) return;
+    body.iuRowsBound = true;
+
     body.addEventListener("change", (event) => {
       const checkbox = event.target.closest("[data-select]");
       if (!checkbox) return;
@@ -910,18 +1019,6 @@
       event.preventDefault();
       row.click();
     });
-
-    body.querySelector("[data-action='select-all']")?.addEventListener("click", () => {
-      const display = getDisplayUsers();
-      const allSelected = display.length && display.every((u) => state.selected.has(u.id));
-      if (allSelected) display.forEach((u) => state.selected.delete(u.id));
-      else display.forEach((u) => state.selected.add(u.id));
-      renderBody();
-    });
-
-    body.querySelector("[data-action='copy']")?.addEventListener("click", copyUsernames);
-    body.querySelector("[data-action='unfollow']")?.addEventListener("click", confirmUnfollow);
-    bindScanResume(body);
   }
 
   function updateActionBar(body) {
@@ -1040,8 +1137,7 @@
     state.followersCount = 0;
     state.selected.clear();
     state.log = [];
-    state.progress = { current: 0, total: 0, label: "loadingFollowing", note: visibilityNote() };
-    renderBody();
+    state.progress = { current: 0, total: 0, label: "loadingFollowers", note: visibilityNote() };
 
     let checkpoint = null;
     try {
@@ -1052,40 +1148,42 @@
       checkpoint = previous && previous.viewerId === String(viewerId) ? previous : createCheckpoint(viewerId);
       checkpoint.stopReason = "";
       state.checkpoint = checkpoint;
+      renderBody();
 
-      if (!checkpoint.followingDone) {
-        const following = await scanList(checkpoint, viewerId, "following");
-        if (state.scanCancelled || destroyed) return resetToIdle();
-        checkpoint.following = following;
-        checkpoint.followingCursor = "";
-        checkpoint.followingDone = true;
+      /* Followers first, as upstream does: once that list is complete, every
+         followed account missing from it is a confirmed non-follower, so
+         results can stream in and survive a scan that stops halfway. */
+      if (!checkpoint.followersDone) {
+        await scanList(checkpoint, viewerId, "followers");
+        if (state.scanCancelled || destroyed) return stopScan(checkpoint);
+        checkpoint.followersCursor = "";
+        checkpoint.followersDone = true;
         saveCheckpoint(checkpoint);
       }
 
-      if (state.scanCancelled || destroyed) return resetToIdle();
+      if (state.scanCancelled || destroyed) return stopScan(checkpoint);
 
-      if (!checkpoint.followersDone) {
-        const followers = await scanList(checkpoint, viewerId, "followers");
-        if (state.scanCancelled || destroyed) return resetToIdle();
-        checkpoint.followerIds = followers.map((user) => user.id);
-        checkpoint.followersCursor = "";
-        checkpoint.followersDone = true;
+      if (!checkpoint.followingDone) {
+        state.users = addFollowBackStatus(checkpoint.following, followerEntries(checkpoint));
+        renderBody();
+        await scanList(checkpoint, viewerId, "following");
+        if (state.scanCancelled || destroyed) return stopScan(checkpoint);
+        checkpoint.followingCursor = "";
+        checkpoint.followingDone = true;
       }
 
       showResults(checkpoint, true);
       clearCheckpoint();
     } catch (error) {
       if (destroyed) return;
-      if (state.scanCancelled) return resetToIdle();
+      if (state.scanCancelled) return stopScan(checkpoint);
       console.error("[iu] scan failed:", error);
       const message = error?.message || String(error) || t("scanFailed");
       if (checkpoint) {
         checkpoint.stopReason = message;
         saveCheckpoint(checkpoint);
       }
-      /* Absence from a partial follower list says nothing about follow-back.
-         Keep progress, but never expose candidates as confirmed non-followers. */
-      if (checkpoint && checkpoint.followingDone && checkpoint.following.length) {
+      if (checkpoint?.followersDone && checkpoint.following.length) {
         showResults(checkpoint, false);
         return;
       }
@@ -1095,14 +1193,29 @@
     }
   }
 
+  /* Cancelling after the follower list is done keeps what was found so far;
+     the checkpoint still offers to resume the rest. */
+  function stopScan(checkpoint) {
+    if (destroyed) return;
+    state.scanCancelled = false;
+    if (checkpoint?.followersDone && checkpoint.following.length) return showResults(checkpoint, false);
+    resetToIdle();
+  }
+
+  function followerEntries(checkpoint) {
+    const names = checkpoint.followerUsernames || [];
+    return checkpoint.followerIds.map((id, index) => ({ id, username: names[index] || "" }));
+  }
+
   function showResults(checkpoint, complete) {
     state.followingCount = checkpoint.following.length;
     state.followersCount = checkpoint.followerIds.length;
-    state.users = addFollowBackStatus(checkpoint.following, checkpoint.followerIds, complete);
+    state.users = addFollowBackStatus(checkpoint.following, followerEntries(checkpoint));
     state.coverage = "";
     state.partial = !complete;
     state.mode = "results";
     if (complete) {
+      saveLastScan();
       const nonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
       toast(t("scanCompletedToast", { count: nonFollowers }));
     }
@@ -1125,33 +1238,40 @@
   async function scanList(checkpoint, viewerId, kind) {
     const isFollowing = kind === "following";
     const cursorKey = isFollowing ? "followingCursor" : "followersCursor";
-    const total = isFollowing ? checkpoint.followingTotal : checkpoint.followersTotal;
     const label = isFollowing ? "loadingFollowing" : "loadingFollowers";
-    const seed = isFollowing ? checkpoint.following : checkpoint.followerIds.map((id) => ({ id }));
+    const followers = isFollowing ? followerEntries(checkpoint) : null;
+    const seed = isFollowing ? checkpoint.following : followerEntries(checkpoint);
 
     const onPage = (results, nextCursor) => {
-      if (isFollowing) checkpoint.following = results;
-      else checkpoint.followerIds = results.map((user) => user.id);
+      if (isFollowing) {
+        checkpoint.following = results;
+        state.users = addFollowBackStatus(results, followers);
+      } else {
+        checkpoint.followerIds = results.map((user) => user.id);
+        checkpoint.followerUsernames = results.map((user) => user.username || "");
+      }
       checkpoint[cursorKey] = nextCursor;
       saveCheckpoint(checkpoint);
-      state.progress = { current: results.length, total, label, note: visibilityNote() };
+      state.progress = { current: results.length, total: 0, label, note: visibilityNote() };
       updateProgressDOM();
+      if (isFollowing) updateLiveResults();
     };
 
-    state.progress = { current: seed.length, total, label, note: visibilityNote() };
+    state.progress = { current: seed.length, total: 0, label, note: visibilityNote() };
     updateProgressDOM();
 
     try {
-      return await fetchFriendshipList(viewerId, kind, onPage, {
-        cursor: checkpoint[cursorKey], seed, total
-      });
+      return await fetchFriendshipList(viewerId, kind, onPage, { cursor: checkpoint[cursorKey], seed });
     } catch (error) {
       if (error?.kind !== "http" || error?.status !== 400 || !checkpoint[cursorKey]) throw error;
       console.warn(`[iu] stored ${kind} cursor was rejected, restarting that list`);
       checkpoint[cursorKey] = "";
       if (isFollowing) checkpoint.following = [];
-      else checkpoint.followerIds = [];
-      return fetchFriendshipList(viewerId, kind, onPage, { total });
+      else {
+        checkpoint.followerIds = [];
+        checkpoint.followerUsernames = [];
+      }
+      return fetchFriendshipList(viewerId, kind, onPage, {});
     }
   }
 
@@ -1209,9 +1329,23 @@
     return cursor ? `${base}&max_id=${encodeURIComponent(cursor)}` : base;
   }
 
-  function addFollowBackStatus(following, followers, complete = true) {
-    const followerIds = new Set(followers.map((entry) => String(entry && typeof entry === "object" ? entry.id : entry)));
-    return following.map((user) => ({ ...user, follows_viewer: followerIds.has(String(user.id)) ? true : (complete ? false : null) }));
+  /* Matched by id, with the username as a fallback key as upstream does. A
+     fallback can only turn an account into a follower, never the reverse, so
+     it errs toward keeping people rather than unfollowing them. */
+  function addFollowBackStatus(following, followers) {
+    const keys = new Set();
+    for (const entry of followers) {
+      if (entry && typeof entry === "object") {
+        keys.add(String(entry.id));
+        if (entry.username) keys.add("@" + String(entry.username).toLowerCase());
+      } else {
+        keys.add(String(entry));
+      }
+    }
+    return following.map((user) => ({
+      ...user,
+      follows_viewer: keys.has(String(user.id)) || (Boolean(user.username) && keys.has("@" + String(user.username).toLowerCase()))
+    }));
   }
 
   function scanError(kind, message, status) {
@@ -1292,17 +1426,26 @@
     return 0;
   }
 
+  /* Reads the answer to the GraphQL unfollow mutation. ok means Instagram ran
+     the mutation; confirmed means its friendship_status already shows the
+     follow is gone. A 200 alone proves nothing: Instagram answers unknown
+     routes with its HTML page and HTTP 200. */
   function evaluateUnfollowResponse(status, bodyText) {
     const text = typeof bodyText === "string" ? bodyText : "";
     let payload = null;
-    try { payload = JSON.parse(text); } catch { payload = null; }
+    try { payload = JSON.parse(text.replace(/^for \(;;\);/, "")); } catch { payload = null; }
 
-    const message = String(payload?.message || "");
+    const message = [
+      payload?.message,
+      payload?.errorSummary,
+      payload?.errors ? JSON.stringify(payload.errors) : "",
+      payload?.error ? JSON.stringify(payload.error) : ""
+    ].filter(Boolean).join(" ");
     const blockedByPayload =
       payload?.feedback_required === true ||
       payload?.spam === true ||
       payload?.require_login === true ||
-      /feedback_required|checkpoint_required|challenge_required|login_required/i.test(message);
+      /feedback_required|checkpoint_required|challenge_required|login_required|action_blocked|try again later|rate limit/i.test(message);
 
     if (status === 401 || status === 403 || status === 429 || blockedByPayload) {
       return { ok: false, blocked: true, reason: message || `HTTP ${status}` };
@@ -1316,14 +1459,28 @@
     if (payload === null) {
       return { ok: false, blocked: false, reason: "unexpected response" };
     }
-    if (payload.status === "ok" || payload.friendship_status !== undefined) {
-      return { ok: true, blocked: false, reason: "" };
+    if (payload.errors || payload.error || payload.status === "fail" || !payload.data) {
+      return { ok: false, blocked: false, reason: message || String(payload.status || "unfollow rejected") };
     }
-    return { ok: false, blocked: false, reason: message || String(payload.status || "unfollow rejected") };
+    const friendship = findFriendshipStatus(payload.data);
+    if (friendship && (friendship.following === true || friendship.outgoing_request === true)) {
+      return { ok: false, blocked: false, reason: "Instagram still shows you following this account" };
+    }
+    return { ok: true, blocked: false, reason: "", confirmed: friendship?.following === false };
+  }
+
+  function findFriendshipStatus(node) {
+    if (!node || typeof node !== "object") return undefined;
+    if (node.friendship_status && typeof node.friendship_status === "object") return node.friendship_status;
+    for (const value of Object.values(node)) {
+      const found = findFriendshipStatus(value);
+      if (found !== undefined) return found;
+    }
+    return undefined;
   }
 
   function confirmUnfollow() {
-    if (destroyed || state.partial || !state.selected.size) return;
+    if (destroyed || !state.selected.size) return;
     const count = state.selected.size;
     showDialog({
       title: t("unfollowConfirmTitle", { count }),
@@ -1335,7 +1492,7 @@
   }
 
   async function startUnfollow() {
-    if (destroyed || state.partial || state.mode === "scanning" || state.mode === "unfollowing") return;
+    if (destroyed || state.mode === "scanning" || state.mode === "unfollowing") return;
     const targets = state.users.filter((u) => u.follows_viewer === false && state.selected.has(u.id));
     if (!targets.length) return;
     const csrf = getCookie("csrftoken");
@@ -1360,7 +1517,7 @@
       const user = targets[i];
       let outcome = { ok: false, blocked: false, reason: "" };
       try {
-        outcome = await unfollowUser(user.id, csrf);
+        outcome = await unfollowUser(user, csrf);
       } catch (error) {
         console.error("[iu] unfollow failed for", user.username, error);
         outcome = { ok: false, blocked: false, reason: error?.message || "" };
@@ -1397,42 +1554,149 @@
     }
 
     state.users = state.users.filter((u) => !u.unfollowed);
+    /* Unfollowed accounts must not come back from a resumed scan or a saved result. */
+    if (state.checkpoint) {
+      const kept = new Set(state.users.map((u) => u.id));
+      state.checkpoint.following = state.checkpoint.following.filter((u) => kept.has(u.id));
+      saveCheckpoint(state.checkpoint);
+    } else {
+      const last = loadLastScan();
+      if (last) saveLastScan(last.savedAt);
+    }
     state.mode = "unfollowDone";
     state.waitUntil = 0;
     state.waitReason = "";
     renderBody();
   }
 
-  async function unfollowUser(id, csrf) {
-    const formHeaders = {
-      "content-type": "application/x-www-form-urlencoded",
-      "x-csrftoken": csrf
-    };
-    const attempts = [
-      { url: `/api/v1/friendships/destroy/${id}/`, headers: { ...IG_HEADERS, ...formHeaders } },
-      { url: `/web/friendships/${id}/unfollow/`, headers: formHeaders }
-    ];
+  /* fb_dtsg and lsd are the per-session tokens instagram.com's GraphQL writes
+     carry. They come from the page's module registry when the script runs in
+     the page, otherwise from the inline page data (the extension runs in an
+     isolated world), otherwise from a fresh copy of the page. */
+  function webTokensFromHtml(html) {
+    const fbDtsg = /"DTSGInitialData",\[\],\{"token":"([^"]+)"/.exec(html)?.[1] || /"dtsg":\{"token":"([^"]+)"/.exec(html)?.[1];
+    const lsd = /"LSD",\[\],\{"token":"([^"]+)"/.exec(html)?.[1];
+    if (!fbDtsg || !lsd) return null;
+    return { fbDtsg, lsd, revision: /"client_revision":(\d+)/.exec(html)?.[1] || "" };
+  }
 
-    let outcome = { ok: false, blocked: false, reason: "" };
-    for (let i = 0; i < attempts.length; i += 1) {
-      if (i > 0) await sleep(randomBetween(1200, 2500));
-      if (destroyed || state.unfollowCancelled) return { ok: false, blocked: true, reason: "Cancelled" };
-      let response;
-      try {
-        response = await fetch(attempts[i].url, {
-          method: "POST",
-          credentials: "include",
-          headers: attempts[i].headers
-        });
-      } catch (error) {
-        outcome = { ok: false, blocked: false, reason: error?.message || "network error" };
-        continue;
+  async function getWebTokens() {
+    if (webTokens) return webTokens;
+    try {
+      const req = window.require;
+      if (typeof req === "function") {
+        const fbDtsg = req("DTSGInitialData")?.token;
+        const lsd = req("LSD")?.token;
+        if (fbDtsg && lsd) {
+          webTokens = { fbDtsg, lsd, revision: String(req("SiteData")?.client_revision || "") };
+          return webTokens;
+        }
       }
-      const text = await response.text().catch(() => "");
-      outcome = evaluateUnfollowResponse(response.status, text);
-      if (outcome.ok || outcome.blocked) return outcome;
+    } catch { /* module registry not reachable, read the page instead */ }
+    webTokens = webTokensFromHtml(document.documentElement?.innerHTML || "");
+    if (!webTokens) {
+      try {
+        const response = await fetch("/", { credentials: "include" });
+        webTokens = webTokensFromHtml(await response.text());
+      } catch (error) {
+        console.warn("[iu] could not load Instagram session tokens:", error);
+      }
     }
-    return outcome;
+    return webTokens;
+  }
+
+  function jazoest(token) {
+    let sum = 0;
+    for (let i = 0; i < token.length; i += 1) sum += token.charCodeAt(i);
+    return `2${sum}`;
+  }
+
+  /* Searches the viewer's own following list for one account. Returns null
+     when the lookup itself fails, so an unknown is never counted as success. */
+  async function isStillFollowing(user) {
+    const viewerId = getCookie("ds_user_id");
+    if (!viewerId) return null;
+    const url = `/api/v1/friendships/${encodeURIComponent(viewerId)}/following/?count=12&query=${encodeURIComponent(user.username)}&search_surface=follow_list_page`;
+    try {
+      const response = await fetch(url, { credentials: "include", headers: IG_HEADERS });
+      if (!response.ok) return null;
+      const json = JSON.parse(await response.text());
+      if (!Array.isArray(json?.users)) return null;
+      const target = String(user.username).toLowerCase();
+      return json.users.some((raw) => {
+        const found = normalizeUser(raw);
+        return found.id === String(user.id) || found.username.toLowerCase() === target;
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  /* Unfollows the way instagram.com's own Unfollow button does, with the
+     usePolarisUnfollowMutation GraphQL query (upstream #363). The old REST
+     routes stopped working in October 2026. A result only counts once
+     Instagram confirms it: the mutation's friendship_status shows the follow
+     is gone, or a search of the following list no longer finds the account. */
+  async function unfollowUser(user, csrf) {
+    if (destroyed || state.unfollowCancelled) return { ok: false, blocked: true, reason: "Cancelled" };
+    const tokens = await getWebTokens();
+    if (!tokens) return { ok: false, blocked: false, reason: "Instagram session tokens (fb_dtsg, lsd) not found on the page" };
+
+    const params = {
+      av: getCookie("ds_user_id") || "",
+      __d: "www",
+      __user: "0",
+      __a: "1",
+      __comet_req: "7",
+      fb_dtsg: tokens.fbDtsg,
+      jazoest: jazoest(tokens.fbDtsg),
+      lsd: tokens.lsd,
+      fb_api_caller_class: "RelayModern",
+      fb_api_req_friendly_name: UNFOLLOW_FRIENDLY_NAME,
+      variables: JSON.stringify({
+        target_user_id: String(user.id),
+        container_module: "profile",
+        nav_chain: "PolarisProfilePostsTabRoot:profilePage:1:via_cold_start"
+      }),
+      server_timestamps: "true",
+      doc_id: UNFOLLOW_DOC_ID
+    };
+    if (tokens.revision) {
+      params.__rev = tokens.revision;
+      params.__spin_r = tokens.revision;
+    }
+
+    const body = new URLSearchParams(params).toString();
+    let response;
+    try {
+      response = await fetch("/api/graphql", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          "x-csrftoken": csrf,
+          "x-fb-friendly-name": UNFOLLOW_FRIENDLY_NAME,
+          "x-fb-lsd": tokens.lsd,
+          "x-ig-app-id": IG_HEADERS["x-ig-app-id"],
+          "x-asbd-id": IG_ASBD_ID
+        },
+        body
+      });
+    } catch (error) {
+      return { ok: false, blocked: false, reason: error?.message || "network error" };
+    }
+    const outcome = evaluateUnfollowResponse(response.status, await response.text().catch(() => ""));
+    if (!outcome.ok) {
+      if (!outcome.blocked) console.warn("[iu] unfollow not accepted for", user.username, outcome.reason);
+      return { ok: false, blocked: outcome.blocked, reason: outcome.reason };
+    }
+    if (outcome.confirmed) return { ok: true, blocked: false, reason: "" };
+
+    const still = await isStillFollowing(user);
+    if (still === false) return { ok: true, blocked: false, reason: "" };
+    const reason = still ? "Instagram answered but you still follow this account" : "Instagram answered but the unfollow could not be confirmed";
+    console.warn("[iu]", user.username, reason);
+    return { ok: false, blocked: false, reason };
   }
 
   async function copyUsernames() {
@@ -1732,7 +1996,8 @@
 
   function progressCounter(current, total) {
     if (total) return t("ofTotal", { current: formatCount(current), total: formatCount(total) });
-    return t("ofUnknown", { current: formatCount(current) });
+    const key = { loadingFollowers: "countFollowers", loadingFollowing: "countFollowing" }[state.progress.label] || "ofUnknown";
+    return t(key, { current: formatCount(current) });
   }
 
   function setBar(root, percent, valueText, known) {
@@ -1923,7 +2188,7 @@
     }
     #${APP_ID} .iu-brand-text { min-width: 0; }
     #${APP_ID} .iu-brand-text strong { display: block; font-size: 14px; font-weight: 600; }
-    #${APP_ID} .iu-brand-text span { display: block; font-size: 11px; color: var(--iu-muted); }
+    #${APP_ID} .iu-brand-text span { display: block; font-size: 11px; color: var(--iu-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #${APP_ID} .iu-header-actions { display: flex; gap: 4px; flex-shrink: 0; }
     #${APP_ID} .iu-header-actions button {
       width: 28px;
@@ -2020,6 +2285,11 @@
       height: 100%;
       background: var(--iu-gradient);
       transition: width 0.3s ease;
+    }
+    #${APP_ID} .iu-bar:not([aria-valuenow]) > span { width: 30% !important; animation: iu-slide 1.6s ease-in-out infinite; }
+    @keyframes iu-slide {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(340%); }
     }
     #${APP_ID} .iu-progress-meta {
       display: flex;
@@ -2343,6 +2613,10 @@
       startScan,
       showResults,
       renderResultsView,
+      renderIdleView,
+      renderScanView,
+      loadLastScan,
+      showLastScan,
       getDisplayUsers,
       startUnfollow,
       unmount,

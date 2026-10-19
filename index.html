@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="tr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,9 +11,9 @@
 
     <script>
       /* Language is picked before the first paint, so nobody sees the wrong
-         one flash past. English unless a choice was stored earlier. */
+         one flash past. Turkish unless English was chosen earlier. */
       (function () {
-        var lang = "en";
+        var lang = "tr";
         try {
           /* Seçim daha önce "cobanov_iu_language" altında tutuluyordu.
              Türkçe'yi bilerek seçmiş biri, anahtar değişti diye onu
@@ -21,7 +21,7 @@
           var stored =
             localStorage.getItem("lang") ||
             localStorage.getItem("cobanov_iu_language");
-          lang = stored === "tr" ? "tr" : "en";
+          lang = stored === "en" ? "en" : "tr";
         } catch (e) {}
         document.documentElement.setAttribute("data-lang", lang);
         document.documentElement.lang = lang;
@@ -128,8 +128,6 @@
           <span>cobanov</span>
         </a>
         <nav aria-label="Primary">
-          <a class="nav-text nav-new" href="/export" data-oa-event="nav-export"><span class="nav-new-dot" aria-hidden="true"></span><span lang="en">Data file</span><span lang="tr">Veri dosyası</span></a>
-          <a class="nav-text" href="/security"><span lang="en">Security</span><span lang="tr">Güvenlik</span></a>
           <a class="nav-icon" href="https://github.com/cobanov/instagram" rel="noreferrer" aria-label="GitHub">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.86 8.37 6.84 9.73.5.09.68-.22.68-.49v-1.9c-2.78.62-3.37-1.21-3.37-1.21-.45-1.19-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.9 1.57 2.36 1.12 2.94.86.09-.67.35-1.12.63-1.38-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.97c.85 0 1.7.12 2.5.34 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.95.68 1.92v2.79c0 .27.18.58.69.48A10.08 10.08 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
@@ -151,7 +149,13 @@
       <section class="hero">
         <div class="shell hero-split">
           <div>
-            <h1><span lang="en">See who does not follow you back</span><span lang="tr">Seni geri takip etmeyenleri gör</span></h1>
+            <div class="hero-title">
+              <h1><span lang="en">See who does not follow you back</span><span lang="tr">Seni geri takip etmeyenleri gör</span></h1>
+              <p class="sticker">
+                <span class="sticker-date"><span lang="en">19 October 2026</span><span lang="tr">19 Ekim 2026</span></span>
+                <span class="sticker-text"><span lang="en">Working again!</span><span lang="tr">Yeniden çalışıyor!</span></span>
+              </p>
+            </div>
             <p class="hero-sub" lang="en">
               It scans the accounts you follow and lists the ones that do not follow back. Your data never leaves the browser.
             </p>
@@ -167,12 +171,6 @@
                 <span lang="en">Copy code</span><span lang="tr">Kodu kopyala</span>
               </button>
               <a class="btn" href="dist/instagram-unfollower.one-line.js"><span lang="en">Open the file</span><span lang="tr">Dosyayı aç</span></a>
-              <a
-                class="btn"
-                href="https://github.com/cobanov/instagram/releases/latest"
-                rel="noreferrer"
-                data-oa-event="extension-release"
-              ><span lang="en">Chrome extension</span><span lang="tr">Chrome uzantısı</span></a>
             </div>
             <p class="copy-status" data-status aria-live="polite"></p>
           </div>
@@ -189,52 +187,46 @@
         </div>
       </section>
 
-      <!--
-        Status for the readers who arrive from a broken scan and want to know
-        whether it works today. It sits under the hero rather than inside it, so
-        the headline keeps its place. Dated so a stale notice reads as stale;
-        update it when the answer changes.
-      -->
-      <section id="status" class="status" aria-labelledby="status-title">
+      <!-- Ad slots. Once sold, replace a slot's contents with the creative:
+           <a class="ad-slot ad-slot--wide" href="ADVERTISER_URL" rel="sponsored noopener"><img src="assets/ads/top-728x90.png" alt="..."></a>
+           The wide slot needs a 728x90 and a 320x100 image (picture/source for the phone); a rail needs 160x600. -->
+      <section class="ad-band" aria-label="Reklam">
         <div class="shell">
-          <p class="status-meta">
-            <span class="status-dot" aria-hidden="true"></span>
-            <span lang="en">Status, 24 September 2026</span><span lang="tr">Durum, 24 Eylül 2026</span>
-          </p>
-          <h2 id="status-title">
-            <span lang="en"><span class="status-quiet">The scan is unreliable right now.</span> There is a second method.</span><span lang="tr"><span class="status-quiet">Tarama şu an güvenilir değil.</span> İkinci bir yöntem var.</span>
-          </h2>
-          <div class="status-split">
-            <div class="status-col">
-              <h3><span lang="en">Why scans fail</span><span lang="tr">Neden hata alıyorsun</span></h3>
-              <p lang="en">
-                Instagram now treats reading a full follower list as automation. Scans stop partway, mostly on larger
-                accounts, and some people get logged out. Every tool that reads the list this way is affected.
-              </p>
-              <p lang="tr">
-                Instagram takipçi listesini baştan sona okumayı artık otomasyon sayıyor. Tarama yarıda kalıyor, en çok
-                büyük hesaplarda, ve bazı kullanıcılar oturumdan atılıyor. Listeyi bu şekilde okuyan tüm araçlar etkileniyor.
-              </p>
-            </div>
-            <div class="status-col">
-              <h3><span lang="en">The second method</span><span lang="tr">İkinci yöntem</span></h3>
-              <p lang="en">
-                It uses the data file Instagram gives you. Request it from your account, drop it on the page, and the two
-                lists are compared in your browser. Nothing is sent to Instagram, so your account takes no risk.
-              </p>
-              <p lang="tr">
-                Instagram'ın sana verdiği veri dosyasını kullanır. Dosyayı hesabından istersin, sayfaya bırakırsın, iki
-                liste tarayıcında karşılaştırılır. Instagram'a hiçbir şey gönderilmez, hesabın risk almaz.
-              </p>
-              <div class="status-actions">
-                <a class="btn btn-primary" href="/export" data-oa-event="status-export">
-                  <span lang="en">Use your data file</span><span lang="tr">Veri dosyasıyla bul</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M5 12h14" />
-                    <path d="m13 6 6 6-6 6" />
-                  </svg>
-                </a>
-              </div>
+          <a class="ad-slot ad-slot--wide" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20%C3%BCst%20alan" data-oa-event="ad-top">
+            <span class="ad-copy">
+              <span class="ad-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="ad-kicker-size"> · 728×90</span></span>
+              <span class="ad-title"><span lang="en">Put your brand here</span><span lang="tr">Markanı burada göster</span></span>
+            </span>
+            <span class="ad-stats"><span lang="en">35K unique visitors · 100K+ views a month</span><span lang="tr">Aylık 35K tekil ziyaretçi · 100K+ görüntüleme</span></span>
+            <span class="btn btn-primary ad-cta"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span> <span aria-hidden="true">→</span></span>
+          </a>
+        </div>
+      </section>
+
+      <section id="dantel" aria-labelledby="dantel-title">
+        <div class="shell dantel">
+          <a class="dantel-shot" href="https://apps.apple.com/app/id6813142119" rel="noreferrer" data-oa-event="dantel-image">
+            <img
+              src="assets/dantel-desktop.jpg"
+              alt="Dantel: bir Mac masaüstünün üstünden sarkan beyaz tığ işi dantel"
+              width="1200"
+              height="780"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+          <div>
+            <p class="dantel-brand"><img src="assets/dantel.png" alt="" width="28" height="28" /> Dantel</p>
+            <h2 id="dantel-title"><span lang="en">A little lace for your Mac</span><span lang="tr">Mac'ine biraz dantel</span></h2>
+            <p class="section-intro" lang="en">
+              It drapes crochet lace over the top of your screen. Lift it and you are back to work. One payment, no subscription.
+            </p>
+            <p class="section-intro" lang="tr">
+              Ekranının üstüne tığ işi dantel serer. Kaldırınca işine dönersin. Tek seferlik ödeme, abonelik yok.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="https://apps.apple.com/app/id6813142119" rel="noreferrer" data-oa-event="dantel-app-store"><span lang="en">Get it on the App Store</span><span lang="tr">App Store'dan al</span></a>
+              <a class="btn" href="https://dantel.cobanov.dev/?ref=instagram" rel="noreferrer" data-oa-event="visit-dantel"><span lang="en">See how it works</span><span lang="tr">Nasıl çalışıyor</span></a>
             </div>
           </div>
         </div>
@@ -242,33 +234,29 @@
 
       <section id="support">
         <div class="shell">
-          <h2><span lang="en">Support</span><span lang="tr">Destek</span></h2>
-          <p class="section-intro" lang="en">
-            This project is a hobby and it is free. If you find it useful, you can help keep it going.
-          </p>
-          <p class="section-intro" lang="tr">
-            Bu proje hobi olarak sürdürülüyor ve ücretsiz. Faydalı bulduysan geliştirilmesine destek olabilirsin.
-          </p>
-          <div class="support-row reveal">
-            <p lang="en">
-              For company sponsorship, write to me directly. I put a thank-you on this page and in the README.
-            </p>
-            <p lang="tr">
-              Kurumsal sponsorluk için doğrudan yazabilirsin. Sayfada ve README'de teşekkür yerleştiririm.
-            </p>
+          <h2><span lang="en">Support it or advertise here</span><span lang="tr">Destek ol ya da reklam ver</span></h2>
+          <div class="figures figures--two reveal">
+            <div>
+              <span class="figure-value">35K</span>
+              <span class="figure-label"><span lang="en">unique visitors a month</span><span lang="tr">aylık tekil ziyaretçi</span></span>
+            </div>
+            <div>
+              <span class="figure-value">100K+</span>
+              <span class="figure-label"><span lang="en">page views a month</span><span lang="tr">aylık sayfa görüntüleme</span></span>
+            </div>
+          </div>
+          <div class="support-row">
+            <p lang="en">It stays free thanks to your support. Want your brand in front of these people? Write to me.</p>
+            <p lang="tr">Ücretsiz kalması senin desteğinle mümkün. Markanı bu kitleye göstermek istersen yaz.</p>
             <div class="support-actions">
-              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-oa-event="sponsor">GitHub Sponsors</a>
-              <a class="btn" href="mailto:mertcobanov@gmail.com?subject=Cobanov%20Instagram%20Unfollowers%20Sponsorship">mertcobanov@gmail.com</a>
+              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-oa-event="sponsor"><span lang="en">Support it</span><span lang="tr">Destek ol</span></a>
+              <a class="btn" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam" data-oa-event="advertise"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></a>
             </div>
           </div>
 
           <div class="wall">
-            <p class="wall-lead" lang="en">
-              Sponsor this and your name, handle, and amount show up here. The page was viewed 48,640 times in the last 30 days.
-            </p>
-            <p class="wall-lead" lang="tr">
-              Sponsor olursan adın, hesabın ve desteğin burada görünür. Bu sayfa son 30 günde 48.640 kez görüntülendi.
-            </p>
+            <p class="wall-lead" lang="en">Supporters are listed here.</p>
+            <p class="wall-lead" lang="tr">Destek olanlar burada listelenir.</p>
             <ol class="wall-list" data-sponsors></ol>
             <p class="wall-empty" data-sponsors-empty hidden></p>
           </div>
@@ -280,191 +268,89 @@
           <div class="usage-split">
           <div class="usage-aside">
             <h2><span lang="en">How to use it</span><span lang="tr">Nasıl kullanılır</span></h2>
-            <p class="section-intro" lang="en">
-              Open DevTools on the Instagram tab you already have open, then paste the snippet above into the console.
-            </p>
-            <p class="section-intro" lang="tr">
-              Tarayıcıda açtığınız Instagram sekmesinde DevTools konsolunu açın ve yukarıdaki kodu yapıştırın.
-            </p>
-            <p class="usage-alt" lang="en">
-              Prefer a toolbar button? The
-              <a href="https://github.com/cobanov/instagram/releases/latest" rel="noreferrer">Chrome extension</a>
-              by <a href="https://github.com/yavuzmeteafsar" rel="noreferrer">yavuzmeteafsar</a> runs this same file.
-              Download the zip from the release page, unpack it, then turn on developer mode at chrome://extensions
-              and pick the folder with "Load unpacked".
-            </p>
-            <p class="usage-alt" lang="tr">
-              Konsol yerine düğme mi? <a href="https://github.com/yavuzmeteafsar" rel="noreferrer">yavuzmeteafsar</a>
-              tarafından yazılan
-              <a href="https://github.com/cobanov/instagram/releases/latest" rel="noreferrer">Chrome uzantısı</a>
-              aynı dosyayı çalıştırıyor. Sürüm sayfasındaki zip'i indirip klasöre çıkarın, chrome://extensions
-              üzerinde geliştirici modunu açıp "Paketlenmemiş öğe yükle" ile klasörü seçin.
-            </p>
-            <p class="note" lang="en">
-              Instagram may rate-limit you. Do not push the unfollow speed higher than it needs to be.
-            </p>
-            <p class="note" lang="tr">
-              Instagram rate-limit uygulayabilir. Takip bırakma hızını gereksiz yere arttırmayın.
-            </p>
+            <p class="section-intro" lang="en">On a computer, in Chrome. It takes a minute.</p>
+            <p class="section-intro" lang="tr">Bilgisayarda, Chrome'da. Bir dakika sürer.</p>
+            <p class="note" lang="en">Do not unfollow too many people at once. Instagram may restrict your account for a few hours.</p>
+            <p class="note" lang="tr">Tek seferde çok fazla kişiyi takipten çıkarma. Instagram hesabını birkaç saat kısıtlayabilir.</p>
           </div>
           <ol class="steps">
             <li class="reveal">
-              <h3><span lang="en">Sign in to Instagram</span><span lang="tr">Instagram'a giriş yapın</span></h3>
-              <p lang="en">
-                First, sign in to your account on <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a>.
-              </p>
-              <p lang="tr">
-                Önce <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a> üzerinde hesabınızla giriş yapın.
-              </p>
+              <h3><span lang="en">Open Instagram</span><span lang="tr">Instagram'ı aç</span></h3>
+              <p lang="en">Go to <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a> in Chrome and sign in.</p>
+              <p lang="tr">Chrome'da <a href="https://www.instagram.com/" rel="noreferrer">instagram.com</a>'a gir ve hesabına giriş yap.</p>
             </li>
             <li class="reveal">
-              <h3><span lang="en">Open the console</span><span lang="tr">Konsolu açın</span></h3>
-              <p lang="en">
-                Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.
-              </p>
-              <p lang="tr">
-                Windows/Linux: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> · macOS: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>I</kbd>.
-              </p>
+              <h3><span lang="en">Copy the code</span><span lang="tr">Kodu kopyala</span></h3>
+              <p lang="en">Press this button:</p>
+              <p lang="tr">Bu butona bas:</p>
+              <div class="step-action">
+                <button class="btn btn-primary btn-sm" type="button" data-copy data-oa-event="copy-snippet-steps"><span lang="en">Copy code</span><span lang="tr">Kodu kopyala</span></button>
+                <span class="copy-status" data-status aria-live="polite"></span>
+              </div>
             </li>
             <li class="reveal">
-              <h3><span lang="en">Paste the code</span><span lang="tr">Kodu yapıştırın</span></h3>
-              <p lang="en">
-                Press Copy code, then paste it into the console. If Chrome blocks the paste, type <kbd>allow pasting</kbd> first.
-              </p>
-              <p lang="tr">
-                Kodu kopyala butonuna basın, konsola yapıştırın. Chrome engellerse önce <kbd>allow pasting</kbd> yazın.
-              </p>
+              <h3><span lang="en">Open the console</span><span lang="tr">Konsolu aç</span></h3>
+              <p lang="en">On the Instagram tab, press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>. On a Mac: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>J</kbd>.</p>
+              <p lang="tr">Instagram sekmesindeyken <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd>'ye bas. Mac'te: <kbd>⌘</kbd>+<kbd>⌥</kbd>+<kbd>J</kbd>.</p>
             </li>
             <li class="reveal">
-              <h3><span lang="en">Press "Start scan"</span><span lang="tr">"Taramayı başlat"a basın</span></h3>
-              <p lang="en">
-                Start the scan once the panel opens. You can then unfollow your selections slowly and under control.
-              </p>
-              <p lang="tr">
-                Panel açılınca taramayı başlatın. Seçtiklerinizi yavaş ve kontrollü şekilde takipten çıkarabilirsiniz.
-              </p>
+              <h3><span lang="en">Paste and press Enter</span><span lang="tr">Yapıştır, Enter'a bas</span></h3>
+              <p lang="en">If Chrome refuses the paste, type <kbd>allow pasting</kbd>, press Enter, then paste again.</p>
+              <p lang="tr">Chrome yapıştırmaya izin vermezse <kbd>allow pasting</kbd> yaz, Enter'a bas, sonra tekrar yapıştır.</p>
+            </li>
+            <li class="reveal">
+              <h3><span lang="en">Press "Scan now"</span><span lang="tr">"Taramayı başlat"a bas</span></h3>
+              <p lang="en">Non-followers appear in the panel. Pick the ones you want and press Unfollow.</p>
+              <p lang="tr">Takip etmeyenler panelde listelenir. İstediklerini seç, "Takibi bırak"a bas.</p>
             </li>
           </ol>
-          </div>
-
           <figure class="shot" data-shot>
             <img
               src="assets/panel.png"
-              alt="The scan panel at work: followed accounts loading, 296 of 718 accounts scanned"
+              alt="Taranan panel: 2. adımda 100 hesap kontrol edildi, şu ana kadar bulunan 17 takip etmeyen listede"
               data-shot-image
               width="858"
-              height="576"
+              height="940"
               loading="lazy"
               decoding="async"
               onerror="this.closest('[data-shot]').hidden = true"
             />
             <figcaption>
-              <span lang="en">This is the panel while it scans. Nothing on your account changes during a scan.</span><span lang="tr">Panel tararken böyle görünür. Tarama sırasında hesabında hiçbir şey değişmez.</span>
+              <span lang="en">This is the panel while it scans. Non-followers appear as they are found; nothing on your account changes during a scan.</span><span lang="tr">Panel tararken böyle görünür. Takip etmeyenler bulundukça listede belirir; tarama sırasında hesabında hiçbir şey değişmez.</span>
             </figcaption>
           </figure>
-        </div>
-      </section>
-
-      <section id="changelog">
-        <div class="shell">
-          <h2><span lang="en">Changelog</span><span lang="tr">Değişiklikler</span></h2>
-          <p class="section-intro" lang="en">
-            Every time the code is updated, you can see here what changed.
-          </p>
-          <p class="section-intro" lang="tr">
-            Kod her güncellendiğinde neyin değiştiğini buradan görebilirsin.
-          </p>
-          <p class="meta-line" data-last-updated hidden></p>
-          <ol class="releases" data-changelog></ol>
-          <p class="section-intro" data-changelog-status hidden></p>
-          <div class="security-actions">
-            <a class="btn" href="https://github.com/cobanov/instagram/commits/main" rel="noreferrer"><span lang="en">Full history</span><span lang="tr">Tüm geçmiş</span></a>
-          </div>
-        </div>
-      </section>
-
-      <section id="security">
-        <div class="shell">
-          <h2><span lang="en">Security</span><span lang="tr">Güvenlik</span></h2>
-          <p class="section-intro" lang="en">
-            Below are the security reports, or you can read the code yourself.
-          </p>
-          <p class="section-intro" lang="tr">
-            Aşağıda güvenlikle ilgili raporları görebilir veya kodu kendiniz inceleyebilirsiniz.
-          </p>
-
-          <div class="trust-bento reveal">
-            <div class="trust-cell">
-              <h3><span lang="en">File signature</span><span lang="tr">Dosya imzası</span></h3>
-              <p class="trust-hash" data-script-hash>SHA-256</p>
-            </div>
-            <div class="trust-cell">
-              <h3>VirusTotal</h3>
-              <p data-vt-summary></p>
-              <p>
-                <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link><span lang="en">VirusTotal report</span><span lang="tr">VirusTotal raporu</span></a>
-              </p>
-            </div>
-            <div class="trust-cell">
-              <h3><span lang="en">Static analysis</span><span lang="tr">Statik analiz</span></h3>
-              <a href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer">
-                <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep workflow status" height="20" />
-              </a>
-            </div>
           </div>
 
-          <div class="security-actions">
-            <a class="btn" href="/security"><span lang="en">See the details</span><span lang="tr">Detayları gör</span></a>
-            <a class="btn" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer" data-oa-event="view-source"><span lang="en">Read the code</span><span lang="tr">Kodu incele</span></a>
-          </div>
-        </div>
-      </section>
-
-      <section id="numbers">
-        <div class="shell">
-          <h2><span lang="en">Traffic</span><span lang="tr">Trafik</span></h2>
-          <p class="section-intro" lang="en">
-            The site is open source and run as a hobby. Here are the raw numbers for the last 30 days.
-          </p>
-          <p class="section-intro" lang="tr">
-            Site açık kaynak ve hobi olarak sürdürülüyor. İşte son 30 günün ham rakamları.
-          </p>
-          <div class="figures reveal">
-            <div>
-              <span class="figure-value">48.6k</span>
-              <span class="figure-label"><span lang="en">page views</span><span lang="tr">sayfa görüntüleme</span></span>
-            </div>
-            <div>
-              <span class="figure-value">48.3k</span>
-              <span class="figure-label"><span lang="en">visits</span><span lang="tr">ziyaret</span></span>
-            </div>
-            <div>
-              <span class="figure-value">38</span>
-              <span class="figure-label"><span lang="en">countries reached</span><span lang="tr">ulaşılan ülke</span></span>
-            </div>
-          </div>
-          <p class="meta-line meta-line--figures">
-            <span lang="en">16 July - 15 August 2026, Cloudflare Web Analytics</span><span lang="tr">16 Temmuz - 15 Ağustos 2026, Cloudflare Web Analytics</span>
-          </p>
-        </div>
-      </section>
-
-      <section id="source">
-        <div class="shell">
-          <h2><span lang="en">Source</span><span lang="tr">Kaynak</span></h2>
-          <p class="section-intro" lang="en">
-            This is the new version; the original usage idea comes from
-            <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.
-          </p>
-          <p class="section-intro" lang="tr">
-            Yeni sürüm; eski kullanım fikri
-            <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>
-            projesinden geliyor.
-          </p>
         </div>
       </section>
 
     </main>
+
+    <!-- Side rails: fixed in the empty margins, only on screens wide enough to hold them. -->
+    <aside class="ad-rail ad-rail--left" aria-label="Reklam">
+      <a class="ad-slot ad-slot--rail" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20sol%20dikey%20alan" data-oa-event="ad-left">
+        <span class="ad-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="ad-kicker-size">160×600</span></span>
+        <span class="ad-title"><span lang="en">Put your brand here</span><span lang="tr">Markanı burada göster</span></span>
+        <span class="ad-pitch"><span lang="en">Reach the people who use this Instagram tool.</span><span lang="tr">Bu Instagram aracını kullananlara ulaş.</span></span>
+        <span class="ad-figures">
+          <span><strong>35K</strong><span lang="en">unique visitors a month</span><span lang="tr">aylık tekil ziyaretçi</span></span>
+          <span><strong>100K+</strong><span lang="en">page views a month</span><span lang="tr">aylık sayfa görüntüleme</span></span>
+        </span>
+        <span class="btn btn-primary ad-cta"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></span>
+      </a>
+    </aside>
+    <aside class="ad-rail ad-rail--right" aria-label="Reklam">
+      <a class="ad-slot ad-slot--rail" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20sa%C4%9F%20dikey%20alan" data-oa-event="ad-right">
+        <span class="ad-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="ad-kicker-size">160×600</span></span>
+        <span class="ad-title"><span lang="en">Put your brand here</span><span lang="tr">Markanı burada göster</span></span>
+        <span class="ad-pitch"><span lang="en">Reach the people who use this Instagram tool.</span><span lang="tr">Bu Instagram aracını kullananlara ulaş.</span></span>
+        <span class="ad-figures">
+          <span><strong>35K</strong><span lang="en">unique visitors a month</span><span lang="tr">aylık tekil ziyaretçi</span></span>
+          <span><strong>100K+</strong><span lang="en">page views a month</span><span lang="tr">aylık sayfa görüntüleme</span></span>
+        </span>
+        <span class="btn btn-primary ad-cta"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></span>
+      </a>
+    </aside>
 
     <footer class="colophon">
       <div class="shell colophon-row">
@@ -491,24 +377,20 @@
         </span>
         <span class="colophon-legal">
           <span lang="en">Not affiliated with Instagram or Meta.</span><span lang="tr">Instagram ve Meta ile ilişkili değildir.</span>
+          <span lang="en">Based on the idea of <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.</span><span lang="tr">Fikir: <a href="https://github.com/davidarroyo1234/InstagramUnfollowers" rel="noreferrer">davidarroyo1234/InstagramUnfollowers</a>.</span>
         </span>
       </div>
     </footer>
 
     <script>
       const scriptUrl = "dist/instagram-unfollower.one-line.js";
-      const status = document.querySelector("[data-status]");
-      const copyButton = document.querySelector("[data-copy]");
+      const statusNodes = document.querySelectorAll("[data-status]");
       const languageToggle = document.querySelector("[data-language-toggle]");
       const promo = document.querySelector("[data-promo]");
       const promoClose = document.querySelector("[data-promo-close]");
-      const vtSummary = document.querySelector("[data-vt-summary]");
       const shotImage = document.querySelector("[data-shot-image]");
 
       let snippet = "";
-      let scriptHash = "";
-      let vtResult = null;
-      let changelog;
       let sponsors;
 
       /* Page copy lives in the markup in both languages and CSS hides one of
@@ -535,38 +417,10 @@
           en: "{n} more places on the list.",
           tr: "Listede {n} yer daha var."
         },
-        changelogUnavailable: {
-          en: "The changelog could not be loaded right now.",
-          tr: "Değişiklik listesi şu anda yüklenemedi."
-        },
-        lastUpdated: {
-          en: "Last updated {date}",
-          tr: "Son güncelleme {date}"
-        },
-        vtLoading: {
-          en: "Loading the VirusTotal result...",
-          tr: "VirusTotal sonucu yükleniyor..."
-        },
-        vtClean: {
-          en: "{malicious} malicious, {suspicious} suspicious.",
-          tr: "{malicious} zararlı, {suspicious} şüpheli."
-        },
-        vtFlagged: {
-          en: "Warning: {malicious} malicious, {suspicious} suspicious.",
-          tr: "Uyarı: {malicious} zararlı, {suspicious} şüpheli."
-        },
-        vtUnavailable: {
-          en: "The live summary could not be loaded right now.",
-          tr: "Canlı özet şu anda yüklenemedi."
-        },
-        vtUnscanned: {
-          en: "This build has not been submitted to VirusTotal yet.",
-          tr: "Bu sürüm henüz VirusTotal'a gönderilmemiş."
-        },
         promoClose: { en: "Close", tr: "Kapat" },
         shotAlt: {
-          en: "The scan panel at work: followed accounts loading, 296 of 718 accounts scanned",
-          tr: "Tarama paneli çalışırken: takip edilen hesaplar yükleniyor, 718 hesabın 296'sı tarandı"
+          en: "The scan panel at work: step 2, 100 accounts checked, 17 non-followers found so far and listed",
+          tr: "Taranan panel: 2. adımda 100 hesap kontrol edildi, şu ana kadar bulunan 17 takip etmeyen listede"
         }
       };
 
@@ -578,17 +432,6 @@
         return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
       }
 
-      function formatDate(isoDate) {
-        const parsed = new Date(`${isoDate}T00:00:00Z`);
-        if (Number.isNaN(parsed.getTime())) return isoDate;
-        return parsed.toLocaleDateString(lang() === "tr" ? "tr-TR" : "en-GB", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-          timeZone: "UTC"
-        });
-      }
-
       /* Redraws only what the script owns. The markup itself needs nothing:
          the data-lang attribute on <html> already re-picked its language. */
       function refreshLanguage() {
@@ -596,10 +439,8 @@
         languageToggle.textContent = L === "tr" ? "EN" : "TR";
         if (promoClose) promoClose.setAttribute("aria-label", T.promoClose[L]);
         if (shotImage) shotImage.alt = T.shotAlt[L];
-        renderVirusTotalSummary();
-        renderChangelog();
         renderSponsors();
-        status.textContent = "";
+        setStatus("");
       }
 
       function setLanguage(next) {
@@ -614,121 +455,18 @@
         refreshLanguage();
       }
 
-      async function sha256Hex(text) {
-        if (!globalThis.crypto || !globalThis.crypto.subtle) return "";
-        const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-        return Array.from(new Uint8Array(digest))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("");
-      }
 
-      /* The hash on the page is computed from the bytes this page just served,
-         so the claim verifies itself instead of trusting a checked-in value. */
-      function applyScriptHash(hash, authoritative) {
-        if (!hash || (scriptHash && !authoritative)) return;
-        scriptHash = hash;
-        document.querySelectorAll("[data-script-hash]").forEach((node) => {
-          node.textContent = `SHA-256 ${hash.toUpperCase()}`;
-        });
-        document.querySelectorAll("[data-vt-link]").forEach((node) => {
-          node.href = `https://www.virustotal.com/gui/file/${hash}/detection`;
-        });
-      }
-
-      function renderVirusTotalSummary() {
-        if (!vtSummary) return;
-        const L = lang();
-        if (!vtResult) {
-          vtSummary.textContent = T.vtLoading[L];
-          return;
-        }
-        if (!vtResult.ok) {
-          vtSummary.textContent = vtResult.error === "unscanned" ? T.vtUnscanned[L] : T.vtUnavailable[L];
-          return;
-        }
-        const stats = vtResult.stats || {};
-        const values = { malicious: stats.malicious || 0, suspicious: stats.suspicious || 0 };
-        vtSummary.textContent = format(
-          values.malicious || values.suspicious ? T.vtFlagged[L] : T.vtClean[L],
-          values
-        );
-      }
-
-      /* The changelog is the source of truth for "last updated": rebuilding CSS
-         should not claim the tool changed. */
-      function renderChangelog() {
-        const list = document.querySelector("[data-changelog]");
-        const statusNode = document.querySelector("[data-changelog-status]");
-        const updatedNode = document.querySelector("[data-last-updated]");
-        if (!list || changelog === undefined) return;
-        const L = lang();
-
-        if (!Array.isArray(changelog) || changelog.length === 0) {
-          list.replaceChildren();
-          if (statusNode) {
-            statusNode.textContent = T.changelogUnavailable[L];
-            statusNode.hidden = false;
-          }
-          return;
-        }
-        if (statusNode) statusNode.hidden = true;
-
-        list.replaceChildren(
-          ...changelog.slice(0, 2).map((entry) => {
-            const item = document.createElement("li");
-            item.className = "release reveal";
-
-            const meta = document.createElement("div");
-            meta.className = "release-meta";
-            const version = document.createElement("span");
-            version.className = "release-version";
-            version.textContent = `v${entry.version}`;
-            const date = document.createElement("span");
-            date.className = "release-date";
-            date.textContent = formatDate(entry.date);
-            meta.append(version, date);
-
-            const notes = document.createElement("ul");
-            notes.className = "release-notes";
-            for (const line of entry[L] || entry.en || []) {
-              const li = document.createElement("li");
-              li.textContent = line;
-              notes.appendChild(li);
-            }
-
-            item.append(meta, notes);
-            return item;
-          })
-        );
-
-        if (updatedNode) {
-          updatedNode.textContent = format(T.lastUpdated[L], { date: formatDate(changelog[0].date) });
-          updatedNode.hidden = false;
-        }
-        observeReveals();
-      }
 
       async function loadSnippet() {
         try {
           const response = await fetch(scriptUrl, { cache: "no-store" });
           if (!response.ok) throw new Error(T.loadError[lang()]);
           snippet = await response.text();
-          applyScriptHash(await sha256Hex(snippet), true);
         } catch (error) {
-          status.textContent = error.message || T.loadError[lang()];
+          setStatus(error.message || T.loadError[lang()]);
         }
       }
 
-      async function loadVirusTotalSummary() {
-        try {
-          const response = await fetch("api/virustotal", { cache: "no-store" });
-          vtResult = response.ok ? await response.json() : { ok: false };
-        } catch {
-          vtResult = { ok: false };
-        }
-        applyScriptHash(vtResult && vtResult.hash, false);
-        renderVirusTotalSummary();
-      }
 
       function renderSponsors() {
         const list = document.querySelector("[data-sponsors]");
@@ -798,16 +536,6 @@
           sponsors = null;
         }
         renderSponsors();
-      }
-
-      async function loadChangelog() {
-        try {
-          const response = await fetch("changelog.json", { cache: "no-store" });
-          changelog = response.ok ? await response.json() : null;
-        } catch {
-          changelog = null;
-        }
-        renderChangelog();
       }
 
       /* A small JS tokeniser. The window shows the real source fetched at
@@ -880,14 +608,20 @@
         host.replaceChildren(frag);
       }
 
-      copyButton.addEventListener("click", async () => {
-        try {
-          if (!snippet) await loadSnippet();
-          await navigator.clipboard.writeText(snippet);
-          status.textContent = T.copied[lang()];
-        } catch {
-          status.textContent = T.copyFailed[lang()];
-        }
+      function setStatus(text) {
+        statusNodes.forEach((node) => { node.textContent = text; });
+      }
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          try {
+            if (!snippet) await loadSnippet();
+            await navigator.clipboard.writeText(snippet);
+            setStatus(T.copied[lang()]);
+          } catch {
+            setStatus(T.copyFailed[lang()]);
+          }
+        });
       });
 
       languageToggle.addEventListener("click", () => {
@@ -964,8 +698,6 @@
       refreshLanguage();
       loadSnippet();
       loadSource();
-      loadVirusTotalSummary();
-      loadChangelog();
       loadSponsors();
       observeReveals();
     </script>

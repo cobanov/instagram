@@ -30,11 +30,16 @@ function loadInternals(fetchImpl, overrides = {}) {
   const sandbox = {
     __IU_TEST__: (api) => { captured = api; },
     location: { hostname: "www.instagram.com" },
-    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+    localStorage: {
+      getItem: (key) => (key === "iu_state_v3" ? JSON.stringify({ language: "en" }) : null),
+      setItem: () => {},
+      removeItem: () => {}
+    },
     navigator: { language: "en-US" },
     document: fakeDocument(),
     window: {},
     AbortController,
+    URLSearchParams,
     console: { ...console, error: () => {}, warn: () => {} },
     fetch: fetchImpl,
     /* Fire timers immediately so the inter-attempt backoff does not slow the suite. */
@@ -312,12 +317,12 @@ test("soft HTTP 200 failures stop and never become valid list responses", async 
   }
 });
 
-test("a scan starts directly on the following list without a profile preflight", async () => {
+test("a scan starts directly on the followers list without a profile preflight", async () => {
   const { impl, calls } = mockFetch([{ status: 403, json: { message: "checkpoint_required" } }]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=50");
+  assert.equal(calls[0].url, "/api/v1/friendships/123/followers/?count=50");
   assert.equal(api.state.mode, "idle");
   assert.match(api.state.error, /temporarily refused/);
 });
@@ -326,12 +331,15 @@ test("a block on a resumed cursor never restarts that list", async () => {
   const { impl, calls } = mockFetch([{ status: 400, json: { message: "feedback_required" } }]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   api.state.checkpoint = {
-    ...api.createCheckpoint("123"), followingTotal: 2, followersTotal: 1,
+    ...api.createCheckpoint("123"), followersDone: true, followerIds: ["9"],
     following: [{ id: "1", username: "a" }], followingCursor: "next-page"
   };
   await api.startScan({ resume: true });
   assert.equal(calls.length, 1);
-  assert.match(api.state.error, /temporarily refused/);
+  assert.match(calls[0].url, /following\/\?count=50&max_id=next-page$/);
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.partial, true);
+  assert.match(api.state.checkpoint.stopReason, /temporarily refused/);
 });
 
 test("empty REST lists complete without the removed profile-count request", async () => {
@@ -354,24 +362,23 @@ test("server-limited lists cannot produce non-follower results", async () => {
     error => error.kind === "incomplete");
 });
 
-test("a partial scan exposes no non-followers or unfollow controls", async () => {
+test("a scan that stops while checking following still lists confirmed non-followers", async () => {
   const { impl, calls } = mockFetch([]);
   const api = loadInternals(impl);
   const checkpoint = {
-    ...api.createCheckpoint("123"), followingDone: true,
-    following: [{ id: "1", username: "mutual" }, { id: "2", username: "unknown" }],
-    followerIds: ["1"], followersTotal: 10
+    ...api.createCheckpoint("123"), followersDone: true,
+    following: [{ id: "1", username: "mutual" }, { id: "2", username: "gone" }],
+    followerIds: ["1"], followerUsernames: ["mutual"]
   };
   api.state.checkpoint = checkpoint;
   api.showResults(checkpoint, false);
-  assert.equal(api.state.users[0].follows_viewer, true);
-  assert.equal(api.state.users[1].follows_viewer, null);
-  assert.equal(api.getDisplayUsers().length, 0);
+  assert.equal(api.state.partial, true);
+  assert.equal(api.getDisplayUsers().map((user) => user.id).join(","), "2");
   const html = api.renderResultsView();
-  assert.match(html, /Follower list incomplete/);
-  assert.doesNotMatch(html, /data-action="(?:unfollow|select-all|copy)"|everyone you follow/);
-  api.state.selected.add("2");
-  await api.startUnfollow();
+  assert.match(html, /Scan stopped partway/);
+  assert.match(html, /2 of the accounts you follow were checked/);
+  assert.match(html, /data-action="resume-scan"/);
+  assert.match(html, /data-action="unfollow"/);
   assert.equal(calls.length, 0);
 });
 
@@ -440,31 +447,115 @@ test("saved presets upgrade while custom timing values and request counts surviv
   assert.equal(oldUnfollow.unfollowDelayMax, 4800);
 });
 
-test("a scan follows the upstream following-then-followers request flow", async () => {
+test("a scan follows the upstream followers-then-following request flow", async () => {
   const { impl, calls } = mockFetch([
-    { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "not-mutual" }], has_more: false } },
-    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } }
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "not-mutual" }], has_more: false } }
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
   assert.equal(api.state.partial, false);
   assert.equal(api.getDisplayUsers().map(user => user.id).join(","), "2");
   assert.equal(calls.length, 2);
-  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=50");
-  assert.equal(calls[1].url, "/api/v1/friendships/123/followers/?count=50");
+  assert.equal(calls[0].url, "/api/v1/friendships/123/followers/?count=50");
+  assert.equal(calls[1].url, "/api/v1/friendships/123/following/?count=50");
   assert.equal(calls.some(call => call.url.includes("/users/") || call.url.includes("/friendships/show/")), false);
 });
 
-test("an interrupted followers request keeps results locked", async () => {
+test("an interrupted followers request shows no results", async () => {
   const { impl, calls } = mockFetch([
-    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "f2" } },
     { status: 429, body: "" }
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
   assert.equal(calls.length, 2);
-  assert.equal(api.state.partial, true);
+  assert.equal(api.state.mode, "idle");
   assert.equal(api.getDisplayUsers().length, 0);
+  assert.equal(api.state.checkpoint.followersDone, false);
+});
+
+test("non-followers stream in while following loads and survive an interruption", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "gone" }], has_more: true, next_max_id: "p2" } },
+    { status: 429, body: "" }
+  ]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  api.state.timings.scanPauseEveryPages = 0;
+  await api.startScan();
+  assert.equal(calls.length, 3);
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.partial, true);
+  assert.equal(api.getDisplayUsers().map((user) => user.id).join(","), "2");
+  assert.equal(api.state.checkpoint.followingCursor, "p2");
+});
+
+test("the scan view lists non-followers found so far once followers are loaded", () => {
+  const api = loadInternals();
+  api.state.checkpoint = { ...api.createCheckpoint("123"), followersDone: true };
+  api.state.users = [
+    { id: "1", username: "mutual", follows_viewer: true },
+    { id: "2", username: "gone", follows_viewer: false }
+  ];
+  const html = api.renderScanView();
+  assert.match(html, /Found so far: 1/);
+  assert.match(html, /data-row="2"/);
+  assert.doesNotMatch(html, /data-row="1"/);
+  api.state.checkpoint.followersDone = false;
+  assert.match(api.renderScanView(), /as soon as your followers are loaded/);
+});
+
+test("a follower matched only by username is never listed as a non-follower", () => {
+  const following = [normalizeUser({ pk: "5", username: "Renamed" })];
+  const marked = addFollowBackStatus(following, [{ id: "different-id", username: "renamed" }]);
+  assert.equal(marked[0].follows_viewer, true);
+});
+
+test("the panel defaults to Turkish unless English was chosen", () => {
+  const api = loadInternals(undefined, {
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+  });
+  assert.equal(api.state.language, "tr");
+});
+
+function memoryStorage(initial = {}) {
+  const data = { iu_state_v3: JSON.stringify({ language: "en" }), ...initial };
+  return {
+    data,
+    getItem: (key) => (key in data ? data[key] : null),
+    setItem: (key, value) => { data[key] = String(value); },
+    removeItem: (key) => { delete data[key]; }
+  };
+}
+
+test("a finished scan is saved and can be reopened without any request", async () => {
+  const storage = memoryStorage();
+  const { impl } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "gone" }], has_more: false } }
+  ]);
+  const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
+  await loadInternals(impl, { document: doc, localStorage: storage }).startScan();
+
+  const { impl: noFetch, calls } = mockFetch([]);
+  const later = loadInternals(noFetch, { document: doc, localStorage: storage });
+  assert.match(later.renderIdleView(), /Show last result \(1, /);
+  later.showLastScan();
+  assert.equal(later.state.mode, "results");
+  assert.equal(later.getDisplayUsers().map((user) => user.id).join(","), "2");
+  assert.match(later.renderResultsView(), /This list is from a scan/);
+  assert.equal(calls.length, 0);
+});
+
+test("a saved result is ignored for another account or after a day", () => {
+  const saved = (viewerId, age) => memoryStorage({
+    iu_last_scan_v1: JSON.stringify({ viewerId, savedAt: Date.now() - age, users: [{ id: "2", username: "gone" }] })
+  });
+  const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
+  assert.ok(loadInternals(undefined, { document: doc, localStorage: saved("123", 1000) }).loadLastScan());
+  assert.equal(loadInternals(undefined, { document: doc, localStorage: saved("999", 1000) }).loadLastScan(), null);
+  assert.equal(loadInternals(undefined, { document: doc, localStorage: saved("123", 2 * 24 * 3600 * 1000) }).loadLastScan(), null);
 });
 
 test("scan pacing uses upstream micro, regular, and long pauses", async () => {
@@ -537,18 +628,50 @@ test("following is diffed against follower ids as well as follower users", () =>
   assert.equal(marked[1].follows_viewer, false);
 });
 
-test("HTTP 200 with status ok counts as unfollowed", () => {
-  const result = evaluateUnfollowResponse(200, '{"status":"ok"}');
+/* Unfollow runs instagram.com's own GraphQL mutation (upstream #363). The old
+   REST routes answer the web client with 404 or a 200 HTML page, so a reply
+   only counts when Instagram's data confirms the follow is gone. */
+const GRAPHQL_OK = JSON.stringify({
+  data: { xdt_destroy_friendship: { friendship_status: { following: false, outgoing_request: false } } }
+});
+
+test("a GraphQL reply whose friendship_status shows the follow gone is a confirmed unfollow", () => {
+  const result = evaluateUnfollowResponse(200, GRAPHQL_OK);
   assert.equal(result.ok, true);
+  assert.equal(result.blocked, false);
+  assert.equal(result.confirmed, true);
+});
+
+test("a GraphQL reply behind the for(;;); guard is still read", () => {
+  const result = evaluateUnfollowResponse(200, "for (;;);" + GRAPHQL_OK);
+  assert.equal(result.ok, true);
+});
+
+test("a GraphQL reply without friendship_status is accepted but not confirmed", () => {
+  const result = evaluateUnfollowResponse(200, '{"data":{"xdt_destroy_friendship":{}}}');
+  assert.equal(result.ok, true);
+  assert.notEqual(result.confirmed, true);
+});
+
+test("friendship_status still showing a follow is NOT a successful unfollow", () => {
+  const result = evaluateUnfollowResponse(
+    200,
+    '{"data":{"x":{"friendship_status":{"following":true}}}}'
+  );
+  assert.equal(result.ok, false);
   assert.equal(result.blocked, false);
 });
 
-test("HTTP 200 carrying friendship_status counts as unfollowed", () => {
-  const result = evaluateUnfollowResponse(
-    200,
-    '{"status":"ok","friendship_status":{"following":false,"outgoing_request":false}}'
-  );
-  assert.equal(result.ok, true);
+test("a GraphQL errors array is a failure", () => {
+  const result = evaluateUnfollowResponse(200, '{"errors":[{"message":"Invalid doc_id"}]}');
+  assert.equal(result.ok, false);
+  assert.equal(result.blocked, false);
+  assert.match(result.reason, /Invalid doc_id/);
+});
+
+test("the old REST success shape no longer counts as unfollowed", () => {
+  const result = evaluateUnfollowResponse(200, '{"status":"ok"}');
+  assert.equal(result.ok, false);
 });
 
 test("HTTP 200 with status fail is NOT a successful unfollow", () => {
@@ -564,6 +687,11 @@ test("feedback_required is reported as a block, not a plain failure", () => {
     '{"status":"fail","feedback_required":true,"message":"feedback_required"}'
   );
   assert.equal(result.ok, false);
+  assert.equal(result.blocked, true);
+});
+
+test("a GraphQL error saying try again later is a block", () => {
+  const result = evaluateUnfollowResponse(200, '{"errors":[{"message":"Please try again later"}]}');
   assert.equal(result.blocked, true);
 });
 
@@ -593,90 +721,149 @@ test("HTTP 401 means the session died and must stop the run", () => {
   assert.equal(result.blocked, true);
 });
 
-test("an HTML login page served with 200 is not a success", () => {
+test("an HTML page served with 200 is not a success", () => {
   const result = evaluateUnfollowResponse(200, "<!DOCTYPE html><html><body>Log in</body></html>");
   assert.equal(result.ok, false);
 });
 
-test("HTTP 500 is transient, so the fallback endpoint may still be tried", () => {
+test("HTTP 500 is a plain failure, not a block", () => {
   const result = evaluateUnfollowResponse(500, "");
   assert.equal(result.ok, false);
   assert.equal(result.blocked, false);
 });
 
-test("a successful first endpoint does not touch the fallback", async () => {
-  const { impl, calls } = mockFetch([{ status: 200, body: '{"status":"ok"}' }]);
-  const { unfollowUser } = loadInternals(impl);
+function pageWith({ moduleTokens = true, html = "" } = {}) {
+  const modules = {
+    DTSGInitialData: { token: "dtsg-token" },
+    LSD: { token: "lsd-token" },
+    SiteData: { client_revision: 1029384 }
+  };
+  return {
+    window: moduleTokens ? { require: (name) => modules[name] } : {},
+    document: {
+      ...fakeDocument(),
+      cookie: "ds_user_id=777; csrftoken=csrf-token",
+      documentElement: { innerHTML: html }
+    }
+  };
+}
 
-  const outcome = await unfollowUser("42", "csrf-token");
+const TARGET = { id: "42", username: "Someone" };
+
+test("unfollow posts Instagram's own GraphQL mutation with the session tokens", async () => {
+  const { impl, calls } = mockFetch([{ status: 200, body: GRAPHQL_OK }]);
+  const { unfollowUser } = loadInternals(impl, pageWith());
+
+  const outcome = await unfollowUser(TARGET, "csrf-token");
 
   assert.equal(outcome.ok, true);
-  assert.equal(calls.length, 1);
-  assert.match(calls[0].url, /^\/api\/v1\/friendships\/destroy\/42\/$/);
+  assert.equal(calls.length, 1, "a confirmed reply needs no follow-up search");
+  assert.equal(calls[0].url, "/api/graphql");
+  assert.equal(calls[0].init.method, "POST");
+  assert.equal(calls[0].init.headers["x-csrftoken"], "csrf-token");
+  assert.equal(calls[0].init.headers["x-fb-lsd"], "lsd-token");
+  assert.equal(calls[0].init.headers["x-fb-friendly-name"], "usePolarisUnfollowMutation");
+  const body = new URLSearchParams(calls[0].init.body);
+  assert.equal(body.get("fb_dtsg"), "dtsg-token");
+  assert.equal(body.get("lsd"), "lsd-token");
+  assert.equal(body.get("av"), "777");
+  assert.equal(body.get("__rev"), "1029384");
+  assert.match(body.get("jazoest"), /^2\d+$/);
+  assert.equal(body.get("doc_id"), "27789106940691111");
+  assert.equal(JSON.parse(body.get("variables")).target_user_id, "42");
 });
 
-test("a soft failure falls through to the legacy web endpoint", async () => {
-  const { impl, calls } = mockFetch([
-    { status: 200, body: '{"status":"fail"}' },
-    { status: 200, body: '{"status":"ok"}' }
-  ]);
-  const { unfollowUser } = loadInternals(impl);
+test("session tokens fall back to the inline page data", async () => {
+  const html = '..."DTSGInitialData",[],{"token":"html-dtsg"}..."LSD",[],{"token":"html-lsd"}...';
+  const { impl, calls } = mockFetch([{ status: 200, body: GRAPHQL_OK }]);
+  const { unfollowUser } = loadInternals(impl, pageWith({ moduleTokens: false, html }));
 
-  const outcome = await unfollowUser("42", "csrf-token");
+  const outcome = await unfollowUser(TARGET, "csrf-token");
+
+  assert.equal(outcome.ok, true);
+  const body = new URLSearchParams(calls[0].init.body);
+  assert.equal(body.get("fb_dtsg"), "html-dtsg");
+  assert.equal(body.get("lsd"), "html-lsd");
+});
+
+test("without session tokens nothing is sent and the unfollow fails", async () => {
+  const { impl, calls } = mockFetch([{ status: 200, body: "<html>no tokens</html>" }]);
+  const { unfollowUser } = loadInternals(impl, pageWith({ moduleTokens: false }));
+
+  const outcome = await unfollowUser(TARGET, "csrf-token");
+
+  assert.equal(outcome.ok, false);
+  assert.equal(calls.length, 1, "only the page refetch, never the mutation");
+  assert.equal(calls[0].url, "/");
+});
+
+test("an unconfirmed reply is checked against the following list and passes when the account is gone", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 200, body: '{"data":{"xdt_destroy_friendship":{}}}' },
+    { status: 200, json: { users: [{ pk: "99", username: "someone_else" }] } }
+  ]);
+  const { unfollowUser } = loadInternals(impl, pageWith());
+
+  const outcome = await unfollowUser(TARGET, "csrf-token");
 
   assert.equal(outcome.ok, true);
   assert.equal(calls.length, 2);
-  assert.match(calls[1].url, /^\/web\/friendships\/42\/unfollow\/$/);
+  assert.match(calls[1].url, /^\/api\/v1\/friendships\/777\/following\/\?count=12&query=Someone&/);
 });
 
-test("the legacy web endpoint is called without the private-API app id", async () => {
-  const { impl, calls } = mockFetch([
-    { status: 200, body: '{"status":"fail"}' },
-    { status: 200, body: '{"status":"ok"}' }
+test("an unconfirmed reply fails when the account is still in the following list", async () => {
+  const { impl } = mockFetch([
+    { status: 200, body: '{"data":{"xdt_destroy_friendship":{}}}' },
+    { status: 200, json: { users: [{ pk: "42", username: "someone" }] } }
   ]);
-  const { unfollowUser } = loadInternals(impl);
+  const { unfollowUser } = loadInternals(impl, pageWith());
 
-  await unfollowUser("42", "csrf-token");
+  const outcome = await unfollowUser(TARGET, "csrf-token");
 
-  assert.ok(calls[0].init.headers["x-ig-app-id"], "private API needs the app id");
-  assert.equal(calls[1].init.headers["x-ig-app-id"], undefined);
-  assert.equal(calls[1].init.headers["x-csrftoken"], "csrf-token");
+  assert.equal(outcome.ok, false);
+  assert.equal(outcome.blocked, false);
 });
 
-test("a block stops immediately instead of retrying the fallback", async () => {
+test("an unconfirmed reply fails when the following search itself fails", async () => {
+  const { impl } = mockFetch([
+    { status: 200, body: '{"data":{"xdt_destroy_friendship":{}}}' },
+    { status: 500, body: "" }
+  ]);
+  const { unfollowUser } = loadInternals(impl, pageWith());
+
+  const outcome = await unfollowUser(TARGET, "csrf-token");
+
+  assert.equal(outcome.ok, false);
+});
+
+test("the HTML page Instagram serves to dead routes is never reported as unfollowed", async () => {
+  const { impl, calls } = mockFetch([{ status: 200, body: "<!DOCTYPE html><html></html>" }]);
+  const { unfollowUser } = loadInternals(impl, pageWith());
+
+  const outcome = await unfollowUser(TARGET, "csrf-token");
+
+  assert.equal(outcome.ok, false);
+  assert.equal(calls.length, 1);
+});
+
+test("a block stops immediately without a follow-up request", async () => {
   const { impl, calls } = mockFetch([
     { status: 200, body: '{"status":"fail","feedback_required":true}' }
   ]);
-  const { unfollowUser } = loadInternals(impl);
+  const { unfollowUser } = loadInternals(impl, pageWith());
 
-  const outcome = await unfollowUser("42", "csrf-token");
+  const outcome = await unfollowUser(TARGET, "csrf-token");
 
   assert.equal(outcome.blocked, true);
   assert.equal(outcome.ok, false);
-  assert.equal(calls.length, 1, "must not hammer a second endpoint while blocked");
+  assert.equal(calls.length, 1, "must not hit Instagram again while blocked");
 });
 
-test("a network error on the first endpoint still tries the fallback", async () => {
-  const { impl, calls } = mockFetch([
-    { throws: "network down" },
-    { status: 200, body: '{"status":"ok"}' }
-  ]);
-  const { unfollowUser } = loadInternals(impl);
+test("a network error on the mutation is a plain failure", async () => {
+  const { impl } = mockFetch([{ throws: "network down" }]);
+  const { unfollowUser } = loadInternals(impl, pageWith());
 
-  const outcome = await unfollowUser("42", "csrf-token");
-
-  assert.equal(outcome.ok, true);
-  assert.equal(calls.length, 2);
-});
-
-test("when both endpoints reject, the outcome is a plain failure", async () => {
-  const { impl } = mockFetch([
-    { status: 200, body: '{"status":"fail"}' },
-    { status: 400, body: '{"message":"Bad Request"}' }
-  ]);
-  const { unfollowUser } = loadInternals(impl);
-
-  const outcome = await unfollowUser("42", "csrf-token");
+  const outcome = await unfollowUser(TARGET, "csrf-token");
 
   assert.equal(outcome.ok, false);
   assert.equal(outcome.blocked, false);

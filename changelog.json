@@ -1,5 +1,25 @@
 [
   {
+    "version": "2.4.0",
+    "date": "2026-10-19",
+    "tr": [
+      "Takibi bırakma yeniden çalışıyor. Instagram eski yolu kapatmıştı; araç artık instagram.com'daki Takibi Bırak düğmesinin kullandığı isteği gönderiyor ve her işlemin gerçekten tamamlandığını Instagram'ın cevabından doğruluyor. Başarısız olan işlem artık başarılı görünmüyor.",
+      "Tarama önce takipçilerini yüklüyor, sonra takip ettiklerini kontrol ediyor. Takip etmeyenler tarama sürerken listede tek tek beliriyor; tarama bitmeden seçmeye başlayabilirsin.",
+      "Tarama ikinci adımda yarıda kalsa da o ana kadar bulunanlar kesin sonuç olarak görünüyor ve takibi bırakılabiliyor. Kalanı için kaldığı yerden devam edebilirsin.",
+      "Son tarama sonucu 24 saat saklanıyor. Paneli tekrar açınca Instagram'a hiç istek atmadan son sonucu görebilirsin.",
+      "Bir filtreyi ya da Tümünü seç'i kullandıktan sonra satır seçmenin ve Gizle'nin kendini geri alması düzeltildi.",
+      "Panel ve site artık varsayılan olarak Türkçe açılıyor; İngilizce seçimi hatırlanıyor."
+    ],
+    "en": [
+      "Unfollowing works again. Instagram had closed the old route; the tool now sends the same request as the Unfollow button on instagram.com and checks Instagram's reply to confirm each unfollow went through. A failed unfollow no longer shows as a success.",
+      "The scan loads your followers first, then checks the people you follow. Non-followers appear in the list one by one while the scan runs, and you can start selecting before it finishes.",
+      "If the scan stops during the second step, everything found so far is shown as a confirmed result and can be unfollowed. Resume to check the rest.",
+      "The last scan result is kept for 24 hours. Opening the panel again shows it without sending Instagram a single request.",
+      "Fixed row selection and Hide undoing themselves after a filter or Select all had been used.",
+      "The panel and the site now open in Turkish by default; choosing English is remembered."
+    ]
+  },
+  {
     "version": "2.3.4",
     "date": "2026-09-20",
     "tr": [

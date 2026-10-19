@@ -3,14 +3,12 @@
 
    Every section uses a different layout family, so the page never settles into
    one repeated rhythm:
-     hero      asymmetric split
-     status    heading beside its explanation, full width
-     support   single inline row
-     usage     sticky heading beside a numbered flow
-     changelog plain dated list
-     security  asymmetric bento (1 wide + 2 stacked, exactly 3 cells)
-     traffic   scaled figures on a hairline row
-     credit    single line
+     hero      asymmetric split, with a sticker on the headline
+     ad band   one wide slot under the hero; two fixed rails sit in the side
+               margins on screens wide enough to hold them
+     dantel    product shot beside its pitch, same columns as the hero
+     support   two figures, then a single inline row
+     usage     heading and panel shot beside a numbered flow
    =========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -54,11 +52,11 @@
   font-size: var(--step--1);
 }
 
-/* Product shot, capped at the capture's own width so it is never upscaled
-   into softness, and centred once the column is wider than that. */
+/* Product shot, a 2x capture of the panel shown at the panel's own size so it
+   stays sharp, and centred once the column is wider than that. */
 .shot {
   margin: 48px auto 0;
-  max-width: 858px;
+  max-width: 480px;
   border-radius: var(--radius);
   overflow: hidden;
   border: 1px solid var(--line);
@@ -79,66 +77,300 @@
 }
 
 /* --------------------------------------------------------------------------
-   Status: why the scan fails and where the second method lives. Directly under
-   the hero, across the full shell, as a heading beside its explanation. A dot
-   and hairlines, no card: it is news, not a feature.
+   Sticker: stuck on the headline's corner like a label on a box. White
+   die-cut edge, Instagram's own gradient, a slight tilt.
    -------------------------------------------------------------------------- */
 
-.status-meta {
+.hero-title {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.sticker {
+  position: absolute;
+  top: -2rem;
+  right: -2.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin: 0;
+  padding: 8px 15px 10px;
+  border: 3px solid #fff;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #feda75 0%, #fa7e1e 26%, #d62976 60%, #962fbf 100%);
+  color: #fff;
+  line-height: 1.1;
+  text-align: center;
+  transform: rotate(8deg);
+  box-shadow: 0 16px 32px -12px rgba(214, 41, 118, 0.7), 0 2px 0 rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+
+.sticker-date {
+  font: 500 0.6875rem/1.2 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sticker-text {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .sticker {
+    animation: sticker-in 0.7s var(--ease) 0.25s both;
+  }
+
+  @keyframes sticker-in {
+    from { opacity: 0; transform: rotate(20deg) scale(1.5); }
+    to { opacity: 1; transform: rotate(8deg) scale(1); }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Ad slots: an unsold slot is a house banner in the site's own parts (surface,
+   mono kicker, Instagram gradient stripe, accent pill) that mails Mert; a sold
+   one holds the creative and is labelled as an ad.
+   -------------------------------------------------------------------------- */
+
+main section.ad-band {
+  padding-block: 28px;
+}
+
+.ad-slot {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  margin-inline: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(229, 97, 146, 0.16), transparent 55%),
+    var(--surface);
+  color: var(--muted);
+  font-size: var(--step--1);
+  text-decoration: none;
+  transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
+}
+
+.ad-slot::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #feda75, #fa7e1e 26%, #d62976 60%, #962fbf);
+}
+
+.ad-slot:hover,
+.ad-slot:focus-visible {
+  border-color: var(--accent);
+}
+
+.ad-slot:hover .ad-cta {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.ad-kicker {
+  color: var(--code-muted);
+  font: 500 0.6875rem/1.2 "JetBrains Mono", ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ad-title {
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.ad-cta {
+  min-height: 34px;
+  padding: 0 16px;
+  flex: none;
+}
+
+/* Wide: copy, figures and the pill on one line. */
+.ad-slot--wide {
+  width: min(728px, 100%);
+  height: 90px;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px 0 24px;
+}
+
+.ad-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-right: auto;
+}
+
+.ad-slot--wide .ad-title {
+  font-size: var(--step-1);
+}
+
+.ad-stats {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Rail: a tall poster, read top to bottom. */
+.ad-slot--rail {
+  width: 160px;
+  height: 600px;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px 16px 18px;
+  background:
+    radial-gradient(160% 60% at 50% 0%, rgba(229, 97, 146, 0.2), transparent 70%),
+    var(--surface);
+}
+
+.ad-slot--rail .ad-title {
+  font-size: 1.5rem;
+}
+
+.ad-slot--rail .ad-kicker-size {
+  display: block;
+  margin-top: 4px;
+}
+
+.ad-pitch {
+  line-height: 1.45;
+}
+
+.ad-figures {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  line-height: 1.35;
+}
+
+.ad-figures strong {
+  display: block;
+  color: var(--ink);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.ad-slot--rail .ad-cta {
+  width: 100%;
+}
+
+/* Sold: the creative fills the slot, with a small label. */
+.ad-slot:has(img) {
+  padding: 0;
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.ad-slot:has(img)::before {
+  content: none;
+}
+
+.ad-slot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ad-slot:has(img)::after {
+  content: "Reklam";
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.625rem;
+}
+
+:root[data-lang="en"] .ad-slot:has(img)::after {
+  content: "Ad";
+}
+
+/* The rails need 160px plus breathing room on each side of the 1240px
+   column, and enough height to clear the header. */
+.ad-rail {
+  display: none;
+}
+
+@media (min-width: 1680px) and (min-height: 780px) {
+  .ad-rail {
+    position: fixed;
+    top: 50%;
+    z-index: 10;
+    display: block;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    transform: translateY(-50%);
+  }
+
+  .ad-rail--left {
+    left: calc((100% - var(--measure)) / 4 - 80px);
+  }
+
+  .ad-rail--right {
+    right: calc((100% - var(--measure)) / 4 - 80px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Dantel: the product shot beside its pitch, on the hero's columns
+   -------------------------------------------------------------------------- */
+
+.dantel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(32px, 6vw, 88px);
+  align-items: center;
+}
+
+.dantel-shot {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.9);
+}
+
+.dantel-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform 0.6s var(--ease);
+}
+
+.dantel-shot:hover img {
+  transform: scale(1.02);
+}
+
+.dantel-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   margin: 0 0 18px;
-  color: var(--muted);
-  font: 400 var(--step--1)/1.4 "JetBrains Mono", ui-monospace, monospace;
+  font-weight: 600;
 }
 
-.status-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--warn);
-  box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.18);
-}
-
-/* One sentence per line: the problem in the quiet tone, the way out in ink. */
-.status h2 {
-  max-width: 24ch;
-  text-wrap: balance;
-}
-
-.status-quiet {
-  display: block;
-  color: var(--muted);
-}
-
-/* Same columns as the hero above, so the two halves line up with the headline
-   and the code window. */
-.status-split {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: clamp(28px, 6vw, 88px);
-  margin-top: clamp(32px, 4vw, 48px);
-}
-
-.status-col {
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
-}
-
-.status-col p {
-  margin: 10px 0 0;
-  max-width: 58ch;
-  color: var(--muted);
-  line-height: 1.65;
-}
-
-.status-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
+.dantel-brand img {
+  border-radius: 7px;
 }
 
 /* --------------------------------------------------------------------------
@@ -174,161 +406,51 @@
    Usage: heading holds its column, steps flow beside it
    -------------------------------------------------------------------------- */
 
+/* The heading and the panel shot share the left column, the steps run down
+   the right. On a phone the shot drops below the steps. */
 .usage-split {
   display: grid;
   grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: clamp(32px, 5vw, 80px);
+  grid-template-areas:
+    "aside steps"
+    "shot  steps";
+  grid-template-rows: auto 1fr;
+  column-gap: clamp(32px, 5vw, 80px);
   align-items: start;
 }
 
-.usage-aside {
-  position: sticky;
-  top: 40px;
+.usage-aside { grid-area: aside; }
+.usage-split > .steps { grid-area: steps; }
+
+/* The first step sits on the heading's baseline, not on its top edge. */
+.usage-aside,
+.usage-split > .steps {
+  align-self: baseline;
 }
 
-/* The extension is a second way in, not the recommended one, so it sits under
-   the console instructions at note size and without the warning rule. */
-.usage-alt {
-  margin: 14px 0 0;
-  max-width: 58ch;
-  color: var(--muted);
-  font-size: var(--step--1);
+.usage-split > .shot {
+  grid-area: shot;
+  max-width: 100%;
+  margin: 32px 0 0;
 }
 
-/* --------------------------------------------------------------------------
-   Changelog: dated list, no containers
-   -------------------------------------------------------------------------- */
-
-.releases {
-  margin: 28px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.release {
-  display: grid;
-  grid-template-columns: minmax(0, 0.35fr) minmax(0, 1fr);
-  gap: 8px 40px;
-  padding-top: 28px;
-  border-top: 1px solid var(--line);
-}
-
-.release-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.release-version {
-  font-size: var(--step-1);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-}
-
-.release-date {
-  color: var(--code-muted);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
-}
-
-.release-notes {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.release-notes li {
-  position: relative;
-  padding-left: 20px;
-  color: var(--muted);
-  font-size: var(--step--1);
-  line-height: 1.7;
-}
-
-.release-notes li + li {
-  margin-top: 10px;
-}
-
-.release-notes li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.6em;
-  width: 6px;
-  height: 1px;
-  background: var(--line-strong);
-}
-
-/* --------------------------------------------------------------------------
-   Security: asymmetric bento, exactly three cells for three facts
-   -------------------------------------------------------------------------- */
-
-.trust-bento {
-  display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  grid-template-areas:
-    "signature virustotal"
-    "signature analysis";
-  gap: 1px;
-  margin-top: 28px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.trust-cell {
-  padding: 28px;
-  background: var(--bg);
-}
-
-.trust-cell:first-child {
-  grid-area: signature;
-  background: var(--surface);
-}
-
-.trust-cell h3 {
-  margin: 0 0 12px;
-  font-size: var(--step--1);
-  font-weight: 500;
-  color: var(--muted);
-}
-
-.trust-cell p {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--step--1);
-  line-height: 1.7;
-}
-
-.trust-hash {
-  color: var(--ink);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
-  line-height: 1.8;
-  overflow-wrap: anywhere;
-}
-
-.trust-cell a {
-  color: var(--accent);
-  text-decoration-color: var(--accent-quiet);
-}
-
-.trust-cell img {
-  display: block;
-  margin-top: 4px;
-}
-
-.security-actions {
+.step-action {
+  grid-column: 2;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 32px;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 12px;
 }
 
+.step-action .copy-status {
+  min-height: 0;
+  margin: 0;
+}
+
+
 /* --------------------------------------------------------------------------
-   Traffic: scaled figures, not three equal tiles
+   Figures: the audience numbers in the support section, two equal halves
    -------------------------------------------------------------------------- */
 
 .figures {
@@ -362,17 +484,15 @@
   font-size: var(--step--1);
 }
 
-.meta-line {
-  margin: 22px 0 0;
-  color: var(--code-muted);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
+.figures--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.meta-line--figures {
-  margin-top: 24px;
+.figures--two > div:not(:first-child) .figure-value {
+  font-size: clamp(2rem, 1rem + 3.2vw, 3.25rem);
+  color: var(--ink);
 }
+
 
 /* --------------------------------------------------------------------------
    Code window. Shows the real source, tokenised at runtime so it can never
@@ -474,21 +594,22 @@
 
 @media (max-width: 900px) {
   .hero-split,
-  .status-split,
+  .dantel,
   .usage-split {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .usage-aside {
-    position: static;
+  .usage-split {
+    grid-template-areas:
+      "aside"
+      "steps"
+      "shot";
+    grid-template-rows: none;
+    row-gap: 28px;
   }
 
-  .trust-bento {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      "signature"
-      "virustotal"
-      "analysis";
+  .usage-split > .shot {
+    margin: 0;
   }
 
   .figures {
@@ -499,6 +620,10 @@
   .figures > div:first-child {
     grid-column: 1 / -1;
   }
+
+  .figures--two > div:first-child {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 600px) {
@@ -506,19 +631,37 @@
     max-width: none;
   }
 
-  .release {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+  .sticker {
+    top: -2.4rem;
+    right: -0.25rem;
+    padding: 6px 12px 8px;
   }
 
-  .release-meta {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 12px;
+  .sticker-text {
+    font-size: 0.9375rem;
   }
 
   .figures {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .figures--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ad-slot--wide {
+    width: min(320px, 100%);
+    height: 100px;
+    gap: 12px;
+    padding: 0 14px 0 16px;
+  }
+
+  .ad-stats {
+    display: none;
+  }
+
+  .ad-slot--wide .ad-kicker-size {
+    display: none;
   }
 
   .hero-actions .btn {

@@ -87,12 +87,12 @@ body {
 
 /* Language switch. Every translated string ships in both languages and CSS
    picks one, so the first paint is already correct and nothing flickers when
-   the script runs. No data-lang attribute means English. */
-:root:not([data-lang="tr"]) [lang="tr"] {
+   the script runs. No data-lang attribute means Turkish. */
+:root:not([data-lang="en"]) [lang="en"] {
   display: none !important;
 }
 
-:root[data-lang="tr"] [lang="en"] {
+:root[data-lang="en"] [lang="tr"] {
   display: none !important;
 }
 
@@ -194,21 +194,6 @@ body::after {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.nav-text {
-  padding: 8px 12px;
-  border-radius: var(--pill);
-  color: var(--muted);
-  font-size: var(--step--1);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: color 0.25s var(--ease), background 0.25s var(--ease);
-}
-
-.nav-text:hover {
-  color: var(--ink);
-  background: var(--surface);
 }
 
 .nav-icon {
@@ -499,40 +484,9 @@ kbd {
   .masthead nav {
     gap: 0;
   }
-
-  .nav-text {
-    padding: 8px;
-  }
 }
 
-/* The second method, reachable from every page. The accent dot marks it as the
-   one that works today; aria-current marks the page you are on. */
-.nav-new {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--ink);
-}
-
-.nav-new-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.nav-text[aria-current="page"] {
-  background: var(--surface);
-  color: var(--ink);
-}
-
-/* Two text links and three controls do not fit beside the wordmark on a
-   phone. The GitHub and Instagram icons are repeated in the footer. */
 @media (max-width: 480px) {
-  .masthead nav .nav-icon {
-    display: none;
-  }
-
   /* On a phone the number column costs a fifth of the line; narrow it. */
   .steps li {
     grid-template-columns: 1.25rem minmax(0, 1fr);
