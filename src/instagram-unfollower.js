@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.4.0";
+  const VERSION = "2.4.1";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -47,6 +47,8 @@
   const PANEL_WIDTH = 380;
   const PANEL_MARGIN = 18;
   const MAX_RETRIES = 3;
+  const MAX_EMPTY_PAGES = 10;
+  const EMPTY_PAGES_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
   const I18N = {
     en: {
@@ -61,6 +63,10 @@
       liveFound: "Found so far: {count}",
       liveWaiting: "Non-followers will appear here as soon as your followers are loaded.",
       liveHint: "You can select accounts now. Unfollowing opens when the scan finishes.",
+      liveHintGap: "Your follower list may be incomplete, so unfollowing stays off for this scan.",
+      emptyPages: "Instagram keeps sending empty pages in your follower list. Wait a few hours and resume, or use the data file method at instagram.cobanov.dev/export.",
+      emptyPagesWait: "Instagram sent empty pages, so resume after {time}. For results right away, use the data file method at instagram.cobanov.dev/export.",
+      gapNotice: "Instagram sent some pages of your follower list empty, so the list may be incomplete and someone here may actually follow you. Unfollowing is off for this scan. For exact results, use the data file method at instagram.cobanov.dev/export.",
       showLastScan: "Show last result ({count}, {age})",
       lastScanNotice: "This list is from a scan {age}. Rescan for the current state.",
       rescan: "Rescan",
@@ -161,6 +167,10 @@
       liveFound: "Şu ana kadar bulunan: {count}",
       liveWaiting: "Takipçilerin yüklenir yüklenmez takip etmeyenler burada belirecek.",
       liveHint: "Hesapları şimdiden seçebilirsin. Takibi bırakma tarama bitince açılır.",
+      liveHintGap: "Takipçi listen eksik olabilir, bu yüzden bu taramada takibi bırakma kapalı.",
+      emptyPages: "Instagram takipçi listende üst üste boş sayfalar gönderiyor. Birkaç saat bekleyip devam et ya da instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
+      emptyPagesWait: "Instagram boş sayfalar gönderdi; devam etmek için saat {time} sonrasını bekle. Hemen sonuç istersen instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
+      gapNotice: "Instagram takipçi listenin bazı sayfalarını boş gönderdi. Liste eksik olabilir, yani burada görünen biri seni aslında takip ediyor olabilir. Bu yüzden bu taramada takibi bırakma kapalı. Kesin sonuç için instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
       showLastScan: "Son sonucu göster ({count} kişi, {age})",
       lastScanNotice: "Bu liste {age} yapılan taramadan. Güncel durum için yeniden tara.",
       rescan: "Yeniden tara",
@@ -287,7 +297,9 @@
     error: "",
     checkpoint: loadCheckpoint(),
     partial: false,
-    coverage: ""
+    coverage: "",
+    unverified: false,
+    errorDetail: ""
   };
 
   let countdownTimer = null;
@@ -350,7 +362,10 @@
       followerUsernames: [],
       followersCursor: "",
       followersDone: false,
-      stopReason: ""
+      followersGap: false,
+      retryAfter: 0,
+      stopReason: "",
+      stopDetail: ""
     };
   }
 
@@ -395,7 +410,8 @@
       localStorage.setItem(LAST_SCAN_KEY, JSON.stringify({
         viewerId: getCookie("ds_user_id"),
         savedAt,
-        users: state.users.filter((u) => u.follows_viewer === false)
+        users: state.users.filter((u) => u.follows_viewer === false),
+        unverified: state.unverified
       }));
     } catch {
       /* quota or disabled storage: the next visit simply scans again */
@@ -418,6 +434,7 @@
     const saved = loadLastScan();
     if (!saved) return renderBody();
     state.users = saved.users.map((user) => ({ ...user, follows_viewer: false }));
+    state.unverified = Boolean(saved.unverified);
     state.selected.clear();
     state.partial = false;
     state.coverage = t("lastScanNotice", { age: timeAgo(saved.savedAt) });
@@ -690,6 +707,7 @@
           <div class="iu-welcome-icon iu-welcome-icon--error">${SVG.alert}</div>
           <h2>${escapeHTML(t("scanFailed"))}</h2>
           <p>${escapeHTML(state.error)}</p>
+          ${state.errorDetail ? `<p class="iu-detail">${escapeHTML(state.errorDetail)}</p>` : ""}
           ${checkpoint ? resumeActions : `
           <button type="button" class="iu-btn iu-btn--primary" data-action="scan">${escapeHTML(t("retry"))}</button>`}
         </div>
@@ -702,6 +720,7 @@
           <h2>${escapeHTML(t("welcomeTitle"))}</h2>
           <p>${escapeHTML(t("resumeHint"))}</p>
           ${checkpoint.stopReason ? `<p>${escapeHTML(checkpoint.stopReason)}</p>` : ""}
+          ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
           ${resumeActions}
         </div>
       `;
@@ -785,7 +804,7 @@
     }
     const found = liveUsers();
     return `
-      <div class="iu-results-summary"><strong data-live-count>${escapeHTML(t("liveFound", { count: formatCount(found.length) }))}</strong> · ${escapeHTML(t("liveHint"))}</div>
+      <div class="iu-results-summary"><strong data-live-count>${escapeHTML(t("liveFound", { count: formatCount(found.length) }))}</strong> · ${escapeHTML(t(state.checkpoint.followersGap ? "liveHintGap" : "liveHint"))}</div>
       <div class="iu-list" data-live-list>${found.map(renderUserRow).join("")}</div>`;
   }
 
@@ -825,6 +844,7 @@
         <strong>${escapeHTML(t("partialTitle"))}</strong>
         <p>${escapeHTML(t("partialBody", { loaded: formatCount(checkpoint.following.length) }))}</p>
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
+        ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
         <div class="iu-notice-actions">
           <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
           <button type="button" class="iu-btn iu-btn--ghost iu-btn--small" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
@@ -845,6 +865,7 @@
     return `
       <div class="iu-results">
         ${renderPartialNotice()}
+        ${state.unverified ? `<div class="iu-notice" role="status"><p>${escapeHTML(t("gapNotice"))}</p></div>` : ""}
         ${state.coverage ? `<div class="iu-notice" role="status"><p>${escapeHTML(state.coverage)}</p>
           <div class="iu-notice-actions"><button type="button" class="iu-btn iu-btn--small" data-action="scan">${escapeHTML(t("rescan"))}</button></div></div>` : ""}
         <div class="iu-results-summary">${escapeHTML(summary)}</div>
@@ -875,7 +896,7 @@
           </div>
           <div class="iu-actionbar-right">
             <button type="button" class="iu-btn iu-btn--small" data-action="copy" ${display.length ? "" : "disabled"}>${escapeHTML(state.selected.size ? t("copy") : t("copyAll"))}</button>
-            <button type="button" class="iu-btn iu-btn--danger iu-btn--small" data-action="unfollow" ${state.selected.size ? "" : "disabled"}>${escapeHTML(t("unfollow"))}${state.selected.size ? " (" + state.selected.size + ")" : ""}</button>
+            <button type="button" class="iu-btn iu-btn--danger iu-btn--small" data-action="unfollow" ${state.selected.size && !state.unverified ? "" : "disabled"}>${escapeHTML(t("unfollow"))}${state.selected.size ? " (" + state.selected.size + ")" : ""}</button>
           </div>
         </div>
       </div>
@@ -1043,7 +1064,7 @@
     if (label) label.textContent = t("selectedCount", { count: state.selected.size });
     const unfollowBtn = root.querySelector("[data-action='unfollow']");
     if (unfollowBtn) {
-      unfollowBtn.disabled = state.selected.size === 0;
+      unfollowBtn.disabled = state.selected.size === 0 || state.unverified;
       unfollowBtn.textContent = t("unfollow") + (state.selected.size ? " (" + state.selected.size + ")" : "");
     }
     const copyBtn = root.querySelector("[data-action='copy']");
@@ -1125,7 +1146,16 @@
 
   async function startScan(options = {}) {
     if (destroyed || state.mode === "scanning" || state.mode === "unfollowing") return;
+    /* After a long run of empty pages, resuming at once would only fetch more of them. */
+    if (options.resume && state.checkpoint?.retryAfter > Date.now()) {
+      const time = new Date(state.checkpoint.retryAfter).toLocaleTimeString(state.language === "tr" ? "tr-TR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+      state.error = t("emptyPagesWait", { time });
+      state.mode = "idle";
+      return renderBody();
+    }
     state.error = "";
+    state.errorDetail = "";
+    state.unverified = false;
     state.mode = "scanning";
     state.scanPaused = false;
     state.scanCancelled = false;
@@ -1147,6 +1177,8 @@
       const previous = options.resume ? state.checkpoint : null;
       checkpoint = previous && previous.viewerId === String(viewerId) ? previous : createCheckpoint(viewerId);
       checkpoint.stopReason = "";
+      checkpoint.stopDetail = "";
+      checkpoint.retryAfter = 0;
       state.checkpoint = checkpoint;
       renderBody();
 
@@ -1179,8 +1211,12 @@
       if (state.scanCancelled) return stopScan(checkpoint);
       console.error("[iu] scan failed:", error);
       const message = error?.message || String(error) || t("scanFailed");
+      const detail = scanErrorDetail(error, checkpoint);
+      state.errorDetail = detail;
       if (checkpoint) {
         checkpoint.stopReason = message;
+        checkpoint.stopDetail = detail;
+        if (error?.kind === "gap") checkpoint.retryAfter = Date.now() + EMPTY_PAGES_COOLDOWN_MS;
         saveCheckpoint(checkpoint);
       }
       if (checkpoint?.followersDone && checkpoint.following.length) {
@@ -1191,6 +1227,15 @@
       state.mode = "idle";
       renderBody();
     }
+  }
+
+  /* One line a user can screenshot: which list stopped, how far it got and
+     what Instagram sent. */
+  function scanErrorDetail(error, checkpoint) {
+    const list = checkpoint && (checkpoint.followersDone
+      ? `following ${checkpoint.following.length}`
+      : `followers ${checkpoint.followerIds.length}`);
+    return [VERSION, list, error?.status ? `HTTP ${error.status}` : "", error?.detail || ""].filter(Boolean).join(" · ");
   }
 
   /* Cancelling after the follower list is done keeps what was found so far;
@@ -1213,6 +1258,7 @@
     state.users = addFollowBackStatus(checkpoint.following, followerEntries(checkpoint));
     state.coverage = "";
     state.partial = !complete;
+    state.unverified = Boolean(checkpoint.followersGap);
     state.mode = "results";
     if (complete) {
       saveLastScan();
@@ -1241,6 +1287,9 @@
     const label = isFollowing ? "loadingFollowing" : "loadingFollowers";
     const followers = isFollowing ? followerEntries(checkpoint) : null;
     const seed = isFollowing ? checkpoint.following : followerEntries(checkpoint);
+    /* A gap in following can only miss non-followers; one in followers could
+       list a follower as a non-follower, so those results lose unfollow. */
+    const onGap = isFollowing ? () => {} : () => { checkpoint.followersGap = true; };
 
     const onPage = (results, nextCursor) => {
       if (isFollowing) {
@@ -1261,7 +1310,7 @@
     updateProgressDOM();
 
     try {
-      return await fetchFriendshipList(viewerId, kind, onPage, { cursor: checkpoint[cursorKey], seed });
+      return await fetchFriendshipList(viewerId, kind, onPage, { cursor: checkpoint[cursorKey], seed, onGap });
     } catch (error) {
       if (error?.kind !== "http" || error?.status !== 400 || !checkpoint[cursorKey]) throw error;
       console.warn(`[iu] stored ${kind} cursor was rejected, restarting that list`);
@@ -1270,8 +1319,9 @@
       else {
         checkpoint.followerIds = [];
         checkpoint.followerUsernames = [];
+        checkpoint.followersGap = false;
       }
-      return fetchFriendshipList(viewerId, kind, onPage, {});
+      return fetchFriendshipList(viewerId, kind, onPage, { onGap });
     }
   }
 
@@ -1280,6 +1330,7 @@
     let cursor = options.cursor || "";
     let page = 0;
     const seenCursors = new Set(cursor ? [cursor] : []);
+    let emptyRun = 0;
 
     while (true) {
       if (state.scanPaused) await waitWhile(() => state.scanPaused && !state.scanCancelled);
@@ -1287,7 +1338,9 @@
 
       const json = await igFetch(friendshipListUrl(viewerId, kind, cursor, state.timings.usersPerRequest));
       if (state.scanCancelled || destroyed) return dedupe(results);
-      if (!Array.isArray(json?.users)) throw new Error(t("scanFailed"));
+      if (!Array.isArray(json?.users)) {
+        throw scanError("format", t("scanFailed"), 200, `no users in reply (${Object.keys(json || {}).join(", ").slice(0, 80)})`);
+      }
       if (json.should_limit_list_of_followers === true || json.should_limit_list_of_followings === true) {
         throw scanError("incomplete", t("limitedList"));
       }
@@ -1296,9 +1349,22 @@
       results.push(...users);
 
       const nextCursor = json.next_max_id == null ? "" : String(json.next_max_id);
-      const finished = json.has_more === false || !nextCursor;
-      if (finished && json.has_more === true && !nextCursor) throw new Error(t("scanFailed"));
-      if (!finished && (!users.length || seenCursors.has(nextCursor))) throw new Error(t("scanFailed"));
+      /* Instagram can drop the cursor at the end of a list while still saying
+         has_more, repeat a cursor, or answer part of a list with empty pages
+         that point further, the rest coming after them. Only a caller that
+         accounts for a possibly incomplete list (onGap) may go on: a dropped or
+         repeated cursor then ends the list, an empty page is stepped over. */
+      const noCursor = json.has_more === true && !nextCursor;
+      const looped = Boolean(nextCursor) && seenCursors.has(nextCursor);
+      const finished = json.has_more === false || !nextCursor || looped;
+      const empty = !finished && !users.length;
+      if (noCursor || looped || empty) {
+        const why = noCursor ? "has_more without next_max_id" : looped ? "repeated next_max_id" : "empty page with has_more";
+        if (!options.onGap) throw scanError("format", t("scanFailed"), 200, why);
+        if (empty && ++emptyRun > MAX_EMPTY_PAGES) throw scanError("gap", t("emptyPages"), 200, `${MAX_EMPTY_PAGES} empty pages in a row`);
+        options.onGap();
+      }
+      if (!empty) emptyRun = 0;
       onPage(dedupe(results), finished ? "" : nextCursor);
       if (finished) break;
 
@@ -1348,10 +1414,11 @@
     }));
   }
 
-  function scanError(kind, message, status) {
+  function scanError(kind, message, status, detail = "") {
     const error = new Error(message);
     error.kind = kind;
     error.status = status;
+    error.detail = detail;
     return error;
   }
 
@@ -1410,10 +1477,10 @@
       }
       if (response.ok) {
         if (!json || typeof json !== "object") throw scanError("session", t("sessionExpired"), response.status);
-        if (json.status && json.status !== "ok") throw scanError("http", t("scanFailed"), response.status);
+        if (json.status && json.status !== "ok") throw scanError("http", t("scanFailed"), response.status, message.slice(0, 120));
         return json;
       }
-      throw scanError("http", t("requestFailed", { status: response.status }), response.status);
+      throw scanError("http", t("requestFailed", { status: response.status }), response.status, json ? message.slice(0, 120) : "");
     }
   }
 
@@ -1480,7 +1547,7 @@
   }
 
   function confirmUnfollow() {
-    if (destroyed || !state.selected.size) return;
+    if (destroyed || !state.selected.size || state.unverified) return;
     const count = state.selected.size;
     showDialog({
       title: t("unfollowConfirmTitle", { count }),
@@ -1492,7 +1559,7 @@
   }
 
   async function startUnfollow() {
-    if (destroyed || state.mode === "scanning" || state.mode === "unfollowing") return;
+    if (destroyed || state.unverified || state.mode === "scanning" || state.mode === "unfollowing") return;
     const targets = state.users.filter((u) => u.follows_viewer === false && state.selected.has(u.id));
     if (!targets.length) return;
     const csrf = getCookie("csrftoken");
@@ -2248,6 +2315,7 @@
     #${APP_ID} .iu-notice strong { display: block; margin-bottom: 4px; font-weight: 600; }
     #${APP_ID} .iu-notice p { margin: 0; color: var(--iu-muted); font-size: 12px; line-height: 1.45; }
     #${APP_ID} .iu-notice-reason { margin-top: 6px !important; color: var(--iu-text) !important; }
+    #${APP_ID} .iu-detail { margin-top: 6px !important; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace !important; color: var(--iu-muted) !important; overflow-wrap: anywhere !important; user-select: all !important; }
     #${APP_ID} .iu-notice-actions { display: flex; gap: 8px; margin-top: 10px; }
 
     #${APP_ID} .iu-btn {

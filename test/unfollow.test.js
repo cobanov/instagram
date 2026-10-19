@@ -342,6 +342,73 @@ test("a block on a resumed cursor never restarts that list", async () => {
   assert.match(api.state.checkpoint.stopReason, /temporarily refused/);
 });
 
+test("empty follower pages are stepped over, and the results stay unverified with unfollow off", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "c1" } },
+    { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
+    { status: 200, json: { users: [{ pk: "2", username: "b" }], has_more: false } },
+    { status: 200, json: { users: [
+      { pk: "1", username: "a" }, { pk: "2", username: "b" }, { pk: "3", username: "x" }
+    ], has_more: false } }
+  ]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+  assert.equal(calls.length, 4);
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.unverified, true);
+  assert.equal(api.state.users.filter((u) => !u.follows_viewer).map((u) => u.username).join(), "x");
+  api.state.selected.add("3");
+  const html = api.renderResultsView();
+  assert.match(html, /data-action="unfollow" disabled/);
+  assert.match(html, /may be incomplete/);
+  await api.startUnfollow();
+  assert.equal(calls.length, 4);
+});
+
+test("a long run of empty follower pages stops the scan, and resuming waits before any request", async () => {
+  const empty = Array.from({ length: 11 }, (_, i) => (
+    { status: 200, json: { users: [], has_more: true, next_max_id: `e${i}` } }
+  ));
+  const { impl, calls } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "c1" } },
+    ...empty
+  ]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+  assert.equal(calls.length, 12);
+  assert.equal(api.state.mode, "idle");
+  assert.match(api.state.error, /keeps sending empty pages/);
+  assert.ok(api.state.checkpoint.retryAfter > Date.now());
+  await api.startScan({ resume: true });
+  assert.equal(calls.length, 12);
+  assert.match(api.state.error, /resume after/);
+});
+
+test("a list that ends with has_more but no cursor completes; on followers the results stay unverified", async () => {
+  const ends = { users: [{ pk: "1", username: "a" }], has_more: true };
+  for (const [followers, following, unverified] of [
+    [{ users: [{ pk: "1", username: "a" }], has_more: false }, ends, false],
+    [ends, { users: [{ pk: "1", username: "a" }, { pk: "3", username: "x" }], has_more: false }, true]
+  ]) {
+    const { impl, calls } = mockFetch([{ status: 200, json: followers }, { status: 200, json: following }]);
+    const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+    await api.startScan();
+    assert.equal(calls.length, 2);
+    assert.equal(api.state.mode, "results");
+    assert.equal(api.state.partial, false);
+    assert.equal(api.state.unverified, unverified);
+  }
+});
+
+test("a failed scan shows which list stopped, how far, and what Instagram sent", async () => {
+  const { impl } = mockFetch([{ status: 400, json: { message: "something odd" } }]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+  assert.equal(api.state.mode, "idle");
+  assert.match(api.state.errorDetail, /followers 0 · HTTP 400 · something odd$/);
+  assert.match(api.renderIdleView(), /class="iu-detail">[^<]*something odd/);
+});
+
 test("empty REST lists complete without the removed profile-count request", async () => {
   const { impl, calls } = mockFetch([
     { status: 200, json: { users: [], has_more: false } },
