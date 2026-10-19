@@ -135,14 +135,15 @@
 /* --------------------------------------------------------------------------
    Ad slots: an unsold slot is a house banner in the site's own parts (surface,
    mono kicker, Instagram gradient stripe, accent pill) that mails Mert; a sold
-   one holds the creative and is labelled as an ad.
+   one holds the creative and is labelled as an ad. No class here starts with
+   "ad-": ad blockers hide those, house banner and all.
    -------------------------------------------------------------------------- */
 
-main section.ad-band {
+main section.spot-band {
   padding-block: 28px;
 }
 
-.ad-slot {
+.spot {
   position: relative;
   display: flex;
   overflow: hidden;
@@ -158,7 +159,7 @@ main section.ad-band {
   transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
 }
 
-.ad-slot::before {
+.spot::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -166,24 +167,24 @@ main section.ad-band {
   background: linear-gradient(90deg, #feda75, #fa7e1e 26%, #d62976 60%, #962fbf);
 }
 
-.ad-slot:hover,
-.ad-slot:focus-visible {
+.spot:hover,
+.spot:focus-visible {
   border-color: var(--accent);
 }
 
-.ad-slot:hover .ad-cta {
+.spot:hover .spot-cta {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
 
-.ad-kicker {
+.spot-kicker {
   color: var(--code-muted);
   font: 500 0.6875rem/1.2 "JetBrains Mono", ui-monospace, monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.ad-title {
+.spot-title {
   color: var(--ink);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -191,14 +192,14 @@ main section.ad-band {
   text-wrap: balance;
 }
 
-.ad-cta {
+.spot-cta {
   min-height: 34px;
   padding: 0 16px;
   flex: none;
 }
 
 /* Wide: copy, figures and the pill on one line. */
-.ad-slot--wide {
+.spot--wide {
   width: min(728px, 100%);
   height: 90px;
   align-items: center;
@@ -206,25 +207,25 @@ main section.ad-band {
   padding: 0 20px 0 24px;
 }
 
-.ad-copy {
+.spot-copy {
   display: flex;
   flex-direction: column;
   gap: 6px;
   margin-right: auto;
 }
 
-.ad-slot--wide .ad-title {
+.spot--wide .spot-title {
   font-size: var(--step-1);
 }
 
-.ad-stats {
+.spot-stats {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 /* Rail: a tall poster, read top to bottom. */
-.ad-slot--rail {
+.spot--rail {
   width: 160px;
   height: 600px;
   flex-direction: column;
@@ -235,20 +236,20 @@ main section.ad-band {
     var(--surface);
 }
 
-.ad-slot--rail .ad-title {
+.spot--rail .spot-title {
   font-size: 1.5rem;
 }
 
-.ad-slot--rail .ad-kicker-size {
+.spot--rail .spot-kicker-size {
   display: block;
   margin-top: 4px;
 }
 
-.ad-pitch {
+.spot-pitch {
   line-height: 1.45;
 }
 
-.ad-figures {
+.spot-figures {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -258,7 +259,7 @@ main section.ad-band {
   line-height: 1.35;
 }
 
-.ad-figures strong {
+.spot-figures strong {
   display: block;
   color: var(--ink);
   font-size: 2rem;
@@ -267,29 +268,29 @@ main section.ad-band {
   line-height: 1.05;
 }
 
-.ad-slot--rail .ad-cta {
+.spot--rail .spot-cta {
   width: 100%;
 }
 
 /* Sold: the creative fills the slot, with a small label. */
-.ad-slot:has(img) {
+.spot:has(img) {
   padding: 0;
   border-color: var(--line);
   background: var(--surface);
 }
 
-.ad-slot:has(img)::before {
+.spot:has(img)::before {
   content: none;
 }
 
-.ad-slot img {
+.spot img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.ad-slot:has(img)::after {
+.spot:has(img)::after {
   content: "Reklam";
   position: absolute;
   top: 4px;
@@ -301,18 +302,18 @@ main section.ad-band {
   font-size: 0.625rem;
 }
 
-:root[data-lang="en"] .ad-slot:has(img)::after {
+:root[data-lang="en"] .spot:has(img)::after {
   content: "Ad";
 }
 
 /* The rails need 160px plus breathing room on each side of the 1240px
    column, and enough height to clear the header. */
-.ad-rail {
+.spot-rail {
   display: none;
 }
 
 @media (min-width: 1680px) and (min-height: 780px) {
-  .ad-rail {
+  .spot-rail {
     position: fixed;
     top: 50%;
     z-index: 10;
@@ -322,11 +323,11 @@ main section.ad-band {
     transform: translateY(-50%);
   }
 
-  .ad-rail--left {
+  .spot-rail--left {
     left: calc((100% - var(--measure)) / 4 - 80px);
   }
 
-  .ad-rail--right {
+  .spot-rail--right {
     right: calc((100% - var(--measure)) / 4 - 80px);
   }
 }
@@ -649,18 +650,18 @@ main section.ad-band {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .ad-slot--wide {
+  .spot--wide {
     width: min(320px, 100%);
     height: 100px;
     gap: 12px;
     padding: 0 14px 0 16px;
   }
 
-  .ad-stats {
+  .spot-stats {
     display: none;
   }
 
-  .ad-slot--wide .ad-kicker-size {
+  .spot--wide .spot-kicker-size {
     display: none;
   }
 
