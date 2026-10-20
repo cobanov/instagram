@@ -140,8 +140,8 @@ The rest check that no language file is missing a key or leaves one empty.
 
 ## Sponsorship
 
-Around **53.8k unique visitors per 30 days**, on the March 26 to April 25, 2026
-Cloudflare Analytics snapshot.
+Around **38k unique visitors per 30 days** (OpenAnalytics, September 20 to October 20,
+2026).
 
 If it is useful to you, you can sponsor it at
 [github.com/sponsors/cobanov](https://github.com/sponsors/cobanov).
