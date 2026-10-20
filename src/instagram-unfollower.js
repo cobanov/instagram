@@ -48,7 +48,9 @@
   const PANEL_MARGIN = 18;
   const MAX_RETRIES = 3;
   const MAX_EMPTY_PAGES = 10;
-  const EMPTY_PAGES_COOLDOWN_MS = 3 * 60 * 60 * 1000;
+  /* How long Resume sends nothing after Instagram told the scan to back off,
+     by error kind; asking again sooner only gets refused and can escalate. */
+  const COOLDOWN_MS = { gap: 3 * 60 * 60 * 1000, blocked: 3 * 60 * 60 * 1000, rate: 60 * 60 * 1000 };
 
   const I18N = {
     en: {
@@ -64,8 +66,8 @@
       liveWaiting: "Non-followers will appear here as soon as your followers are loaded.",
       liveHint: "You can select accounts now. Unfollowing opens when the scan finishes.",
       liveHintGap: "Your follower list may be incomplete, so unfollowing stays off for this scan.",
-      emptyPages: "Instagram keeps sending empty pages in your follower list. Wait a few hours and resume, or use the data file method at instagram.cobanov.dev/export.",
-      emptyPagesWait: "Instagram sent empty pages, so resume after {time}. For results right away, use the data file method at instagram.cobanov.dev/export.",
+      emptyPages: "Instagram keeps sending empty pages in your follower list.",
+      resumeAfter: "Resume after {time}; requests sent sooner would only be refused again. For results right away, use the data file method at instagram.cobanov.dev/export.",
       gapNotice: "Instagram sent some pages of your follower list empty, so the list may be incomplete and someone here may actually follow you. Unfollowing is off for this scan. For exact results, use the data file method at instagram.cobanov.dev/export.",
       showLastScan: "Show last result ({count}, {age})",
       lastScanNotice: "This list is from a scan {age}. Rescan for the current state.",
@@ -132,9 +134,9 @@
       cookieMissing: "Could not read your login cookie. Make sure you are signed in.",
       csrfMissing: "Could not read csrftoken cookie.",
       requestFailed: "Request failed: {status}",
-      tooManyRequests: "Instagram is rate-limiting requests. Try again later or increase delays in settings.",
+      tooManyRequests: "Instagram is limiting requests for this account. You were not signed out, and signing out and back in does not lift it; only waiting does.",
       sessionExpired: "Instagram signed you out. Sign in again, paste the script again and press Resume. The scan continues where it stopped.",
-      scanBlocked: "Instagram temporarily refused list requests for this account. Wait a few hours, paste the script again and press Resume.",
+      scanBlocked: "Instagram temporarily refused list requests for this account.",
       networkError: "The connection dropped. Check the network and press Resume.",
       keepTabVisible: "Keep this tab in front. Chrome slows background tabs down to one step per minute.",
       resumeScan: "Resume scan",
@@ -168,8 +170,8 @@
       liveWaiting: "Takipçilerin yüklenir yüklenmez takip etmeyenler burada belirecek.",
       liveHint: "Hesapları şimdiden seçebilirsin. Takibi bırakma tarama bitince açılır.",
       liveHintGap: "Takipçi listen eksik olabilir, bu yüzden bu taramada takibi bırakma kapalı.",
-      emptyPages: "Instagram takipçi listende üst üste boş sayfalar gönderiyor. Birkaç saat bekleyip devam et ya da instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
-      emptyPagesWait: "Instagram boş sayfalar gönderdi; devam etmek için saat {time} sonrasını bekle. Hemen sonuç istersen instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
+      emptyPages: "Instagram takipçi listende üst üste boş sayfalar gönderiyor.",
+      resumeAfter: "Devam etmek için saat {time} sonrasını bekle; daha önce gönderilen istekler yine reddedilir. Hemen sonuç istersen instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
       gapNotice: "Instagram takipçi listenin bazı sayfalarını boş gönderdi. Liste eksik olabilir, yani burada görünen biri seni aslında takip ediyor olabilir. Bu yüzden bu taramada takibi bırakma kapalı. Kesin sonuç için instagram.cobanov.dev/export adresindeki veri dosyası yöntemini kullan.",
       showLastScan: "Son sonucu göster ({count} kişi, {age})",
       lastScanNotice: "Bu liste {age} yapılan taramadan. Güncel durum için yeniden tara.",
@@ -236,9 +238,9 @@
       cookieMissing: "Giriş çerezi okunamadı. Giriş yaptığından emin ol.",
       csrfMissing: "csrftoken çerezi okunamadı.",
       requestFailed: "İstek başarısız: {status}",
-      tooManyRequests: "Instagram istekleri kısıtlıyor. Sonra dene veya ayarlardan gecikmeleri artır.",
+      tooManyRequests: "Instagram bu hesabın isteklerini sınırlıyor. Oturumun kapanmadı; çıkış yapıp tekrar girmek bunu kaldırmaz, yalnızca beklemek işe yarar.",
       sessionExpired: "Instagram oturumunu kapattı. Tekrar giriş yap, kodu yeniden yapıştır ve Devam et'e bas. Tarama kaldığı yerden sürer.",
-      scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti. Birkaç saat bekle, kodu yeniden yapıştır ve Devam et'e bas.",
+      scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti.",
       networkError: "Bağlantı koptu. Ağı kontrol et ve Devam et'e bas.",
       keepTabVisible: "Bu sekmeyi önde tut. Chrome arka plandaki sekmeleri dakikada bir adıma yavaşlatır.",
       resumeScan: "Taramaya devam et",
@@ -1146,10 +1148,8 @@
 
   async function startScan(options = {}) {
     if (destroyed || state.mode === "scanning" || state.mode === "unfollowing") return;
-    /* After a long run of empty pages, resuming at once would only fetch more of them. */
     if (options.resume && state.checkpoint?.retryAfter > Date.now()) {
-      const time = new Date(state.checkpoint.retryAfter).toLocaleTimeString(state.language === "tr" ? "tr-TR" : "en-US", { hour: "2-digit", minute: "2-digit" });
-      state.error = t("emptyPagesWait", { time });
+      state.error = t("resumeAfter", { time: clockTime(state.checkpoint.retryAfter) });
       state.mode = "idle";
       return renderBody();
     }
@@ -1210,13 +1210,15 @@
       if (destroyed) return;
       if (state.scanCancelled) return stopScan(checkpoint);
       console.error("[iu] scan failed:", error);
-      const message = error?.message || String(error) || t("scanFailed");
+      const retryAfter = checkpoint && COOLDOWN_MS[error?.kind] ? Date.now() + COOLDOWN_MS[error.kind] : 0;
+      const message = (error?.message || String(error) || t("scanFailed")) +
+        (retryAfter ? " " + t("resumeAfter", { time: clockTime(retryAfter) }) : "");
       const detail = scanErrorDetail(error, checkpoint);
       state.errorDetail = detail;
       if (checkpoint) {
         checkpoint.stopReason = message;
         checkpoint.stopDetail = detail;
-        if (error?.kind === "gap") checkpoint.retryAfter = Date.now() + EMPTY_PAGES_COOLDOWN_MS;
+        checkpoint.retryAfter = retryAfter;
         saveCheckpoint(checkpoint);
       }
       if (checkpoint?.followersDone && checkpoint.following.length) {
@@ -1227,6 +1229,10 @@
       state.mode = "idle";
       renderBody();
     }
+  }
+
+  function clockTime(timestamp) {
+    return new Date(timestamp).toLocaleTimeString(state.language === "tr" ? "tr-TR" : "en-US", { hour: "2-digit", minute: "2-digit" });
   }
 
   /* One line a user can screenshot: which list stopped, how far it got and
@@ -1455,15 +1461,19 @@
       let json;
       try { json = JSON.parse(body); } catch { /* classified below */ }
       const message = json ? String(json.message || json.error_type || "") : body;
-      if (response.status === 401 || json?.require_login || /login_required/i.test(message)) {
-        throw scanError("session", t("sessionExpired"), response.status);
-      }
+      const said = json ? message.slice(0, 120) : "";
+      /* Instagram's rate limit often comes as a 401 with require_login and
+         "Please wait a few minutes"; signing in again does not lift it, so the
+         message is read before the status. */
       if (response.status === 429 || /rate_limit|too many requests|please wait a few minutes/i.test(message)) {
-        throw scanError("rate", t("tooManyRequests"), response.status);
+        throw scanError("rate", t("tooManyRequests"), response.status, said);
+      }
+      if (response.status === 401 || json?.require_login || /login_required/i.test(message)) {
+        throw scanError("session", t("sessionExpired"), response.status, said);
       }
       if (response.status === 403 || json?.spam || json?.challenge || json?.checkpoint_url || json?.feedback_required ||
           /feedback_required|checkpoint_required|challenge_required/i.test(message)) {
-        throw scanError("blocked", t("scanBlocked"), response.status);
+        throw scanError("blocked", t("scanBlocked"), response.status, said);
       }
       if (response.status >= 500 && response.status < 600) {
         if (attempt >= MAX_RETRIES) {
@@ -1476,7 +1486,10 @@
         continue;
       }
       if (response.ok) {
-        if (!json || typeof json !== "object") throw scanError("session", t("sessionExpired"), response.status);
+        if (!json || typeof json !== "object") {
+          const landed = String(response.url || "").replace(/^https?:\/\/[^/]+|\?.*$/g, "");
+          throw scanError("session", t("sessionExpired"), response.status, `HTML reply ${landed}`.trim());
+        }
         if (json.status && json.status !== "ok") throw scanError("http", t("scanFailed"), response.status, message.slice(0, 120));
         return json;
       }

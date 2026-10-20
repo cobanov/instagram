@@ -258,6 +258,7 @@ test("an HTML login page served with 200 is a dead session, not a crash", async 
 
   await assert.rejects(igFetch("/api/v1/x"), (error) => {
     assert.equal(error.kind, "session");
+    assert.equal(error.detail, "HTML reply");
     return true;
   });
 });
@@ -377,11 +378,42 @@ test("a long run of empty follower pages stops the scan, and resuming waits befo
   await api.startScan();
   assert.equal(calls.length, 12);
   assert.equal(api.state.mode, "idle");
-  assert.match(api.state.error, /keeps sending empty pages/);
+  assert.match(api.state.error, /keeps sending empty pages.*Resume after/);
   assert.ok(api.state.checkpoint.retryAfter > Date.now());
   await api.startScan({ resume: true });
   assert.equal(calls.length, 12);
-  assert.match(api.state.error, /resume after/);
+  assert.match(api.state.error, /^Resume after/);
+});
+
+test("a 401 saying please wait is a rate limit, not a sign-out, and Resume waits an hour", async () => {
+  const { impl, calls } = mockFetch([{
+    status: 401,
+    json: { message: "Please wait a few minutes before you try again.", require_login: true, status: "fail" }
+  }]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+  assert.match(api.state.error, /limiting requests.*not signed out.*Resume after/);
+  assert.match(api.state.errorDetail, /followers 0 · HTTP 401 · Please wait a few minutes/);
+  const wait = api.state.checkpoint.retryAfter - Date.now();
+  assert.ok(wait > 59 * 60 * 1000 && wait <= 60 * 60 * 1000);
+  await api.startScan({ resume: true });
+  assert.equal(calls.length, 1);
+});
+
+test("a real sign-out keeps no cooldown and shows what Instagram sent", async () => {
+  const { impl, calls } = mockFetch([
+    { status: 401, json: { message: "login_required", require_login: true, status: "fail" } },
+    { status: 200, json: { users: [], has_more: false } },
+    { status: 200, json: { users: [], has_more: false } }
+  ]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+  assert.match(api.state.error, /signed you out/);
+  assert.match(api.state.errorDetail, /HTTP 401 · login_required$/);
+  assert.equal(api.state.checkpoint.retryAfter, 0);
+  await api.startScan({ resume: true });
+  assert.equal(calls.length, 3);
+  assert.equal(api.state.mode, "results");
 });
 
 test("a list that ends with has_more but no cursor completes; on followers the results stay unverified", async () => {

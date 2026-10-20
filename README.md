@@ -73,16 +73,20 @@ If Instagram cuts the scan short (signs you out, rate-limits, asks for a checkpo
 progress is kept in the tab's `localStorage` for a day. **No non-follower results or
 unfollow actions are available before the required checks finish.** Wait for the restriction
 to clear, sign in again if necessary, then press **Resume**. A rate limit stops the
-scan immediately; it is not retried automatically.
+scan immediately; it is not retried automatically. Instagram often sends its rate limit as
+a 401 with `require_login` and "Please wait a few minutes"; since 2.4.1 that is reported as
+a rate limit, not a sign-out, because signing in again does not lift it. The panel names a
+time to resume, and until then Resume sends nothing: one hour after a rate limit, three
+hours after a block or a long run of empty pages.
 
 Instagram sometimes sends a run of empty pages in the middle of a list, or ends a list
 while still claiming there is more. Since 2.4.1 the scan steps over up to ten empty pages
 in a row and treats a missing or repeated cursor as the end of the list. In the following
 list that can only miss non-followers. In the follower list it could show a follower as a
 non-follower, so those results are marked unverified and unfollowing stays off; the data
-file method at `/export` gives exact results. A longer run of empty pages stops the scan,
-and Resume then waits three hours. A failed scan shows one line with the version, the
-list, how far it got and what Instagram sent.
+file method at `/export` gives exact results. A longer run of empty pages stops the scan.
+A failed scan shows one line with the version, the list, how far it got and what Instagram
+sent.
 
 When upgrading from a version older than **2.3.2**, refresh the Instagram tab before running the new code or
 reloading the updated extension. Earlier versions could keep a scan running after

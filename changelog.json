@@ -1,17 +1,19 @@
 [
   {
     "version": "2.4.1",
-    "date": "2026-10-19",
+    "date": "2026-10-20",
     "tr": [
       "Instagram bazı hesaplarda listenin ortasında boş sayfalar gönderiyor ya da listeyi \"devamı var\" deyip sonraki sayfanın adresini vermeden bitiriyor. Tarama bu durumda \"Tarama başarısız\" diyip duruyordu ve Devam et aynı yere takılıyordu. Artık üst üste on boş sayfaya kadar atlıyor, adresi eksik ya da tekrar eden sayfayı listenin sonu sayıyor.",
       "Bu takipçi listende olursa liste eksik olabilir; seni takip eden biri yanlışlıkla takip etmeyen görünebilir. O taramanın sonuçları gösteriliyor ama takibi bırakma kapalı kalıyor. Kesin sonuç için instagram.cobanov.dev/export adresindeki veri dosyası yöntemi var.",
-      "On sayfadan uzun boşlukta tarama duruyor ve Devam et üç saat bekletiyor; hemen tekrar denemek yalnızca daha fazla boş sayfa getiriyordu.",
+      "Instagram hız sınırını çoğu zaman \"birkaç dakika bekle\" diyen bir 401 hatası olarak gönderiyor. Panel bunu \"Instagram oturumunu kapattı\" diye gösteriyordu; tekrar giriş yapmak işe yaramıyor, Devam et de aynı hataya çarpıyordu. Artık bunu sınır olarak tanıyor ve oturumun kapanmadığını söylüyor.",
+      "Instagram taramayı durdurduğunda panel artık devam etmek için bir saat veriyor ve o saate kadar Devam et Instagram'a hiç istek göndermiyor: hız sınırında bir saat, geçici engelde ve on sayfadan uzun boşlukta üç saat. Erken denemek yalnızca yeniden reddediliyordu.",
       "Başarısız tarama artık sürümü, hangi listede kaçıncı hesapta durduğunu ve Instagram'ın ne gönderdiğini tek satırda gösteriyor. Hata bildirirken bu satırın ekran görüntüsünü gönderebilirsin."
     ],
     "en": [
       "On some accounts Instagram sends empty pages in the middle of a list, or ends a list saying there is more without the address of the next page. The scan stopped there with \"Scan failed\", and Resume ran into the same spot. It now steps over up to ten empty pages in a row and treats a missing or repeated page address as the end of the list.",
       "When that happens in your follower list the list may be incomplete, so someone who follows you could show up as a non-follower. That scan's results are shown with unfollowing turned off. The data file method at instagram.cobanov.dev/export gives exact results.",
-      "A run of more than ten empty pages stops the scan, and Resume waits three hours; trying again at once only fetched more empty pages.",
+      "Instagram often sends its rate limit as a 401 that says \"Please wait a few minutes\". The panel showed it as \"Instagram signed you out\"; signing in again did not help, and Resume ran into the same error. It is now recognised as a rate limit and the panel says you were not signed out.",
+      "When Instagram stops a scan, the panel now gives a time to resume, and until then Resume sends Instagram no request: one hour after a rate limit, three hours after a temporary block or a run of more than ten empty pages. Trying earlier was only refused again.",
       "A failed scan now shows one line with the version, the list and position where it stopped, and what Instagram sent. Include a screenshot of it when reporting a problem."
     ]
   },
