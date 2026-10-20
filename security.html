@@ -100,14 +100,10 @@
           <span>SHA-256</span>
           <code class="hash" data-script-hash>&hellip;</code>
           <div class="scan-row">
-            <a href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link>
-              <span lang="en">VirusTotal report</span><span lang="tr">VirusTotal raporu</span>
-            </a>
             <a class="scan-badge" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer" aria-label="Semgrep status">
               <img src="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml/badge.svg" alt="Semgrep status" />
             </a>
           </div>
-          <p class="vt-summary" data-vt-summary></p>
         </div>
       </section>
 
@@ -139,15 +135,12 @@
             <span lang="en">You can compare your own hash against the value above.</span><span lang="tr">Hash bilgisini yukarıdaki değerle karşılaştırabilirsiniz.</span>
           </li>
           <li>
-            <span lang="en">You can check the VirusTotal report and the Semgrep result.</span><span lang="tr">VirusTotal raporunu ve Semgrep sonucunu kontrol edebilirsiniz.</span>
+            <span lang="en">You can check the Semgrep result.</span><span lang="tr">Semgrep sonucunu kontrol edebilirsiniz.</span>
           </li>
         </ul>
         <div class="actions">
           <a class="btn btn-primary" href="https://github.com/cobanov/instagram/blob/main/src/instagram-unfollower.js" rel="noreferrer">
             <span lang="en">Review the source</span><span lang="tr">Kaynağı incele</span>
-          </a>
-          <a class="btn" href="https://www.virustotal.com/gui/home/upload" rel="noreferrer" data-vt-link>
-            <span lang="en">VirusTotal report</span><span lang="tr">VirusTotal raporu</span>
           </a>
           <a class="btn" href="https://github.com/cobanov/instagram/actions/workflows/semgrep.yml" rel="noreferrer">Semgrep</a>
         </div>
@@ -191,67 +184,20 @@
 
     <script>
       const languageToggle = document.querySelector("[data-language-toggle]");
-      const vtSummary = document.querySelector("[data-vt-summary]");
-      let vtResult = null;
-      let scriptHash = "";
 
       /* Page copy lives in the markup in both languages; CSS hides one of them.
          Only the strings JS writes itself need a table. */
       const T = {
-        pageTitle: { en: "Security", tr: "Güvenlik" },
-        vtLoading: { en: "Loading the VirusTotal result...", tr: "VirusTotal sonucu yükleniyor..." },
-        vtClean: {
-          en: "VirusTotal: {malicious} malicious / {suspicious} suspicious.",
-          tr: "VirusTotal: {malicious} malicious / {suspicious} suspicious."
-        },
-        vtFlagged: {
-          en: "VirusTotal warning: {malicious} malicious / {suspicious} suspicious.",
-          tr: "VirusTotal uyarısı: {malicious} malicious / {suspicious} suspicious."
-        },
-        vtUnavailable: {
-          en: "The live VirusTotal summary could not be loaded right now.",
-          tr: "VirusTotal canlı özeti şu anda yüklenemedi."
-        },
-        vtUnscanned: {
-          en: "This build has not been submitted to VirusTotal yet. You can verify it yourself with the hash above.",
-          tr: "Bu sürüm henüz VirusTotal'a gönderilmemiş. Yukarıdaki hash ile kendin doğrulayabilirsin."
-        }
+        pageTitle: { en: "Security", tr: "Güvenlik" }
       };
 
       function lang() {
         return document.documentElement.getAttribute("data-lang") === "tr" ? "tr" : "en";
       }
 
-      function format(template, values) {
-        return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? "");
-      }
-
       function refreshLanguage() {
         languageToggle.textContent = lang() === "tr" ? "EN" : "TR";
         document.title = `${T.pageTitle[lang()]} | Cobanov Instagram Unfollowers`;
-        renderVirusTotalSummary();
-      }
-
-      function renderVirusTotalSummary() {
-        if (!vtSummary) return;
-        const L = lang();
-        if (!vtResult) {
-          vtSummary.textContent = T.vtLoading[L];
-          return;
-        }
-        if (!vtResult.ok) {
-          vtSummary.textContent = vtResult.error === "unscanned" ? T.vtUnscanned[L] : T.vtUnavailable[L];
-          return;
-        }
-        const stats = vtResult.stats || {};
-        const values = {
-          malicious: stats.malicious || 0,
-          suspicious: stats.suspicious || 0
-        };
-        vtSummary.textContent = format(
-          values.malicious || values.suspicious ? T.vtFlagged[L] : T.vtClean[L],
-          values
-        );
       }
 
       async function sha256Hex(text) {
@@ -264,37 +210,18 @@
 
       /* Hash the file the site actually serves rather than trusting a checked-in
          constant, so this page cannot vouch for bytes nobody is downloading. */
-      function applyScriptHash(hash, authoritative) {
-        if (!hash || (scriptHash && !authoritative)) return;
-        scriptHash = hash;
-        document.querySelectorAll("[data-script-hash]").forEach((node) => {
-          node.textContent = hash.toUpperCase();
-        });
-        document.querySelectorAll("[data-vt-link]").forEach((node) => {
-          node.href = `https://www.virustotal.com/gui/file/${hash}/detection`;
-        });
-      }
-
       async function loadScriptHash() {
         try {
           const response = await fetch("dist/instagram-unfollower.one-line.js", { cache: "no-store" });
           if (!response.ok) return;
-          applyScriptHash(await sha256Hex(await response.text()), true);
+          const hash = await sha256Hex(await response.text());
+          if (!hash) return;
+          document.querySelectorAll("[data-script-hash]").forEach((node) => {
+            node.textContent = hash.toUpperCase();
+          });
         } catch {
-          /* fall back to the hash reported by the API */
+          /* The hash stays as an ellipsis; the file can still be hashed locally. */
         }
-      }
-
-      async function loadVirusTotalSummary() {
-        if (!vtSummary) return;
-        try {
-          const response = await fetch("/api/virustotal", { cache: "no-store" });
-          vtResult = response.ok ? await response.json() : { ok: false };
-        } catch {
-          vtResult = { ok: false };
-        }
-        applyScriptHash(vtResult && vtResult.hash, false);
-        renderVirusTotalSummary();
       }
 
       languageToggle.addEventListener("click", () => {
@@ -312,7 +239,6 @@
 
       refreshLanguage();
       loadScriptHash();
-      loadVirusTotalSummary();
     </script>
   </body>
 </html>

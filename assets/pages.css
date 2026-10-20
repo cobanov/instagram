@@ -125,12 +125,6 @@
   height: 20px;
 }
 
-.page-doc .vt-summary {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--step--1);
-}
-
 .page-doc .actions {
   display: flex;
   flex-wrap: wrap;

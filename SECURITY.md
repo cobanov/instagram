@@ -7,11 +7,6 @@ There is no Cobanov backend that receives Instagram account data.
 
 - Review `src/instagram-unfollower.js`.
 - Compare the generated snippet hash with the hash shown on `security.html`.
-- Review the VirusTotal report. `security.html` links to the report for the exact
-  file it serves; the link is built from the hash of those bytes, not from a
-  constant checked into this repository.
-- The live VirusTotal summary is loaded through `/api/virustotal` using a
-  Cloudflare environment secret. The API key is not exposed to the browser.
 - Review the Semgrep workflow:
   <https://github.com/cobanov/instagram/actions/workflows/semgrep.yml>
 
