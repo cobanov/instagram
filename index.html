@@ -65,7 +65,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/site.css?v=2026-10-19b" />
-    <link rel="stylesheet" href="assets/home.css?v=2026-10-20" />
+    <link rel="stylesheet" href="assets/home.css?v=2026-10-21" />
 
     <script
       async
@@ -195,7 +195,9 @@
 
       <!-- Ad slots. Once sold, replace a slot's contents with the creative:
            <a class="spot spot--wide" href="ADVERTISER_URL" rel="sponsored noopener"><img src="assets/spots/top.png" alt="..."></a>
-           The wide slot needs a 728x90 and a 320x100 image (picture/source for the phone); a rail needs 160x600. -->
+           The wide slot needs a 728x90 and a 320x100 image (picture/source for the phone). A rail needs a 160x600
+           for the side margin and a 300x250 for the page flow:
+           <picture><source media="(min-width: 1280px) and (min-height: 640px)" srcset="assets/spots/left-160x600.png"><img src="assets/spots/left-300x250.png" alt="..."></picture> -->
       <section class="spot-band" aria-label="Reklam">
         <div class="shell">
           <a class="spot spot--wide" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20%C3%BCst%20alan" data-oa-event="ad-top">
@@ -238,24 +240,13 @@
         </div>
       </section>
 
-      <!-- Side rails: fixed in the margins beside the column on screens that can hold them,
-           a pair in the page flow everywhere else, so every visitor sees them. -->
-      <section class="spot-pair">
+      <!-- Side rails: a 160x600 poster fixed in the margin on screens wide and tall enough,
+           a 300x250 rectangle in the page flow everywhere else. Each sits after its own section,
+           so on a phone the two never share a screen. -->
+      <section class="spot-slot">
         <aside class="spot-rail spot-rail--left" aria-label="Reklam">
           <a class="spot spot--rail" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20sol%20dikey%20alan" data-oa-event="ad-left">
-            <span class="spot-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="spot-kicker-size">160×600</span></span>
-            <span class="spot-title"><span lang="en">Put your brand here</span><span lang="tr">Markanı burada göster</span></span>
-            <span class="spot-pitch"><span lang="en">Reach the people who use this Instagram tool.</span><span lang="tr">Bu Instagram aracını kullananlara ulaş.</span></span>
-            <span class="spot-figures">
-              <span><strong>38K</strong><span lang="en">unique visitors a month</span><span lang="tr">aylık tekil ziyaretçi</span></span>
-              <span><strong>50K</strong><span lang="en">page views a month</span><span lang="tr">aylık sayfa görüntüleme</span></span>
-            </span>
-            <span class="btn btn-primary spot-cta"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></span>
-          </a>
-        </aside>
-        <aside class="spot-rail spot-rail--right" aria-label="Reklam">
-          <a class="spot spot--rail" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20sa%C4%9F%20dikey%20alan" data-oa-event="ad-right">
-            <span class="spot-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="spot-kicker-size">160×600</span></span>
+            <span class="spot-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="spot-kicker-size"><span class="spot-size-rect"> · 300×250</span><span class="spot-size-poster">160×600</span></span></span>
             <span class="spot-title"><span lang="en">Put your brand here</span><span lang="tr">Markanı burada göster</span></span>
             <span class="spot-pitch"><span lang="en">Reach the people who use this Instagram tool.</span><span lang="tr">Bu Instagram aracını kullananlara ulaş.</span></span>
             <span class="spot-figures">
@@ -296,6 +287,21 @@
             <p class="wall-empty" data-sponsors-empty hidden></p>
           </div>
         </div>
+      </section>
+
+      <section class="spot-slot">
+        <aside class="spot-rail spot-rail--right" aria-label="Reklam">
+          <a class="spot spot--rail" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20sa%C4%9F%20dikey%20alan" data-oa-event="ad-right">
+            <span class="spot-kicker"><span lang="en">Ad space</span><span lang="tr">Reklam alanı</span><span class="spot-kicker-size"><span class="spot-size-rect"> · 300×250</span><span class="spot-size-poster">160×600</span></span></span>
+            <span class="spot-title"><span lang="en">Put your brand here</span><span lang="tr">Markanı burada göster</span></span>
+            <span class="spot-pitch"><span lang="en">Reach the people who use this Instagram tool.</span><span lang="tr">Bu Instagram aracını kullananlara ulaş.</span></span>
+            <span class="spot-figures">
+              <span><strong>38K</strong><span lang="en">unique visitors a month</span><span lang="tr">aylık tekil ziyaretçi</span></span>
+              <span><strong>50K</strong><span lang="en">page views a month</span><span lang="tr">aylık sayfa görüntüleme</span></span>
+            </span>
+            <span class="btn btn-primary spot-cta"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></span>
+          </a>
+        </aside>
       </section>
 
       <section id="usage">
