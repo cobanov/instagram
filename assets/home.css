@@ -306,13 +306,27 @@ main section.spot-band {
   content: "Ad";
 }
 
-/* The rails need 160px plus breathing room on each side of the 1240px
-   column, and enough height to clear the header. */
-.spot-rail {
-  display: none;
+/* The rails: a centred pair in the page flow by default. From laptop width
+   up they move into the margins, and the column narrows (down to 832px at
+   1280px) so each margin holds 160px plus room on both sides. */
+main section.spot-pair {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  padding-block: 28px;
 }
 
-@media (min-width: 1680px) and (min-height: 780px) {
+@media (min-width: 1280px) and (min-height: 640px) {
+  :root {
+    --measure: min(1240px, 100vw - 448px);
+  }
+
+  /* The section's box goes away; the rails inside it are fixed. */
+  main section.spot-pair {
+    display: contents;
+  }
+
   .spot-rail {
     position: fixed;
     top: 50%;
