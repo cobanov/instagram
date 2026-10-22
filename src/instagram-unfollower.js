@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.4.1";
+  const VERSION = "2.4.2";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -48,6 +48,9 @@
   const PANEL_MARGIN = 18;
   const MAX_RETRIES = 3;
   const MAX_EMPTY_PAGES = 10;
+  /* An HTML document on HTTP 200 is usually a blip, a challenge, or a short
+     limit, not a finished list. Try a few times before pausing the scan. */
+  const HTML_REPLY_RETRIES = 3;
   /* How long Resume sends nothing after Instagram told the scan to back off,
      by error kind; asking again sooner only gets refused and can escalate. */
   const COOLDOWN_MS = { gap: 3 * 60 * 60 * 1000, blocked: 3 * 60 * 60 * 1000, rate: 60 * 60 * 1000 };
@@ -136,6 +139,8 @@
       requestFailed: "Request failed: {status}",
       tooManyRequests: "Instagram is limiting requests for this account. You were not signed out, and signing out and back in does not lift it; only waiting does.",
       sessionExpired: "Instagram signed you out. Sign in again, paste the script again and press Resume. The scan continues where it stopped.",
+      htmlInterrupted: "Instagram sent a page instead of your list. It was tried again a few times and still failed. Nothing is broken: your session may have ended, or Instagram may be limiting requests for a short while. Refresh the instagram.com tab, make sure you are signed in, paste the code again and press Resume scan. If it happens again, wait about 30 minutes.",
+      detailLabel: "Detail",
       scanBlocked: "Instagram temporarily refused list requests for this account.",
       networkError: "The connection dropped. Check the network and press Resume.",
       keepTabVisible: "Keep this tab in front. Chrome slows background tabs down to one step per minute.",
@@ -240,6 +245,8 @@
       requestFailed: "İstek başarısız: {status}",
       tooManyRequests: "Instagram bu hesabın isteklerini sınırlıyor. Oturumun kapanmadı; çıkış yapıp tekrar girmek bunu kaldırmaz, yalnızca beklemek işe yarar.",
       sessionExpired: "Instagram oturumunu kapattı. Tekrar giriş yap, kodu yeniden yapıştır ve Devam et'e bas. Tarama kaldığı yerden sürer.",
+      htmlInterrupted: "Instagram liste yerine bir sayfa gönderdi. Birkaç kez yeniden denendi, yine olmadı. Araç bozulmadı: oturumun düşmüş ya da istekler kısa süre sınırlanmış olabilir. instagram.com sekmesini yenile, giriş yaptığını kontrol et, kodu yeniden yapıştır ve Taramaya devam et'e bas. Aynı şey tekrar olursa yaklaşık 30 dakika bekle.",
+      detailLabel: "Detay",
       scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti.",
       networkError: "Bağlantı koptu. Ağı kontrol et ve Devam et'e bas.",
       keepTabVisible: "Bu sekmeyi önde tut. Chrome arka plandaki sekmeleri dakikada bir adıma yavaşlatır.",
@@ -380,7 +387,10 @@
       if (!Array.isArray(parsed.following) || !Array.isArray(parsed.followerIds)) return null;
       if (Date.now() - Number(parsed.savedAt || 0) > CHECKPOINT_TTL) return null;
       if (parsed.followingDone && parsed.followersDone) return null;
-      if (!parsed.following.length && !parsed.followerIds.length) return null;
+      /* Stopping before the first page saves no rows. Keep that checkpoint
+         when it says why it stopped, so pasting the script again still offers
+         Resume instead of a scan that looks finished at zero followers. */
+      if (!parsed.following.length && !parsed.followerIds.length && !String(parsed.stopReason || "").trim()) return null;
       return { ...createCheckpoint(parsed.viewerId), ...parsed };
     } catch {
       return null;
@@ -709,7 +719,7 @@
           <div class="iu-welcome-icon iu-welcome-icon--error">${SVG.alert}</div>
           <h2>${escapeHTML(t("scanFailed"))}</h2>
           <p>${escapeHTML(state.error)}</p>
-          ${state.errorDetail ? `<p class="iu-detail">${escapeHTML(state.errorDetail)}</p>` : ""}
+          ${state.errorDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(state.errorDetail)}</p>` : ""}
           ${checkpoint ? resumeActions : `
           <button type="button" class="iu-btn iu-btn--primary" data-action="scan">${escapeHTML(t("retry"))}</button>`}
         </div>
@@ -722,7 +732,7 @@
           <h2>${escapeHTML(t("welcomeTitle"))}</h2>
           <p>${escapeHTML(t("resumeHint"))}</p>
           ${checkpoint.stopReason ? `<p>${escapeHTML(checkpoint.stopReason)}</p>` : ""}
-          ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
+          ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
           ${resumeActions}
         </div>
       `;
@@ -846,7 +856,7 @@
         <strong>${escapeHTML(t("partialTitle"))}</strong>
         <p>${escapeHTML(t("partialBody", { loaded: formatCount(checkpoint.following.length) }))}</p>
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
-        ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
+        ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
         <div class="iu-notice-actions">
           <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
           <button type="button" class="iu-btn iu-btn--ghost iu-btn--small" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
@@ -1221,12 +1231,19 @@
         checkpoint.retryAfter = retryAfter;
         saveCheckpoint(checkpoint);
       }
+      /* Rows already checked can be shown. An HTML page is not a list, so a
+         follower count of 0 from that page stays an error and never a result. */
       if (checkpoint?.followersDone && checkpoint.following.length) {
         showResults(checkpoint, false);
         return;
       }
       state.error = message;
       state.mode = "idle";
+      if (error?.kind === "html") {
+        state.users = [];
+        state.followersCount = 0;
+        state.followingCount = 0;
+      }
       renderBody();
     }
   }
@@ -1238,9 +1255,15 @@
   /* One line a user can screenshot: which list stopped, how far it got and
      what Instagram sent. */
   function scanErrorDetail(error, checkpoint) {
-    const list = checkpoint && (checkpoint.followersDone
-      ? `following ${checkpoint.following.length}`
-      : `followers ${checkpoint.followerIds.length}`);
+    let list = "";
+    if (checkpoint) {
+      const onFollowers = !checkpoint.followersDone;
+      const count = onFollowers ? checkpoint.followerIds.length : checkpoint.following.length;
+      const name = onFollowers ? "followers" : "following";
+      /* "followers 0" is how far the scan got, but on an HTML reply it reads
+         as a result. Leave the count off until at least one account was saved. */
+      if (!(error?.kind === "html" && count === 0)) list = `${name} ${count}`;
+    }
     return [VERSION, list, error?.status ? `HTTP ${error.status}` : "", error?.detail || ""].filter(Boolean).join(" · ");
   }
 
@@ -1428,13 +1451,63 @@
     return error;
   }
 
+  /* Path of the final URL after redirects. Staying on /api/ means Instagram
+     did not send the browser to login or a challenge; those paths mean it did. */
+  function responsePath(url) {
+    const raw = String(url || "").trim();
+    if (!raw) return "";
+    const withoutOrigin = raw.replace(/^https?:\/\/[^/?#]+/i, "");
+    const path = withoutOrigin.split(/[?#]/)[0];
+    return path.startsWith("/") ? path : "";
+  }
+
+  /* HTTP 200 with an HTML body is not a follower list. The final URL and a
+     few markers on the page separate a real sign-out, a challenge, a "please
+     wait" limit, and the logged-in site shell Instagram serves when it is
+     only limiting the request. That shell is the reported "HTML reply": the
+     session is still there, the list is not. A logged-in shell can mention
+     the word login inside its scripts, so the API URL plus the logged-in
+     class wins over those words. */
+  function classifyHtmlReply(response, body) {
+    const path = responsePath(response?.url);
+    const sample = String(body || "").slice(0, 24000);
+    const onApi = path.startsWith("/api/");
+    const loggedInShell = /\blogged-in\b/i.test(sample) && !/not-logged-in/i.test(sample);
+    const temporaryShell = onApi && loggedInShell;
+    const loginPath = /^\/accounts\/login(?:\/|$)/i.test(path);
+    const challengePath = /^\/(?:challenge|checkpoint)(?:\/|$)/i.test(path);
+    const loginMarkers = /not-logged-in/i.test(sample)
+      || /id=["']loginForm["']/i.test(sample)
+      || /<title>[^<]{0,40}login[^<]{0,40}instagram/i.test(sample);
+    const challengeMarkers = /checkpoint_required|challenge_required/i.test(sample)
+      || /help us confirm it.?s you/i.test(sample)
+      || /suspicious login/i.test(sample);
+    const rateText = /please wait a few minutes|try again later/i.test(sample);
+
+    let label = "HTML page";
+    if (loginPath || (loginMarkers && !temporaryShell)) label = "HTML login";
+    else if (challengePath || (challengeMarkers && !temporaryShell)) label = "HTML challenge";
+    else if (rateText) label = "HTML rate";
+
+    const where = path && path !== "/" ? path.slice(0, 90) : "";
+    return [label, where].filter(Boolean).join(" ");
+  }
+
+  function htmlReplyError(response, body) {
+    return scanError("html", t("htmlInterrupted"), response.status, classifyHtmlReply(response, body));
+  }
+
   /* Every way Instagram ends a scan is turned into a message that says what to
      do next, because the checkpoint makes "paste again and resume" the answer
-     to all of them. A 401 or an HTML login page is a dead session; a 400/403
-     carrying feedback_required or a challenge is a block, even with HTTP 200.
-     Only network and server failures are retried; rate limits stop immediately. */
+     to all of them. A 401 is a dead session. A 400/403 carrying
+     feedback_required or a challenge is a block, even with HTTP 200. An HTTP
+     200 whose body is HTML is retried a few times, then the scan pauses on
+     the checkpoint. JSON rate limits stop immediately. The raw HTML is not
+     scanned for those JSON phrases, or a logged-in shell that mentions login
+     would look signed out. */
   async function igFetch(url, init = {}) {
     let attempt = 0;
+    let htmlReplies = 0;
     while (true) {
       if (destroyed || state.scanCancelled) throw scanError("cancelled", "Scan cancelled");
       let response;
@@ -1460,7 +1533,7 @@
       const body = await response.text();
       let json;
       try { json = JSON.parse(body); } catch { /* classified below */ }
-      const message = json ? String(json.message || json.error_type || "") : body;
+      const message = json ? String(json.message || json.error_type || "") : "";
       const said = json ? message.slice(0, 120) : "";
       /* Instagram's rate limit often comes as a 401 with require_login and
          "Please wait a few minutes"; signing in again does not lift it, so the
@@ -1487,8 +1560,11 @@
       }
       if (response.ok) {
         if (!json || typeof json !== "object") {
-          const landed = String(response.url || "").replace(/^https?:\/\/[^/]+|\?.*$/g, "");
-          throw scanError("session", t("sessionExpired"), response.status, `HTML reply ${landed}`.trim());
+          const htmlError = htmlReplyError(response, body);
+          if (htmlReplies >= HTML_REPLY_RETRIES) throw htmlError;
+          await sleepWithCountdown(Math.min(15000, 2000 * Math.pow(2, htmlReplies)), "cooldownIn");
+          htmlReplies += 1;
+          continue;
         }
         if (json.status && json.status !== "ok") throw scanError("http", t("scanFailed"), response.status, message.slice(0, 120));
         return json;
@@ -2687,6 +2763,7 @@
       fetchFriendshipList,
       friendshipListUrl,
       igFetch,
+      classifyHtmlReply,
       createCheckpoint,
       loadCheckpoint,
       loadTimings,

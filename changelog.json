@@ -1,5 +1,17 @@
 [
   {
+    "version": "2.4.2",
+    "date": "2026-10-22",
+    "tr": [
+      "Instagram bazen liste yerine giriş sayfası, doğrulama sayfası ya da açık oturumun ana sayfasını 200 koduyla gönderiyor. Panel bunu \"Instagram oturumunu kapattı\" ve \"followers 0\" diye gösteriyordu; araç bozuk sanılıyordu. Bu bir sonuç değil, hata. Sayfanın adresine bakılıyor: giriş adresi oturumun düştüğünü, doğrulama adresi checkpoint'i, \"birkaç dakika bekle\" yazısı sınırı, API adresinde kalan giriş yapılmış sayfa ise geçici bir kesintiyi anlatıyor.",
+      "Böyle bir cevapta istek kısa aralıklarla birkaç kez yeniden deneniyor. Yine sayfa gelirse tarama ilerlemesini silmeden duruyor. instagram.com sekmesini yenile, giriş yaptığını kontrol et, kodu yeniden yapıştır ve Taramaya devam et'e bas. Aynı şey tekrar olursa yaklaşık 30 dakika bekle. Teknik satır küçük Detay satırında kalıyor ve takipçi sayısı 0 bu durumda sonuç olarak görünmüyor."
+    ],
+    "en": [
+      "Instagram sometimes answers with a login page, a challenge page, or the logged-in home page and HTTP 200 instead of the list. The panel showed that as \"Instagram signed you out\" and \"followers 0\", so it looked like the tool was broken. It is an error, not a result. The final address separates them: a login address is a signed-out session, a challenge address is a checkpoint, a \"please wait\" page is a limit, and the logged-in shell left on the API address is a temporary interruption.",
+      "That reply is tried again a few times with a short wait. If it is still a page, the scan pauses without deleting progress. Refresh the instagram.com tab, make sure you are signed in, paste the code again and press Resume scan. If the same thing happens again, wait about 30 minutes. The technical line stays in the small Detail line, and a follower count of 0 from this reply is never shown as a result."
+    ]
+  },
+  {
     "version": "2.4.1",
     "date": "2026-10-20",
     "tr": [

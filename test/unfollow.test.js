@@ -69,6 +69,7 @@ function mockFetch(responses) {
     return {
       ok: next.status >= 200 && next.status < 300,
       status: next.status,
+      url: next.url || "",
       headers: { get: (name) => (next.headers || {})[String(name).toLowerCase()] ?? null },
       text: async () => body,
       json: async () => next.json ?? JSON.parse(body || "{}")
@@ -252,15 +253,99 @@ test("HTTP 401 on a list request is reported as a dead session", async () => {
   });
 });
 
-test("an HTML login page served with 200 is a dead session, not a crash", async () => {
-  const { impl } = mockFetch([{ status: 200, body: "<!DOCTYPE html><html>login</html>" }]);
-  const { igFetch } = loadInternals(impl);
+const HTML_LOGIN = `<!DOCTYPE html>
+<html lang="en" class="no-js not-logged-in client-root">
+<head><title>Login • Instagram</title></head>
+<body>
+<form id="loginForm" method="post" action="/accounts/login/ajax/"><input name="username"></form>
+<script type="application/json">{"login_required":true}</script>
+</body></html>`;
+
+const HTML_CHALLENGE = `<!DOCTYPE html>
+<html lang="en">
+<head><title>Challenge • Instagram</title></head>
+<body>
+<h1>Help us confirm it's you</h1>
+<p>We detected a suspicious login attempt from a new device.</p>
+<form method="post" action="/challenge/"></form>
+</body></html>`;
+
+const HTML_RATE = `<!DOCTYPE html>
+<html><head><title>Error</title></head>
+<body><p>Please wait a few minutes before you try again.</p></body></html>`;
+
+/* The page users actually get on HTTP 200: the logged-in shell, still on the
+   API URL, with the word login buried in a script. That is a temporary page,
+   not a signed-out session and not a follower count. */
+const HTML_SHELL = `<!DOCTYPE html>
+<html lang="en" class="no-js logged-in client-root">
+<head><meta charset="utf-8"><title>Instagram</title></head>
+<body>
+<div id="splash-screen"></div>
+<script>{"config":{"viewerId":"123"},"loginUrl":"/accounts/login/"}</script>
+</body></html>`;
+
+function htmlPage(body, url) {
+  return {
+    status: 200,
+    body,
+    url,
+    headers: { "content-type": "text/html; charset=utf-8" }
+  };
+}
+
+test("an HTML reply is classified from the final URL and the page, not from the word login", () => {
+  const { classifyHtmlReply } = loadInternals();
+  assert.equal(
+    classifyHtmlReply(
+      { url: "https://www.instagram.com/accounts/login/?next=/api/v1/friendships/123/followers/" },
+      HTML_LOGIN
+    ),
+    "HTML login /accounts/login/"
+  );
+  assert.equal(
+    classifyHtmlReply(
+      { url: "https://www.instagram.com/challenge/?next=/api/v1/friendships/123/followers/" },
+      HTML_CHALLENGE
+    ),
+    "HTML challenge /challenge/"
+  );
+  assert.equal(
+    classifyHtmlReply(
+      { url: "https://www.instagram.com/api/v1/friendships/123/followers/?count=50" },
+      HTML_RATE
+    ),
+    "HTML rate /api/v1/friendships/123/followers/"
+  );
+  assert.equal(
+    classifyHtmlReply(
+      { url: "https://www.instagram.com/api/v1/friendships/123/followers/?count=50" },
+      HTML_SHELL
+    ),
+    "HTML page /api/v1/friendships/123/followers/"
+  );
+});
+
+test("an HTML page on HTTP 200 is retried, then paused as an error instead of a sign-out", async () => {
+  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=50");
+  const timers = [];
+  const { impl, calls } = mockFetch([page, page, page, page]);
+  const { igFetch } = loadInternals(impl, {
+    setTimeout: (fn, ms) => { timers.push(ms); fn(); return 0; }
+  });
 
   await assert.rejects(igFetch("/api/v1/x"), (error) => {
-    assert.equal(error.kind, "session");
-    assert.equal(error.detail, "HTML reply");
+    assert.equal(error.kind, "html");
+    assert.equal(error.status, 200);
+    assert.equal(error.detail, "HTML page /api/v1/friendships/123/followers/");
+    assert.match(error.message, /sent a page instead of your list/);
+    assert.match(error.message, /Resume scan/);
+    assert.match(error.message, /30 minutes/);
+    assert.doesNotMatch(error.message, /signed you out/);
     return true;
   });
+  assert.equal(calls.length, 4);
+  assert.deepEqual(timers, [2000, 4000, 8000]);
 });
 
 test("feedback_required on a list request is a block with a wait-and-resume message", async () => {
@@ -439,6 +524,113 @@ test("a failed scan shows which list stopped, how far, and what Instagram sent",
   assert.equal(api.state.mode, "idle");
   assert.match(api.state.errorDetail, /followers 0 · HTTP 400 · something odd$/);
   assert.match(api.renderIdleView(), /class="iu-detail">[^<]*something odd/);
+});
+
+test("an HTML page at the start is an error, not a result of 0 followers", async () => {
+  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=50");
+  const storage = memoryStorage();
+  const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
+  const { impl, calls } = mockFetch([page, page, page, page]);
+  const api = loadInternals(impl, { document: doc, localStorage: storage });
+  await api.startScan();
+
+  assert.equal(calls.length, 4);
+  assert.equal(api.state.mode, "idle");
+  assert.equal(api.state.users.length, 0);
+  assert.equal(api.state.followersCount, 0);
+  assert.equal(api.state.checkpoint.retryAfter, 0);
+  assert.match(api.state.error, /sent a page instead of your list/);
+  assert.match(api.state.error, /Resume scan/);
+  assert.doesNotMatch(api.state.errorDetail, /followers 0/);
+  assert.match(api.state.errorDetail, /HTTP 200 · HTML page \/api\/v1\/friendships\/123\/followers\//);
+  const idle = api.renderIdleView();
+  assert.match(idle, /Detail: /);
+  assert.match(idle, /data-action="resume-scan"/);
+  assert.doesNotMatch(idle, /Nice — everyone you follow follows you back/);
+  assert.doesNotMatch(idle, /non-followers/);
+
+  const later = loadInternals(mockFetch([]).impl, { document: doc, localStorage: storage });
+  assert.equal(later.state.checkpoint.followerIds.length, 0);
+  assert.match(later.state.checkpoint.stopReason, /sent a page instead of your list/);
+  assert.match(later.renderIdleView(), /Resume scan/);
+  assert.match(later.renderIdleView(), /sent a page instead of your list/);
+  assert.doesNotMatch(later.renderIdleView(), /Nice — everyone you follow follows you back/);
+});
+
+test("the Turkish panel names the HTML page and the Resume button, with the technical line under Detay", async () => {
+  const page = htmlPage(HTML_LOGIN, "https://www.instagram.com/accounts/login/?next=/api/v1/friendships/123/followers/");
+  const { impl } = mockFetch([page, page, page, page]);
+  const api = loadInternals(impl, {
+    document: { ...fakeDocument(), cookie: "ds_user_id=123" },
+    localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+  });
+  await api.startScan();
+
+  assert.equal(api.state.language, "tr");
+  assert.equal(api.state.mode, "idle");
+  assert.match(api.state.error, /instagram\.com sekmesini yenile/);
+  assert.match(api.state.error, /giriş yaptığını kontrol et/);
+  assert.match(api.state.error, /kodu yeniden yapıştır/);
+  assert.match(api.state.error, /Taramaya devam et/);
+  assert.match(api.state.error, /30 dakika/);
+  assert.doesNotMatch(api.state.error, /oturumunu kapattı/);
+  assert.doesNotMatch(api.state.errorDetail, /followers 0/);
+  assert.match(api.state.errorDetail, /HTML login \/accounts\/login\//);
+  assert.match(api.renderIdleView(), /Detay: /);
+  assert.doesNotMatch(api.renderIdleView(), /herkes seni takip ediyor|bulunamadı|0 takipçi/i);
+});
+
+test("HTML replies are retried and a later JSON page still completes the scan", async () => {
+  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=50");
+  const { impl, calls } = mockFetch([
+    page,
+    page,
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "gone" }], has_more: false } }
+  ]);
+  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  await api.startScan();
+
+  assert.equal(calls.length, 4);
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.users.filter((user) => !user.follows_viewer).map((user) => user.username).join(), "gone");
+  assert.equal(api.state.error, "");
+});
+
+test("an HTML reply mid-list pauses on the saved page and Resume continues there", async () => {
+  const page = htmlPage(HTML_CHALLENGE, "https://www.instagram.com/challenge/?next=/api/v1/friendships/123/followers/");
+  const storage = memoryStorage();
+  const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
+  const first = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "kept" }], has_more: true, next_max_id: "page-two" } },
+    page, page, page, page
+  ]);
+  const api = loadInternals(first.impl, { document: doc, localStorage: storage });
+  await api.startScan();
+
+  assert.equal(first.calls.length, 5);
+  assert.equal(api.state.mode, "idle");
+  assert.equal(api.state.users.length, 0);
+  assert.equal(api.state.checkpoint.followerIds.join(","), "1");
+  assert.equal(api.state.checkpoint.followersCursor, "page-two");
+  assert.equal(api.state.checkpoint.followersDone, false);
+  assert.match(api.state.errorDetail, /followers 1 · HTTP 200 · HTML challenge \/challenge\//);
+  assert.doesNotMatch(api.renderIdleView(), /Nice —/);
+
+  const second = mockFetch([
+    { status: 200, json: { users: [{ pk: "2", username: "also" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "9", username: "only-following" }], has_more: false } }
+  ]);
+  const later = loadInternals(second.impl, { document: doc, localStorage: storage });
+  assert.equal(later.state.checkpoint.followerIds.join(","), "1");
+  await later.startScan({ resume: true });
+
+  assert.equal(second.calls.length, 2);
+  assert.match(second.calls[0].url, /followers\/\?count=50&max_id=page-two$/);
+  assert.match(second.calls[1].url, /following\/\?count=50$/);
+  assert.equal(later.state.mode, "results");
+  assert.equal(later.state.users.map((user) => user.username).join(), "only-following");
+  assert.equal(later.getDisplayUsers().map((user) => user.username).join(), "only-following");
 });
 
 test("empty REST lists complete without the removed profile-count request", async () => {
@@ -713,6 +905,12 @@ test("a stored checkpoint is ignored once it is older than a day or already comp
   assert.equal(load(make({})).viewerId, "123");
   assert.equal(load(make({ savedAt: Date.now() - 2 * 24 * 60 * 60 * 1000 })), null);
   assert.equal(load(make({ followersDone: true })), null);
+  assert.equal(load(make({
+    following: [], followerIds: [], followingDone: false, stopReason: ""
+  })), null);
+  assert.equal(load(make({
+    following: [], followerIds: [], followingDone: false, stopReason: "paused before the first page"
+  })).stopReason, "paused before the first page");
   assert.equal(load("not json"), null);
   assert.equal(load(null), null);
 });
