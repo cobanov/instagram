@@ -65,7 +65,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/site.css?v=2026-10-19b" />
-    <link rel="stylesheet" href="assets/home.css?v=2026-10-21" />
+    <link rel="stylesheet" href="assets/home.css?v=2026-10-22" />
 
     <script
       async
@@ -193,11 +193,29 @@
         </div>
       </section>
 
-      <!-- Ad slots. Once sold, replace a slot's contents with the creative:
-           <a class="spot spot--wide" href="ADVERTISER_URL" rel="sponsored noopener"><img src="assets/spots/top.png" alt="..."></a>
-           The wide slot needs a 728x90 and a 320x100 image (picture/source for the phone). A rail needs a 160x600
-           for the side margin and a 300x250 for the page flow:
-           <picture><source media="(min-width: 1280px) and (min-height: 640px)" srcset="assets/spots/left-160x600.png"><img src="assets/spots/left-300x250.png" alt="..."></picture> -->
+      <!-- Ad slots. Once sold, replace the whole link. Keep data-oa-event so the
+           click is counted, keep rel="sponsored noopener", and write the ad's own
+           alt text (the example below is the shape of it, not a placeholder).
+
+           Wide slot: 728x90 at 809px and up, 320x100 at 808px and below. The
+           shell is narrower than 728px until then, and a 728x90 image in that
+           shorter box gets cropped.
+           <a class="spot spot--wide" href="ADVERTISER_URL" rel="sponsored noopener" data-oa-event="ad-top">
+             <picture>
+               <source media="(max-width: 808px)" srcset="assets/spots/top-320x100.png">
+               <img src="assets/spots/top-728x90.png" alt="Northwind Coffee, free shipping on the spring blend">
+             </picture>
+           </a>
+
+           Rail: 160x600 fixed in the margin when the viewport is at least 1280
+           wide and 640 tall, otherwise a 300x250 box in the page. The right
+           rail is the same with data-oa-event="ad-right".
+           <a class="spot spot--rail" href="ADVERTISER_URL" rel="sponsored noopener" data-oa-event="ad-left">
+             <picture>
+               <source media="(min-width: 1280px) and (min-height: 640px)" srcset="assets/spots/left-160x600.png">
+               <img src="assets/spots/left-300x250.png" alt="Northwind Coffee, free shipping on the spring blend">
+             </picture>
+           </a> -->
       <section class="spot-band" aria-label="Reklam">
         <div class="shell">
           <a class="spot spot--wide" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam%3A%20%C3%BCst%20alan" data-oa-event="ad-top">

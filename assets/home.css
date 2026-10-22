@@ -272,14 +272,33 @@ main section.spot-band {
   width: 100%;
 }
 
+/* Sold: the creative fills the slot, with a small label.
+   picture has to stay one box. display:contents would lift the source
+   element into this flex layout, and Chrome then blockifies it into a
+   real flex item, so the slot's gap opens an empty strip before the image
+   (20px on the banner, 18px above a poster, 8px above a 300x250). */
 .spot picture {
-  display: contents;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
-/* Sold: the creative fills the slot, with a small label. */
 .spot:has(img) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  justify-items: stretch;
+  gap: 0;
   padding: 0;
-  border-color: var(--line);
+  /* The 1px border sits inside the stated size (border-box), which makes
+     a 728x90 creative 726x88 and object-fit:cover shaves the edges.
+     Dropping it lets the image be the slot, exactly. */
+  border-width: 0;
   background: var(--surface);
 }
 
@@ -291,6 +310,9 @@ main section.spot-band {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
   object-fit: cover;
 }
 
@@ -366,14 +388,31 @@ main section.spot-slot {
     font-size: 2rem;
   }
 
+  .promo-bar.is-open {
+    anchor-name: --promo-bar;
+  }
+
+  /* 600px tall and vertically centered. top is the rail's top edge, so a
+     short viewport cannot push the bottom past the window. */
   .spot-rail {
     position: fixed;
-    top: 50%;
+    top: clamp(0px, calc(50% - 300px), calc(100% - 600px));
     z-index: 10;
     display: block;
     border-radius: var(--radius-sm);
     background: var(--bg);
-    transform: translateY(-50%);
+  }
+
+  /* On a 657px screen the centered rail starts ~29px down and covers the
+     promo bar, which is full-bleed. Sit flush under the bar when it is
+     open. A 600px poster then ends a few pixels past the window on the
+     shortest screens that still show rails (640px tall); keeping the bar's
+     edge clear matters more than those pixels, and the poster stays 160x600. */
+  body:has(.promo-bar.is-open) .spot-rail {
+    /* 59px is the open bar's height at desktop. anchor() tracks it if the
+       bar wraps; browsers without anchor positioning keep the 59px line. */
+    top: max(59px, calc(50% - 300px));
+    top: max(anchor(--promo-bar bottom), calc(50% - 300px));
   }
 
   .spot-rail--left {
@@ -680,6 +719,28 @@ main section.spot-slot {
   }
 }
 
+/* The shell is 100% - 2 * clamp(20px, 5vw, 64px). That is under 728px at
+   viewport widths of 808px and below (727px at 808, 728px at 809), so the
+   banner cannot stay 728x90 without shrinking, and object-fit:cover would
+   crop the sides. Use the 320x100 phone creative there instead. The picture
+   source in index.html uses the same 808px breakpoint. */
+@media (max-width: 808px) {
+  .spot--wide {
+    width: min(320px, 100%);
+    height: 100px;
+    gap: 12px;
+    padding: 0 14px 0 16px;
+  }
+
+  .spot-stats {
+    display: none;
+  }
+
+  .spot--wide .spot-kicker-size {
+    display: none;
+  }
+}
+
 @media (max-width: 600px) {
   .hero h1 {
     max-width: none;
@@ -701,21 +762,6 @@ main section.spot-slot {
 
   .figures--two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .spot--wide {
-    width: min(320px, 100%);
-    height: 100px;
-    gap: 12px;
-    padding: 0 14px 0 16px;
-  }
-
-  .spot-stats {
-    display: none;
-  }
-
-  .spot--wide .spot-kicker-size {
-    display: none;
   }
 
   .hero-actions .btn {
