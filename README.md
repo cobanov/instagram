@@ -79,6 +79,14 @@ a rate limit, not a sign-out, because signing in again does not lift it. The pan
 time to resume, and until then Resume sends nothing: one hour after a rate limit, three
 hours after a block or a long run of empty pages.
 
+Since 2.4.2, HTTP 200 with an HTML body is not an empty follower list and is not announced
+as a sign-out. The final URL and the page separate a login redirect, a challenge, a
+"please wait" page, and the logged-in shell left on the API URL. That request is retried
+a few times with a short wait. If it is still HTML, the scan pauses on its checkpoint and
+Resume continues from the last saved page. The panel says to refresh instagram.com, confirm
+you are signed in, paste the code again and press Resume, and to wait about 30 minutes if
+it keeps happening. A follower count of 0 from that reply stays an error.
+
 Instagram sometimes sends a run of empty pages in the middle of a list, or ends a list
 while still claiming there is more. Since 2.4.1 the scan steps over up to ten empty pages
 in a row and treats a missing or repeated cursor as the end of the list. In the following
@@ -130,9 +138,10 @@ npm run pack    # builds, then zips chrome-extension/ into .pack/ for a release
 
 The tests cover the part that is genuinely dangerous: what counts as a successful
 unfollow, and which failures must stop the run. An HTTP 200 carrying
-`status: "fail"`, an HTML login page served with 200, a spam flag, a checkpoint, a
-429 and a 401 are each asserted to be handled as themselves rather than as generic
-retryable errors. The scan tests cover the current friendship-list endpoints,
+`status: "fail"`, an HTML login page, challenge page, rate-limit page, or logged-in
+shell served with 200, a spam flag, a checkpoint, a 429 and a 401 are each asserted
+to be handled as themselves rather than as a completed list. HTML replies are retried,
+then paused without turning a follower count of 0 into a result. The scan tests cover the current friendship-list endpoints,
 pagination, repeated-cursor protection, and the local following/follower comparison.
 They also verify cancellation, duplicate-start prevention, immediate rate-limit
 stops, HTTP 200 errors, silently truncated lists, and disabled partial results.
