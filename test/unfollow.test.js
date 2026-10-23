@@ -1243,3 +1243,55 @@ test("no language leaves a string empty", () => {
     }
   }
 });
+
+test("the unfollow estimate counts the delays and cooldowns still ahead, not the pace so far", () => {
+  const api = loadInternals();
+  const timings = { unfollowDelayMin: 4000, unfollowDelayMax: 4800, unfollowPauseEvery: 5, unfollowPauseMs: 300000 };
+  /* 10 users from the start: 10 requests, 9 delays, and one cooldown after the 5th. */
+  assert.equal(api.estimateUnfollowLeftMs({ done: 0, total: 10, timings, requestMs: 1000 }), 10 * 1000 + 9 * 4400 + 300000);
+  /* After the 5th, 2 s into its delay: what is left of it, its cooldown, then 5 more. */
+  assert.equal(
+    api.estimateUnfollowLeftMs({ done: 5, total: 10, timings, requestMs: 1000, waitLeftMs: 2000, waitReason: "nextActionIn" }),
+    2000 + 300000 + 5 * 1000 + 4 * 4400
+  );
+  /* In the cooldown itself: only its remainder, then the rest. */
+  assert.equal(
+    api.estimateUnfollowLeftMs({ done: 5, total: 10, timings, requestMs: 1000, waitLeftMs: 60000, waitReason: "cooldownIn" }),
+    60000 + 5 * 1000 + 4 * 4400
+  );
+  /* No cooldown after the last user, and nothing left once all are done. */
+  assert.equal(api.estimateUnfollowLeftMs({ done: 4, total: 5, timings, requestMs: 1000 }), 1000);
+  assert.equal(api.estimateUnfollowLeftMs({ done: 5, total: 5, timings, requestMs: 1000 }), 0);
+  assert.equal(api.estimateUnfollowLeftMs({ done: 0, total: 3, timings: { ...timings, unfollowPauseEvery: 0 }, requestMs: 0 }), 2 * 4400);
+});
+
+test("durations read as seconds, minutes, or hours and minutes, in both languages", () => {
+  const api = loadInternals();
+  api.state.language = "en";
+  assert.equal(api.formatDuration(45000), "45 s");
+  assert.equal(api.formatDuration(12 * 60000), "12 min");
+  assert.equal(api.formatDuration(65 * 60000), "1 h 05 min");
+  api.state.language = "tr";
+  assert.equal(api.formatDuration(45000), "45 sn");
+  assert.equal(api.formatDuration(65 * 60000), "1 sa 05 dk");
+});
+
+test("the unfollow view says how long has passed and roughly how long is left, and how long it took once done", () => {
+  const api = loadInternals();
+  api.state.language = "en";
+  api.state.timings = { ...api.state.timings, unfollowDelayMin: 4000, unfollowDelayMax: 4800, unfollowPauseEvery: 5, unfollowPauseMs: 300000 };
+  const now = 1_000_000_000;
+  api.state.mode = "unfollowing";
+  api.state.unfollowStartedAt = now - 3 * 60000;
+  api.state.unfollowRequestMs = 2 * 1000;
+  api.state.progress = { current: 2, total: 6, label: "unfollowing", note: "" };
+  api.state.waitUntil = 0;
+  api.state.waitReason = "";
+  /* 4 left: 4 requests, 3 delays and the cooldown after the 5th, 317 s: about 5 min. */
+  assert.equal(api.unfollowTimeText(now), "3 min elapsed · about 5 min left · about 8 min in all");
+  api.state.mode = "unfollowDone";
+  api.state.unfollowEndedAt = now + 6 * 60000;
+  assert.equal(api.unfollowTimeText(now), "Took 9 min");
+  api.state.unfollowStartedAt = 0;
+  assert.equal(api.unfollowTimeText(now), "");
+});
