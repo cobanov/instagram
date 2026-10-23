@@ -108,6 +108,10 @@ each of those is treated as a stop rather than as something to retry. An HTTP 40
 means the session died and also stops the run. Pushing through any of them is how
 accounts get restricted.
 
+Since 2.4.3 the unfollow screen shows the time elapsed and about how long is left. The
+estimate comes from the timings, not the pace so far: one request for each user left, the
+delay between them, and the cooldowns still ahead.
+
 ## How to verify it before pasting
 
 Pasting a stranger's JavaScript into a logged-in Instagram tab is a real thing to be

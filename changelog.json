@@ -1,5 +1,15 @@
 [
   {
+    "version": "2.4.3",
+    "date": "2026-10-24",
+    "tr": [
+      "Takip bırakma ekranı geçen süreyi, yaklaşık kalan süreyi ve yaklaşık toplam süreyi gösteriyor; iş ilerledikçe saniyede iki kez güncelleniyor. Kalan süre o ana kadarki hızdan değil ayarlardan hesaplanıyor: kalan kişi başına bir istek, aradaki bekleme ve denk gelen molalar. Her birkaç kişide bir gelen beş dakikalık mola yüzünden hıza bakmak tahmini dakikalarca oynatırdı. İş bitince ne kadar sürdüğü yazıyor."
+    ],
+    "en": [
+      "The unfollow screen shows the time elapsed, about how long is left and about how long it takes in all, updated twice a second. What is left comes from the timings, not the pace so far: one request for each user left, the delay between them and any cooldowns that fall in between. The five-minute cooldown every few users would make a pace-based estimate swing by minutes. Once done, it says how long it took."
+    ]
+  },
+  {
     "version": "2.4.2",
     "date": "2026-10-22",
     "tr": [
