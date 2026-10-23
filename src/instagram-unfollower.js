@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.4.2";
+  const VERSION = "2.4.3";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -113,6 +113,11 @@
       unfollowConfirmBtn: "Yes, unfollow {count}",
       unfollowing: "Unfollowing",
       currently: "Currently",
+      unfollowTime: "{elapsed} elapsed · about {left} left · about {total} in all",
+      unfollowTimeDone: "Took {elapsed}",
+      durationHours: "{hours} h {minutes} min",
+      durationMinutes: "{minutes} min",
+      durationSeconds: "{seconds} s",
       nextActionIn: "Next action in {seconds}s",
       cooldownIn: "Cooldown — {seconds}s",
       scanPause: "Long pause — {seconds}s",
@@ -219,6 +224,11 @@
       unfollowConfirmBtn: "Evet, {count} kişiyi bırak",
       unfollowing: "Takip bırakılıyor",
       currently: "Şu an",
+      unfollowTime: "{elapsed} geçti · yaklaşık {left} kaldı · toplam yaklaşık {total}",
+      unfollowTimeDone: "{elapsed} sürdü",
+      durationHours: "{hours} sa {minutes} dk",
+      durationMinutes: "{minutes} dk",
+      durationSeconds: "{seconds} sn",
       nextActionIn: "Sonraki işlem {seconds} sn sonra",
       cooldownIn: "Mola — {seconds} sn",
       scanPause: "Uzun mola — {seconds} sn",
@@ -288,6 +298,9 @@
     scanCancelled: false,
     unfollowPaused: false,
     unfollowBlocked: 0,
+    unfollowStartedAt: 0,
+    unfollowEndedAt: 0,
+    unfollowRequestMs: 0,
     progress: { current: 0, total: 0, label: "scanning", note: "" },
     waitUntil: 0,
     waitReason: "",
@@ -1100,6 +1113,7 @@
           <span data-progress-counter>${escapeHTML(summary)}</span>
           <span data-countdown class="iu-muted"></span>
         </div>
+        <p class="iu-muted" data-unfollow-time>${escapeHTML(unfollowTimeText())}</p>
         <div class="iu-current" data-current ${last ? "" : "hidden"}>
           <span class="iu-muted">${escapeHTML(t("currently"))}</span>
           <strong data-current-user>${last ? "@" + escapeHTML(last.user.username) : ""}</strong>
@@ -1122,6 +1136,62 @@
   function unfollowTitle() {
     if (state.mode === "unfollowDone") return t("unfollowDoneTitle");
     return state.unfollowPaused ? t("paused") : t("unfollowing");
+  }
+
+  /* How long the rest of the run takes, from the timings rather than the pace so
+     far: a cooldown every few unfollows makes the pace swing by minutes. The wait
+     in progress, then for each user left one request (as long as the average so
+     far) and, unless it is the last, the delay between actions and any cooldown
+     that falls after it. */
+  function estimateUnfollowLeftMs({ done, total, timings, requestMs, waitLeftMs = 0, waitReason = "" }) {
+    if (done >= total) return 0;
+    const every = timings.unfollowPauseEvery;
+    const delay = (timings.unfollowDelayMin + timings.unfollowDelayMax) / 2;
+    let ms = Math.max(0, waitLeftMs);
+    if (waitReason === "nextActionIn" && every > 0 && done > 0 && done % every === 0) ms += timings.unfollowPauseMs;
+    for (let i = done; i < total; i += 1) {
+      ms += requestMs;
+      if (i < total - 1) {
+        ms += delay;
+        if (every > 0 && (i + 1) % every === 0) ms += timings.unfollowPauseMs;
+      }
+    }
+    return ms;
+  }
+
+  function formatDuration(ms) {
+    const seconds = Math.max(0, Math.round(ms / 1000));
+    if (seconds < 60) return t("durationSeconds", { seconds });
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return t("durationMinutes", { minutes });
+    return t("durationHours", { hours: Math.floor(minutes / 60), minutes: String(minutes % 60).padStart(2, "0") });
+  }
+
+  /* "3 min elapsed · about 41 min left · about 44 min in all", or "Took 44 min". */
+  function unfollowTimeText(now = Date.now()) {
+    if (!state.unfollowStartedAt) return "";
+    const end = state.mode === "unfollowDone" ? state.unfollowEndedAt || now : now;
+    const elapsed = end - state.unfollowStartedAt;
+    if (state.mode === "unfollowDone") return t("unfollowTimeDone", { elapsed: formatDuration(elapsed) });
+    const done = state.progress.current;
+    const left = estimateUnfollowLeftMs({
+      done,
+      total: state.progress.total,
+      timings: state.timings,
+      requestMs: done ? state.unfollowRequestMs / done : 1500,
+      waitLeftMs: state.waitUntil ? state.waitUntil - now : 0,
+      waitReason: state.waitReason
+    });
+    return t("unfollowTime", {
+      elapsed: formatDuration(elapsed),
+      left: formatDuration(left),
+      total: formatDuration(elapsed + left)
+    });
+  }
+
+  function updateUnfollowTimeDOM() {
+    const node = document.querySelector(`#${APP_ID} [data-unfollow-time]`);
+    if (node) node.textContent = unfollowTimeText();
   }
 
   function unfollowSummary() {
@@ -1661,6 +1731,9 @@
     state.unfollowPaused = false;
     state.unfollowCancelled = false;
     state.unfollowBlocked = 0;
+    state.unfollowStartedAt = Date.now();
+    state.unfollowEndedAt = 0;
+    state.unfollowRequestMs = 0;
     state.log = [];
     state.progress = { current: 0, total: targets.length, label: "unfollowing", note: "" };
     renderBody();
@@ -1672,6 +1745,7 @@
 
       const user = targets[i];
       let outcome = { ok: false, blocked: false, reason: "" };
+      const requestStarted = Date.now();
       try {
         outcome = await unfollowUser(user, csrf);
       } catch (error) {
@@ -1679,6 +1753,7 @@
         outcome = { ok: false, blocked: false, reason: error?.message || "" };
       }
       if (destroyed) return;
+      state.unfollowRequestMs += Date.now() - requestStarted;
       state.log.push({ user, ok: outcome.ok, reason: outcome.reason });
       if (outcome.ok) {
         state.selected.delete(user.id);
@@ -1720,6 +1795,7 @@
       if (last) saveLastScan(last.savedAt);
     }
     state.mode = "unfollowDone";
+    state.unfollowEndedAt = Date.now();
     state.waitUntil = 0;
     state.waitReason = "";
     renderBody();
@@ -2139,6 +2215,7 @@
   }
 
   function updateCountdownDOM() {
+    if (state.mode === "unfollowing") updateUnfollowTimeDOM();
     const node = document.querySelector(`#${APP_ID} [data-countdown]`);
     if (!node) return;
     if (!state.waitUntil) {
@@ -2203,6 +2280,7 @@
     if (labelEl) labelEl.textContent = unfollowTitle();
     const noteEl = root.querySelector("[data-progress-note]");
     if (noteEl) noteEl.textContent = note || "";
+    updateUnfollowTimeDOM();
     const last = state.log[state.log.length - 1];
     const currentEl = root.querySelector("[data-current]");
     if (currentEl) {
@@ -2781,6 +2859,9 @@
       state,
       interruptibleSleep,
       sleepWithCountdown,
+      estimateUnfollowLeftMs,
+      formatDuration,
+      unfollowTimeText,
       unfollowUser,
       normalizeUser,
       isDefaultAvatar,
