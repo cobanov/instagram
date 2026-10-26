@@ -78,11 +78,15 @@ function mockFetch(responses) {
   return { impl, calls };
 }
 
-/* A scan that has not settled how to find non-followers reads the profile
-   counts first. A reply without them keeps the follower list download. */
-const NO_PROFILE = { status: 404, body: "" };
+/* A scan reads the profile counts from the viewer's own profile page, found
+   through the PolarisViewer config every Instagram page carries. The plain
+   fake document has none, so most scans below go straight to the lists. */
+const VIEWER_SCRIPT = { textContent: '["PolarisViewer",[],{"data":{"fbid":"7","id":"123","is_private":false,"username":"me"},"id":"123"},1]' };
+function viewerDocument() {
+  return { ...fakeDocument(), cookie: "ds_user_id=123", querySelectorAll: () => [VIEWER_SCRIPT] };
+}
 function profile(followers, following) {
-  return { status: 200, json: { user: { follower_count: followers, following_count: following }, status: "ok" } };
+  return { status: 200, body: `<meta property="og:description" content="${followers} Followers, ${following} Following, 60 Posts - See Instagram photos">` };
 }
 
 const {
@@ -95,15 +99,15 @@ const {
 test("friendship list URLs use Instagram's current REST endpoints", () => {
   assert.equal(
     friendshipListUrl("123", "following"),
-    "/api/v1/friendships/123/following/?count=50"
+    "/api/v1/friendships/123/following/?count=200"
   );
   assert.equal(
     friendshipListUrl("123", "followers", "cursor + /"),
-    "/api/v1/friendships/123/followers/?count=50&max_id=cursor%20%2B%20%2F"
+    "/api/v1/friendships/123/followers/?count=200&max_id=cursor%20%2B%20%2F"
   );
   assert.equal(
-    friendshipListUrl("123", "following", "", 200),
-    "/api/v1/friendships/123/following/?count=200"
+    friendshipListUrl("123", "following", "", 50),
+    "/api/v1/friendships/123/following/?count=50"
   );
   assert.equal(
     friendshipListUrl("123", "following", "", 999),
@@ -148,10 +152,10 @@ test("friendship scans paginate the REST endpoint with the web app header", asyn
 
   assert.equal(results.map((user) => user.id).join(","), "1,2");
   assert.equal(calls.length, 2);
-  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=50");
+  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=200");
   assert.equal(
     calls[1].url,
-    "/api/v1/friendships/123/following/?count=50&max_id=next%20cursor"
+    "/api/v1/friendships/123/following/?count=200&max_id=next%20cursor"
   );
   assert.equal(calls[0].init.credentials, "include");
   assert.equal(calls[0].init.headers["x-ig-app-id"], "936619743392459");
@@ -162,11 +166,11 @@ test("friendship scans use the saved users-per-request setting", async () => {
     { status: 200, json: { users: [{ pk: "1", username: "first" }], has_more: false } }
   ]);
   const api = loadInternals(impl);
-  api.state.timings.usersPerRequest = 200;
+  api.state.timings.usersPerRequest = 30;
 
   await api.fetchFriendshipList("123", "following", () => {});
 
-  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=200");
+  assert.equal(calls[0].url, "/api/v1/friendships/123/following/?count=30");
 });
 
 test("friendship scans reject an incomplete empty page", async () => {
@@ -229,7 +233,7 @@ test("a scan resumes from a stored cursor and keeps what was already fetched", a
   );
 
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].url, "/api/v1/friendships/123/followers/?count=50&max_id=page-two");
+  assert.equal(calls[0].url, "/api/v1/friendships/123/followers/?count=200&max_id=page-two");
   assert.equal(results.map((user) => user.id).join(","), "1,2,3");
   assert.deepEqual(pages, [{ count: 3, cursor: "" }]);
 });
@@ -319,14 +323,14 @@ test("an HTML reply is classified from the final URL and the page, not from the 
   );
   assert.equal(
     classifyHtmlReply(
-      { url: "https://www.instagram.com/api/v1/friendships/123/followers/?count=50" },
+      { url: "https://www.instagram.com/api/v1/friendships/123/followers/?count=200" },
       HTML_RATE
     ),
     "HTML rate /api/v1/friendships/123/followers/"
   );
   assert.equal(
     classifyHtmlReply(
-      { url: "https://www.instagram.com/api/v1/friendships/123/followers/?count=50" },
+      { url: "https://www.instagram.com/api/v1/friendships/123/followers/?count=200" },
       HTML_SHELL
     ),
     "HTML page /api/v1/friendships/123/followers/"
@@ -334,7 +338,7 @@ test("an HTML reply is classified from the final URL and the page, not from the 
 });
 
 test("an HTML page on HTTP 200 is retried, then paused as an error instead of a sign-out", async () => {
-  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=50");
+  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=200");
   const timers = [];
   const { impl, calls } = mockFetch([page, page, page, page]);
   const { igFetch } = loadInternals(impl, {
@@ -411,34 +415,33 @@ test("soft HTTP 200 failures stop and never become valid list responses", async 
 
 test("a scan reads the profile counts, then starts on the followers list when that is cheaper", async () => {
   const { impl, calls } = mockFetch([profile(100, 50), { status: 403, json: { message: "checkpoint_required" } }]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  const api = loadInternals(impl, { document: viewerDocument() });
   await api.startScan();
   assert.equal(calls.length, 2);
-  assert.equal(calls[0].url, "/api/v1/users/123/info/");
-  assert.equal(calls[1].url, "/api/v1/friendships/123/followers/?count=50");
+  assert.equal(calls[0].url, "/me/?hl=en");
+  assert.equal(calls[1].url, "/api/v1/friendships/123/followers/?count=200");
   assert.equal(api.state.checkpoint.followersTotal, 100);
   assert.equal(api.state.checkpoint.checkEach, false);
   assert.equal(api.state.mode, "idle");
   assert.match(api.state.error, /temporarily refused/);
 });
 
-test("profile counts come from the viewer's profile page first, then the info endpoint", async () => {
-  const viewerScript = { textContent: '["PolarisViewer",[],{"data":{"fbid":"7","id":"123","is_private":false,"username":"me.too"},"id":"123"},1]' };
+test("profile counts come from the viewer's own profile page, and nothing else is asked", async () => {
+  const none = { followersTotal: null, followingTotal: null };
   const page = (summary) => ({ status: 200, body: `<meta property="og:description" content="${summary}, 60 Posts - See Instagram photos">` });
-  const document = { ...fakeDocument(), cookie: "ds_user_id=123", querySelectorAll: () => [viewerScript] };
 
   let { impl, calls } = mockFetch([page("29.6K Followers, 1,204 Following")]);
-  assert.deepEqual({ ...await loadInternals(impl, { document }).fetchProfileCounts("123") }, { followersTotal: 29600, followingTotal: 1204 });
-  assert.deepEqual(calls.map(call => call.url), ["/me.too/?hl=en"]);
+  assert.deepEqual({ ...await loadInternals(impl, { document: viewerDocument() }).fetchProfileCounts("123") }, { followersTotal: 29600, followingTotal: 1204 });
+  assert.deepEqual(calls.map(call => call.url), ["/me/?hl=en"]);
 
-  ({ impl, calls } = mockFetch([{ status: 200, body: "<html>login</html>" }, profile(6668, 800)]));
-  assert.deepEqual({ ...await loadInternals(impl, { document }).fetchProfileCounts("123") }, { followersTotal: 6668, followingTotal: 800 });
-  assert.deepEqual(calls.map(call => call.url), ["/me.too/?hl=en", "/api/v1/users/123/info/"]);
+  ({ impl, calls } = mockFetch([{ status: 200, body: "<html>login</html>" }]));
+  assert.deepEqual({ ...await loadInternals(impl, { document: viewerDocument() }).fetchProfileCounts("123") }, none);
+  assert.equal(calls.length, 1);
 
-  const otherViewer = { ...document, querySelectorAll: () => [{ textContent: '["PolarisViewer",[],{"data":{"id":"999","username":"else"},"id":"999"},1]' }] };
-  ({ impl, calls } = mockFetch([{ status: 429, body: "<html></html>" }]));
-  assert.deepEqual({ ...await loadInternals(impl, { document: otherViewer }).fetchProfileCounts("123") }, { followersTotal: null, followingTotal: null });
-  assert.deepEqual(calls.map(call => call.url), ["/api/v1/users/123/info/"]);
+  const otherViewer = { ...viewerDocument(), querySelectorAll: () => [{ textContent: '["PolarisViewer",[],{"data":{"id":"999","username":"else"},"id":"999"},1]' }] };
+  ({ impl, calls } = mockFetch([]));
+  assert.deepEqual({ ...await loadInternals(impl, { document: otherViewer }).fetchProfileCounts("123") }, none);
+  assert.equal(calls.length, 0);
 });
 
 test("a block on a resumed cursor never restarts that list", async () => {
@@ -450,7 +453,7 @@ test("a block on a resumed cursor never restarts that list", async () => {
   };
   await api.startScan({ resume: true });
   assert.equal(calls.length, 1);
-  assert.match(calls[0].url, /following\/\?count=50&max_id=next-page$/);
+  assert.match(calls[0].url, /following\/\?count=200&max_id=next-page$/);
   assert.equal(api.state.mode, "results");
   assert.equal(api.state.partial, true);
   assert.match(api.state.checkpoint.stopReason, /temporarily refused/);
@@ -458,7 +461,6 @@ test("a block on a resumed cursor never restarts that list", async () => {
 
 test("empty follower pages are stepped over, and the results stay unverified with unfollow off", async () => {
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "c1" } },
     { status: 200, json: { users: [], has_more: true, next_max_id: "c2" } },
     { status: 200, json: { users: [{ pk: "2", username: "b" }], has_more: false } },
@@ -468,7 +470,7 @@ test("empty follower pages are stepped over, and the results stay unverified wit
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
   assert.equal(api.state.mode, "results");
   assert.equal(api.state.unverified, true);
   assert.equal(api.state.users.filter((u) => !u.follows_viewer).map((u) => u.username).join(), "x");
@@ -477,7 +479,7 @@ test("empty follower pages are stepped over, and the results stay unverified wit
   assert.match(html, /data-action="unfollow" disabled/);
   assert.match(html, /may be incomplete/);
   await api.startUnfollow();
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
 });
 
 test("a long run of empty follower pages stops the scan, and resuming waits before any request", async () => {
@@ -485,23 +487,22 @@ test("a long run of empty follower pages stops the scan, and resuming waits befo
     { status: 200, json: { users: [], has_more: true, next_max_id: `e${i}` } }
   ));
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "c1" } },
     ...empty
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
-  assert.equal(calls.length, 13);
+  assert.equal(calls.length, 12);
   assert.equal(api.state.mode, "idle");
   assert.match(api.state.error, /keeps sending empty pages.*Resume after/);
   assert.ok(api.state.checkpoint.retryAfter > Date.now());
   await api.startScan({ resume: true });
-  assert.equal(calls.length, 13);
+  assert.equal(calls.length, 12);
   assert.match(api.state.error, /^Resume after/);
 });
 
 test("a 401 saying please wait is a rate limit, not a sign-out, and Resume waits an hour", async () => {
-  const { impl, calls } = mockFetch([NO_PROFILE, {
+  const { impl, calls } = mockFetch([{
     status: 401,
     json: { message: "Please wait a few minutes before you try again.", require_login: true, status: "fail" }
   }]);
@@ -512,14 +513,12 @@ test("a 401 saying please wait is a rate limit, not a sign-out, and Resume waits
   const wait = api.state.checkpoint.retryAfter - Date.now();
   assert.ok(wait > 59 * 60 * 1000 && wait <= 60 * 60 * 1000);
   await api.startScan({ resume: true });
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 1);
 });
 
 test("a real sign-out keeps no cooldown and shows what Instagram sent", async () => {
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     { status: 401, json: { message: "login_required", require_login: true, status: "fail" } },
-    NO_PROFILE,
     { status: 200, json: { users: [], has_more: false } },
     { status: 200, json: { users: [], has_more: false } }
   ]);
@@ -529,7 +528,7 @@ test("a real sign-out keeps no cooldown and shows what Instagram sent", async ()
   assert.match(api.state.errorDetail, /HTTP 401 · login_required$/);
   assert.equal(api.state.checkpoint.retryAfter, 0);
   await api.startScan({ resume: true });
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 3);
   assert.equal(api.state.mode, "results");
 });
 
@@ -539,10 +538,10 @@ test("a list that ends with has_more but no cursor completes; on followers the r
     [{ users: [{ pk: "1", username: "a" }], has_more: false }, ends, false],
     [ends, { users: [{ pk: "1", username: "a" }, { pk: "3", username: "x" }], has_more: false }, true]
   ]) {
-    const { impl, calls } = mockFetch([NO_PROFILE, { status: 200, json: followers }, { status: 200, json: following }]);
+    const { impl, calls } = mockFetch([{ status: 200, json: followers }, { status: 200, json: following }]);
     const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
     await api.startScan();
-    assert.equal(calls.length, 3);
+    assert.equal(calls.length, 2);
     assert.equal(api.state.mode, "results");
     assert.equal(api.state.partial, false);
     assert.equal(api.state.unverified, unverified);
@@ -550,7 +549,7 @@ test("a list that ends with has_more but no cursor completes; on followers the r
 });
 
 test("a failed scan shows which list stopped, how far, and what Instagram sent", async () => {
-  const { impl } = mockFetch([NO_PROFILE, { status: 400, json: { message: "something odd" } }]);
+  const { impl } = mockFetch([{ status: 400, json: { message: "something odd" } }]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
   assert.equal(api.state.mode, "idle");
@@ -559,14 +558,14 @@ test("a failed scan shows which list stopped, how far, and what Instagram sent",
 });
 
 test("an HTML page at the start is an error, not a result of 0 followers", async () => {
-  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=50");
+  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=200");
   const storage = memoryStorage();
   const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
-  const { impl, calls } = mockFetch([NO_PROFILE, page, page, page, page]);
+  const { impl, calls } = mockFetch([page, page, page, page]);
   const api = loadInternals(impl, { document: doc, localStorage: storage });
   await api.startScan();
 
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
   assert.equal(api.state.mode, "idle");
   assert.equal(api.state.users.length, 0);
   assert.equal(api.state.followersCount, 0);
@@ -596,7 +595,7 @@ test("an HTML page at the start is an error, not a result of 0 followers", async
 
 test("the Turkish panel names the HTML page and the Resume button, with the technical line under Detay", async () => {
   const page = htmlPage(HTML_LOGIN, "https://www.instagram.com/accounts/login/?next=/api/v1/friendships/123/followers/");
-  const { impl } = mockFetch([NO_PROFILE, page, page, page, page]);
+  const { impl } = mockFetch([page, page, page, page]);
   const api = loadInternals(impl, {
     document: { ...fakeDocument(), cookie: "ds_user_id=123" },
     localStorage: { getItem: () => null, setItem: () => {}, removeItem: () => {} }
@@ -617,9 +616,8 @@ test("the Turkish panel names the HTML page and the Resume button, with the tech
 });
 
 test("HTML replies are retried and a later JSON page still completes the scan", async () => {
-  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=50");
+  const page = htmlPage(HTML_SHELL, "https://www.instagram.com/api/v1/friendships/123/followers/?count=200");
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     page,
     page,
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
@@ -628,7 +626,7 @@ test("HTML replies are retried and a later JSON page still completes the scan", 
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
 
-  assert.equal(calls.length, 5);
+  assert.equal(calls.length, 4);
   assert.equal(api.state.mode, "results");
   assert.equal(api.state.users.filter((user) => !user.follows_viewer).map((user) => user.username).join(), "gone");
   assert.equal(api.state.error, "");
@@ -639,14 +637,13 @@ test("an HTML reply mid-list pauses on the saved page and Resume continues there
   const storage = memoryStorage();
   const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
   const first = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "1", username: "kept" }], has_more: true, next_max_id: "page-two" } },
     page, page, page, page
   ]);
   const api = loadInternals(first.impl, { document: doc, localStorage: storage });
   await api.startScan();
 
-  assert.equal(first.calls.length, 6);
+  assert.equal(first.calls.length, 5);
   assert.equal(api.state.mode, "idle");
   assert.equal(api.state.users.length, 0);
   assert.equal(api.state.checkpoint.followerIds.join(","), "1");
@@ -656,7 +653,6 @@ test("an HTML reply mid-list pauses on the saved page and Resume continues there
   assert.doesNotMatch(api.renderIdleView(), /Nice —/);
 
   const second = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "2", username: "also" }], has_more: false } },
     { status: 200, json: { users: [{ pk: "9", username: "only-following" }], has_more: false } }
   ]);
@@ -667,9 +663,9 @@ test("an HTML reply mid-list pauses on the saved page and Resume continues there
   later.state.checkpoint.retryAfter = Date.now() - 1;
   await later.startScan({ resume: true });
 
-  assert.equal(second.calls.length, 3);
-  assert.match(second.calls[1].url, /followers\/\?count=50&max_id=page-two$/);
-  assert.match(second.calls[2].url, /following\/\?count=50$/);
+  assert.equal(second.calls.length, 2);
+  assert.match(second.calls[0].url, /followers\/\?count=200&max_id=page-two$/);
+  assert.match(second.calls[1].url, /following\/\?count=200$/);
   assert.equal(later.state.mode, "results");
   assert.equal(later.state.users.map((user) => user.username).join(), "only-following");
   assert.equal(later.getDisplayUsers().map((user) => user.username).join(), "only-following");
@@ -677,7 +673,6 @@ test("an HTML reply mid-list pauses on the saved page and Resume continues there
 
 test("empty REST lists complete when the profile counts are unavailable", async () => {
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [], has_more: false } },
     { status: 200, json: { users: [], has_more: false } }
   ]);
@@ -685,7 +680,7 @@ test("empty REST lists complete when the profile counts are unavailable", async 
   await api.startScan();
   assert.equal(api.state.mode, "results");
   assert.equal(api.state.users.length, 0);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 2);
 });
 
 test("server-limited lists cannot produce non-follower results", async () => {
@@ -731,9 +726,9 @@ test("closing a panel aborts its request and prevents its old scan from continui
   api.unmount();
   await running;
   assert.equal(signal.aborted, true);
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
   await api.startScan();
-  assert.equal(calls, 2);
+  assert.equal(calls, 1);
 });
 
 test("double-clicking Scan does not start a second scan", async () => {
@@ -773,6 +768,8 @@ test("saved presets upgrade while custom timing values and request counts surviv
   assert.equal(custom.scanPauseMs, 20000);
   assert.equal(custom.usersPerRequest, 200);
   assert.equal(loadTimings({ usersPerRequest: 999 }).usersPerRequest, 200);
+  assert.equal(loadTimings({ usersPerRequest: 50 }).usersPerRequest, 200);
+  assert.equal(loadTimings({ usersPerRequest: 30 }).usersPerRequest, 30);
   assert.equal(loadTimings({ usersPerRequest: 0 }).usersPerRequest, 1);
   const slower = loadTimings({ scanDelayMin: 5000, scanDelayMax: 8000, scanPauseMs: 60000 });
   assert.equal(slower.scanDelayMin, 5000);
@@ -788,25 +785,24 @@ test("a scan follows the upstream followers-then-following request flow", async 
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "not-mutual" }], has_more: false } }
   ]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  const api = loadInternals(impl, { document: viewerDocument() });
   await api.startScan();
   assert.equal(api.state.partial, false);
   assert.equal(api.getDisplayUsers().map(user => user.id).join(","), "2");
   assert.equal(calls.length, 3);
-  assert.equal(calls[1].url, "/api/v1/friendships/123/followers/?count=50");
-  assert.equal(calls[2].url, "/api/v1/friendships/123/following/?count=50");
+  assert.equal(calls[1].url, "/api/v1/friendships/123/followers/?count=200");
+  assert.equal(calls[2].url, "/api/v1/friendships/123/following/?count=200");
   assert.equal(calls.some(call => call.url.includes("/friendships/show/")), false);
 });
 
 test("an interrupted followers request shows no results", async () => {
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: true, next_max_id: "f2" } },
     { status: 429, body: "" }
   ]);
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   await api.startScan();
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 2);
   assert.equal(api.state.mode, "idle");
   assert.equal(api.getDisplayUsers().length, 0);
   assert.equal(api.state.checkpoint.followersDone, false);
@@ -814,7 +810,6 @@ test("an interrupted followers request shows no results", async () => {
 
 test("non-followers stream in while following loads and survive an interruption", async () => {
   const { impl, calls } = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "gone" }], has_more: true, next_max_id: "p2" } },
     { status: 429, body: "" }
@@ -822,7 +817,7 @@ test("non-followers stream in while following loads and survive an interruption"
   const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
   api.state.timings.scanPauseEveryPages = 0;
   await api.startScan();
-  assert.equal(calls.length, 4);
+  assert.equal(calls.length, 3);
   assert.equal(api.state.mode, "results");
   assert.equal(api.state.partial, true);
   assert.equal(api.getDisplayUsers().map((user) => user.id).join(","), "2");
@@ -867,10 +862,28 @@ function memoryStorage(initial = {}) {
   };
 }
 
+test("a result too large for storage with picture links is saved without them", () => {
+  const storage = memoryStorage();
+  const setItem = storage.setItem;
+  storage.setItem = (key, value) => {
+    if (key === "iu_last_scan_v1" && value.includes("cdninstagram")) throw new Error("QuotaExceededError");
+    setItem(key, value);
+  };
+  const api = loadInternals(undefined, { document: { ...fakeDocument(), cookie: "ds_user_id=123" }, localStorage: storage });
+  api.saveLastScan(Date.now(), [
+    { id: "1", username: "a", profile_pic_url: "https://scontent.cdninstagram.com/v/1.jpg?oe=1" },
+    { id: "2", username: "b", profile_pic_url: "https://scontent.cdninstagram.com/v/44884218_345707102882519_n.jpg" }
+  ], false);
+  const saved = api.loadLastScan();
+  assert.equal(saved.users.map((user) => user.username).join(), "a,b");
+  assert.equal(saved.users.some((user) => "profile_pic_url" in user), false);
+  assert.equal(api.isDefaultAvatar(saved.users[1]), true);
+  assert.equal(api.isDefaultAvatar(saved.users[0]), false);
+});
+
 test("a finished scan is saved and can be reopened without any request", async () => {
   const storage = memoryStorage();
   const { impl } = mockFetch([
-    NO_PROFILE,
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }], has_more: false } },
     { status: 200, json: { users: [{ pk: "1", username: "mutual" }, { pk: "2", username: "gone" }], has_more: false } }
   ]);
@@ -1363,11 +1376,11 @@ const followingPage = { status: 200, json: { users: [
 
 test("a large follower list is never downloaded: each followed account is asked about instead", async () => {
   const { impl, calls } = mockFetch([profile(30000, 3), followingPage, show(true), show(false), show(false, false)]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+  const api = loadInternals(impl, { document: viewerDocument() });
   await api.startScan();
   assert.equal(calls.map((call) => call.url).join(), [
-    "/api/v1/users/123/info/",
-    "/api/v1/friendships/123/following/?count=50",
+    "/me/?hl=en",
+    "/api/v1/friendships/123/following/?count=200",
     "/api/v1/friendships/show/1/",
     "/api/v1/friendships/show/2/",
     "/api/v1/friendships/show/3/"
@@ -1381,7 +1394,7 @@ test("a large follower list is never downloaded: each followed account is asked 
 
 test("an interrupted check keeps its answers: those found can be unfollowed and Resume asks only about the rest", async () => {
   const storage = memoryStorage();
-  const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
+  const doc = viewerDocument();
   const first = mockFetch([profile(30000, 3), followingPage, show(false), { status: 429, body: "" }]);
   const api = loadInternals(first.impl, { document: doc, localStorage: storage });
   await api.startScan();
@@ -1393,6 +1406,11 @@ test("an interrupted check keeps its answers: those found can be unfollowed and 
   const html = api.renderResultsView();
   assert.match(html, /1 of the accounts you follow were checked/);
   assert.doesNotMatch(html, /data-action="unfollow" disabled/);
+  assert.match(html, /data-action="resume-scan" disabled>Resume after /);
+  assert.match(html, /data-action="restart-scan" disabled/);
+  const saved = JSON.parse(storage.getItem("iu_scan_v1"));
+  assert.equal(saved.following.length, 3);
+  assert.equal("profile_pic_url" in saved.following[0], false);
 
   const second = mockFetch([show(true), show(false)]);
   const later = loadInternals(second.impl, { document: doc, localStorage: storage });
@@ -1403,27 +1421,83 @@ test("an interrupted check keeps its answers: those found can be unfollowed and 
   assert.equal(later.getDisplayUsers().map((user) => user.username).join(), "a,c");
 });
 
-test("when Instagram does not answer about one account, the scan downloads the followers after all", async () => {
-  const { impl, calls } = mockFetch([
-    profile(30000, 3),
-    followingPage,
-    { status: 404, body: "" },
-    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "3", username: "c" }], has_more: false } }
-  ]);
-  const api = loadInternals(impl, { document: { ...fakeDocument(), cookie: "ds_user_id=123" } });
+const gone = { status: 404, body: "" };
+const fourFollowed = { status: 200, json: { users: [
+  { pk: "1", username: "a" }, { pk: "2", username: "b" }, { pk: "3", username: "c" }, { pk: "4", username: "d" }
+], has_more: false } };
+
+test("one account gone since the list loaded does not end the check; it is asked again once the question works", async () => {
+  const { impl, calls } = mockFetch([profile(30000, 3), followingPage, gone, show(false), show(true), gone]);
+  const api = loadInternals(impl, { document: viewerDocument() });
   await api.startScan();
-  assert.equal(calls.length, 4);
-  assert.equal(calls[3].url, "/api/v1/friendships/123/followers/?count=50");
+  assert.deepEqual(calls.slice(2).map((call) => call.url), [
+    "/api/v1/friendships/show/1/", "/api/v1/friendships/show/2/", "/api/v1/friendships/show/3/", "/api/v1/friendships/show/1/"
+  ]);
   assert.equal(api.state.mode, "results");
   assert.equal(api.state.partial, false);
   assert.equal(api.getDisplayUsers().map((user) => user.username).join(), "b");
 });
 
-test("pasted usernames are read from lines, commas, @ handles and profile links", () => {
+test("a failed question is never taken for an answer: the account stays unknown and the result partial", async () => {
+  const failing = { status: 500, body: "" };
+  const { impl } = mockFetch([
+    profile(30000, 3), followingPage,
+    show(false), failing, failing, failing, failing, show(true),
+    failing, failing, failing, failing
+  ]);
+  const api = loadInternals(impl, { document: viewerDocument() });
+  await api.startScan();
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.partial, true);
+  assert.equal(api.state.checkpoint.verified["2"], undefined);
+  assert.equal(api.getDisplayUsers().map((user) => user.username).join(), "a");
+});
+
+test("three failed questions in a row stop the scan with its answers kept", async () => {
+  const refused = { status: 400, json: { message: "something odd", status: "fail" } };
+  const { impl, calls } = mockFetch([profile(30000, 4), fourFollowed, show(false), refused, refused, refused]);
+  const api = loadInternals(impl, { document: viewerDocument() });
+  await api.startScan();
+  assert.equal(calls.length, 6);
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.partial, true);
+  assert.match(api.state.checkpoint.stopDetail, /friendships\/show failed 3 times/);
+  assert.equal(api.getDisplayUsers().map((user) => user.username).join(), "a");
+});
+
+test("when Instagram answers about none of three accounts, the scan downloads the followers after all", async () => {
+  const { impl, calls } = mockFetch([
+    profile(30000, 3),
+    followingPage,
+    gone, gone, gone,
+    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "3", username: "c" }], has_more: false } }
+  ]);
+  const api = loadInternals(impl, { document: viewerDocument() });
+  await api.startScan();
+  assert.equal(calls.length, 6);
+  assert.equal(calls[5].url, "/api/v1/friendships/123/followers/?count=200");
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.state.partial, false);
+  assert.equal(api.getDisplayUsers().map((user) => user.username).join(), "b");
+});
+
+test("pasted usernames are the first word of each line, never the words after it", () => {
   const { parseUsernames } = loadInternals();
-  const text = "alpha\n@Beta, gamma.x\nhttps://www.instagram.com/delta_1/?hl=en\nALPHA\nnot-valid!\n";
-  assert.equal(parseUsernames(text).join(), "alpha,beta,gamma.x,delta_1");
+  const text = "alpha\n@Beta,gamma.x\nhttps://www.instagram.com/delta_1/?hl=en\nALPHA\nnot-valid!\njohndoe Mar 5, 2024\n  @eve  John Doe\n";
+  assert.equal(parseUsernames(text).join(), "alpha,beta,gamma.x,delta_1,johndoe,eve");
   assert.equal(parseUsernames("  \n ").length, 0);
+});
+
+test("Scan now under a pasted list keeps saved progress and its wait", () => {
+  const { impl, calls } = mockFetch([]);
+  const api = loadInternals(impl, { document: viewerDocument() });
+  api.state.checkpoint = { ...api.createCheckpoint("123"), followerIds: ["9"], retryAfter: Date.now() + 3600000 };
+  api.showPastedList("someone");
+  api.scanFromResults();
+  assert.equal(calls.length, 0);
+  assert.equal(api.state.mode, "idle");
+  assert.deepEqual(api.state.checkpoint.followerIds, ["9"]);
+  assert.match(api.renderIdleView(), /data-action="resume-scan" disabled/);
 });
 
 test("a pasted list is unfollowed without a scan, each account looked up in your following first", async () => {

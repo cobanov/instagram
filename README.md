@@ -63,10 +63,11 @@ Click **Scan now**. The panel walks your following and follower lists, then show
 accounts that do not follow you back. When Instagram omits unavailable followed
 accounts, a notice explains how many accounts the results cover.
 
-Instagram hands followers out about 24 per page, so a large account is a few hundred
-requests and can still take many minutes. Version 2.3.4 follows upstream's current
-two-stage randomized scan pacing and lets you set the requested page size from 1 to 200 under Settings;
-Instagram can ignore that value and return smaller pages. Keep the tab in front while it runs:
+Instagram hands followers out 25 per page whatever page size is asked for, so a large
+account is a few hundred requests and can still take many minutes. The following list
+honours the requested size, which is 200 since 2.5.0 (it was 50), so it takes a quarter of
+the requests. Version 2.3.4 follows upstream's current two-stage randomized scan pacing;
+the requested page size can be set from 1 to 200 under Settings. Keep the tab in front while it runs:
 Chrome can heavily throttle background timers. Instagram can still interrupt scans,
 especially on large accounts; slower requests do not guarantee completion.
 
@@ -81,8 +82,8 @@ time to resume, and until then Resume sends nothing: one hour after a rate limit
 hours after a block or a long run of empty pages.
 
 Since 2.5.0 a large follower list is no longer downloaded when that is the expensive way.
-Instagram serves followers about 24 a page, so an account with 30,000 followers needs about
-1,250 pages, and Instagram cuts scans off after a few hundred. The scan first reads the two
+Instagram serves followers 25 a page, so an account with 30,000 followers needs about
+1,200 pages, and Instagram cuts scans off after a few hundred. The scan first reads the two
 counts from your profile. When you follow fewer accounts than the follower list has pages
 left, it loads the accounts you follow and asks Instagram about each one
 (`/api/v1/friendships/show/<id>/`). Every answer is final and saved, so non-followers show up
@@ -90,9 +91,17 @@ as they are found, and the ones found so far can be unfollowed even if Instagram
 scan. If Instagram does not answer that question, the scan falls back to downloading the
 follower list.
 
-**Unfollow from a list** (since 2.5.0) needs no scan at all. Paste usernames, such as the
-list from `/export` or one copied from an earlier result, and the panel unfollows them at the
-usual pace. Each account is first looked up among the people you follow and skipped if you
+Progress is saved after every page and every answer, in the page's storage, which holds
+about 5 million characters. Before 2.5.0 each followed account was saved with its picture
+link, about 650 characters, so progress stopped being saved at about 7,700 followed accounts at most (sooner with a
+large follower list) and
+Resume lost what came after. It is now saved without picture links (about 130 characters an
+account); a resumed list shows no pictures.
+
+**Unfollow from a list** (since 2.5.0) needs no scan at all. Paste usernames one per line,
+such as the list from `/export` or one copied from an earlier result, and the panel unfollows
+them at the usual pace. Only the first word of each line is read, so dates or names copied
+along with a username never become accounts to unfollow. Each account is first looked up among the people you follow and skipped if you
 do not follow it. The pasted list is not checked for who follows you back.
 
 Since 2.4.2, HTTP 200 with an HTML body is not an empty follower list. The final URL and the
