@@ -65,7 +65,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/site.css?v=2026-10-19b" />
-    <link rel="stylesheet" href="assets/home.css?v=2026-10-22" />
+    <link rel="stylesheet" href="assets/home.css?v=2026-10-26" />
 
     <script
       async
@@ -229,6 +229,19 @@
         </div>
       </section>
 
+      <section class="notice-band" aria-labelledby="notice-title">
+        <div class="shell">
+          <div class="notice">
+            <svg class="notice-icon" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v6m0 3.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <div>
+              <h2 class="notice-title" id="notice-title"><span lang="en">How it works, and where it stops</span><span lang="tr">Nasıl çalışır, nerede durur</span></h2>
+              <p lang="en">Everything runs in your own Instagram tab, with the session already open; nothing is sent to us. The panel reads your follower and following counts, then takes the way that costs Instagram the fewest requests. Instagram can cut a scan off after a few hundred requests: the panel then stops and says when to resume, and trying sooner makes the block last longer. For very large accounts, get the list from <a href="/export">your data file</a> and paste it into Unfollow from a list in the panel.</p>
+              <p lang="tr">Her şey kendi Instagram sekmende, açık oturumunla olur; hiçbir veri bize gelmez. Panel önce takipçi ve takip sayını okur, sonra Instagram'a en az istek atan yolu seçer. Instagram birkaç yüz istekten sonra taramayı kesebilir: panel o zaman durur ve ne zaman devam edebileceğini yazar, erken denemek kısıtlamayı uzatır. Çok büyük hesaplarda listeyi <a href="/export">veri dosyandan</a> al, paneldeki Listeden takibi bırak'a yapıştır.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="dantel" aria-labelledby="dantel-title">
         <div class="shell dantel">
           <a class="dantel-shot" href="https://apps.apple.com/app/id6813142119" rel="noreferrer" data-oa-event="dantel-image">
@@ -278,31 +291,24 @@
 
       <section id="support">
         <div class="shell">
-          <h2><span lang="en">Support it or advertise here</span><span lang="tr">Destek ol ya da reklam ver</span></h2>
-          <div class="figures figures--two reveal">
+          <div class="support">
             <div>
-              <span class="figure-value">38K</span>
-              <span class="figure-label"><span lang="en">unique visitors a month</span><span lang="tr">aylık tekil ziyaretçi</span></span>
+              <h2><span lang="en">Support it</span><span lang="tr">Destek ol</span></h2>
+              <p lang="en">It is free, and your support keeps it that way.</p>
+              <p lang="tr">Ücretsiz, desteğinle öyle kalıyor.</p>
+              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-oa-event="sponsor">GitHub Sponsors</a>
             </div>
             <div>
-              <span class="figure-value">50K</span>
-              <span class="figure-label"><span lang="en">page views a month</span><span lang="tr">aylık sayfa görüntüleme</span></span>
+              <h2><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></h2>
+              <p lang="en">38K unique visitors and 50K page views a month. Write about the ad spaces on this page.</p>
+              <p lang="tr">Ayda 38K tekil ziyaretçi, 50K sayfa görüntüleme. Bu sayfadaki reklam alanları için yaz.</p>
+              <a class="btn" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam" data-oa-event="advertise"><span lang="en">Email me</span><span lang="tr">E-posta at</span></a>
             </div>
           </div>
-          <div class="support-row">
-            <p lang="en">It stays free thanks to your support. Want your brand in front of these people? Write to me.</p>
-            <p lang="tr">Ücretsiz kalması senin desteğinle mümkün. Markanı bu kitleye göstermek istersen yaz.</p>
-            <div class="support-actions">
-              <a class="btn btn-primary" href="https://github.com/sponsors/cobanov" rel="noreferrer" data-oa-event="sponsor"><span lang="en">Support it</span><span lang="tr">Destek ol</span></a>
-              <a class="btn" href="mailto:mertcobanov@gmail.com?subject=instagram.cobanov.dev%20reklam" data-oa-event="advertise"><span lang="en">Advertise</span><span lang="tr">Reklam ver</span></a>
-            </div>
-          </div>
-
-          <div class="wall">
-            <p class="wall-lead" lang="en">Supporters are listed here.</p>
-            <p class="wall-lead" lang="tr">Destek olanlar burada listelenir.</p>
-            <ol class="wall-list" data-sponsors></ol>
-            <p class="wall-empty" data-sponsors-empty hidden></p>
+          <div class="supporters">
+            <span><span lang="en">Supporters</span><span lang="tr">Destekleyenler</span></span>
+            <ul class="supporters-list" data-sponsors></ul>
+            <span data-sponsors-empty hidden></span>
           </div>
         </div>
       </section>
@@ -383,84 +389,6 @@
         </div>
       </section>
 
-      <section id="method">
-        <div class="shell">
-          <div class="usage-split">
-          <div class="usage-aside">
-            <h2><span lang="en">How it works</span><span lang="tr">Nasıl çalışır</span></h2>
-            <p class="section-intro" lang="en">Everything happens in your own Instagram tab, with the session already open. Nothing is sent to us or anywhere else.</p>
-            <p class="section-intro" lang="tr">Her şey kendi Instagram sekmende, açık oturumunla olur. Hiçbir şey bize ya da başka bir yere gönderilmez.</p>
-          </div>
-          <ol class="steps">
-            <li>
-              <h3><span lang="en">It reads two numbers</span><span lang="tr">İki sayıyı okur</span></h3>
-              <p lang="en">Your follower count and the number of accounts you follow, from your profile. One request.</p>
-              <p lang="tr">Profilinden takipçi sayını ve takip ettiğin hesap sayısını alır. Tek istek.</p>
-            </li>
-            <li>
-              <h3><span lang="en">It picks the cheaper way</span><span lang="tr">Ucuz yolu seçer</span></h3>
-              <p lang="en">Instagram hands out followers 25 a page. If you follow fewer accounts than that list has pages, the panel asks Instagram about each account you follow. Otherwise it loads your followers and compares the two lists. With 30,000 followers and 800 followed, that is 800 questions instead of 1,200 pages.</p>
-              <p lang="tr">Instagram takipçileri sayfa başına 25 kişi verir. Takip ettiğin hesap sayısı bu listenin sayfa sayısından azsa panel takip ettiğin her hesabı Instagram'a tek tek sorar. Değilse takipçilerini yükleyip iki listeyi karşılaştırır. 30.000 takipçi ve 800 takiple bu, 1.200 sayfa yerine 800 soru demek.</p>
-            </li>
-            <li>
-              <h3><span lang="en">It shows what it finds right away</span><span lang="tr">Bulduğunu hemen gösterir</span></h3>
-              <p lang="en">Non-followers appear as they are confirmed. If Instagram cuts the scan short, progress is kept for a day and Resume continues where it stopped.</p>
-              <p lang="tr">Takip etmeyenler kesinleştikçe listede belirir. Instagram taramayı keserse ilerleme bir gün saklanır, Devam et kaldığı yerden sürer.</p>
-            </li>
-            <li>
-              <h3><span lang="en">It unfollows slowly</span><span lang="tr">Takibi yavaşça bırakır</span></h3>
-              <p lang="en">One account every few seconds, with a five-minute break every five. Each unfollow is confirmed with Instagram, and the run stops at the first sign of a block.</p>
-              <p lang="tr">Birkaç saniyede bir hesap, her beş hesapta beş dakika mola. Her biri Instagram'dan doğrulanır, engelin ilk işaretinde iş durur.</p>
-            </li>
-            <li>
-              <h3><span lang="en">Or it skips the scan</span><span lang="tr">Ya da taramayı atlar</span></h3>
-              <p lang="en"><strong>Unfollow from a list</strong> in the panel takes usernames you paste, for example from <a href="/export">your Instagram data file</a>, and unfollows them the same slow way. Each one is looked up among the people you follow first.</p>
-              <p lang="tr">Paneldeki <strong>Listeden takibi bırak</strong>, yapıştırdığın kullanıcı adlarını (örneğin <a href="/export">Instagram veri dosyandan</a>) alır ve aynı yavaşlıkta takibi bırakır. Her biri önce takip ettiklerin arasında aranır.</p>
-            </li>
-          </ol>
-          </div>
-        </div>
-      </section>
-
-      <section id="limits">
-        <div class="shell">
-          <div class="usage-split">
-          <div class="usage-aside">
-            <h2><span lang="en">Limits</span><span lang="tr">Sınırlar</span></h2>
-            <p class="section-intro" lang="en">Instagram decides how much it answers. The panel stops when Instagram says stop.</p>
-            <p class="section-intro" lang="tr">Ne kadar cevap vereceğine Instagram karar verir. Panel, Instagram dur dediğinde durur.</p>
-          </div>
-          <ol class="steps">
-            <li>
-              <h3><span lang="en">Large accounts get cut off</span><span lang="tr">Büyük hesaplar yarıda kesilebilir</span></h3>
-              <p lang="en">Instagram tends to stop a scan after a few hundred requests. The panel then pauses and names a time to resume, one to three hours later. Trying sooner makes it last longer: one user could not open their follower list in the app until the next day.</p>
-              <p lang="tr">Instagram genelde birkaç yüz istekten sonra taramayı keser. Panel o zaman durur ve devam etmek için bir saat verir, bir ile üç saat sonrası. Erken denemek kısıtlamayı uzatır: bir kullanıcı ertesi güne kadar uygulamada takipçi listesini açamadı.</p>
-            </li>
-            <li>
-              <h3><span lang="en">For the biggest accounts, use the data file</span><span lang="tr">En büyük hesaplar için veri dosyası</span></h3>
-              <p lang="en">If you have many followers and also follow many accounts, a scan can take several sittings. <a href="/export">The data file method</a> gives an exact list at once, with no requests at all; paste it into Unfollow from a list.</p>
-              <p lang="tr">Hem takipçin hem takip ettiğin çoksa tarama birkaç oturuma yayılabilir. <a href="/export">Veri dosyası yöntemi</a> hiç istek atmadan, tek seferde kesin liste verir; onu Listeden takibi bırak'a yapıştır.</p>
-            </li>
-            <li>
-              <h3><span lang="en">Unfollowing has a limit too</span><span lang="tr">Takip bırakmanın da sınırı var</span></h3>
-              <p lang="en">Instagram blocks too many unfollows in a row. When it does, the panel stops and skips the rest; wait a few hours before going on.</p>
-              <p lang="tr">Instagram art arda çok takip bırakmayı engeller. Engellerse panel durur ve kalanları atlar; devam etmeden önce birkaç saat bekle.</p>
-            </li>
-            <li>
-              <h3><span lang="en">A gap turns unfollowing off</span><span lang="tr">Eksik liste takip bırakmayı kapatır</span></h3>
-              <p lang="en">If Instagram leaves pages of your follower list empty, someone who follows you could show up as a non-follower. That scan's results stay visible, but unfollowing is off.</p>
-              <p lang="tr">Instagram takipçi listende boş sayfalar bırakırsa seni takip eden biri takip etmiyor görünebilir. O taramanın sonuçları görünür kalır ama takibi bırakma kapanır.</p>
-            </li>
-            <li>
-              <h3><span lang="en">It can break when Instagram changes</span><span lang="tr">Instagram değişince bozulabilir</span></h3>
-              <p lang="en">The panel uses the same addresses instagram.com uses. When Instagram changes them, it may not work until it is updated.</p>
-              <p lang="tr">Panel, instagram.com'un kendi kullandığı adresleri kullanır. Instagram bunları değiştirince güncellenene kadar çalışmayabilir.</p>
-            </li>
-          </ol>
-          </div>
-        </div>
-      </section>
-
     </main>
 
     <footer class="colophon">
@@ -520,13 +448,9 @@
           en: "The code file could not be loaded.",
           tr: "Kod dosyası yüklenemedi."
         },
-        wallOpen: {
-          en: "No sponsors yet. Whoever is first stays at the top of the list.",
-          tr: "İlk sponsor henüz yok. İlk olan listenin en üstünde kalır."
-        },
-        wallLeft: {
-          en: "{n} more places on the list.",
-          tr: "Listede {n} yer daha var."
+        supportersEmpty: {
+          en: "None yet. Be the first.",
+          tr: "Henüz yok. İlk sen ol."
         },
         promoClose: { en: "Close", tr: "Kapat" },
         shotAlt: {
@@ -583,38 +507,25 @@
         const list = document.querySelector("[data-sponsors]");
         const empty = document.querySelector("[data-sponsors-empty]");
         if (!list || sponsors === undefined) return;
-        const L = lang();
         const filled = Array.isArray(sponsors) ? sponsors.slice(0, 10) : [];
 
         list.replaceChildren(
-          ...filled.map((sponsor, index) => {
+          ...filled.map((sponsor) => {
             const item = document.createElement("li");
-            item.className = "wall-slot";
-
-            const rank = document.createElement("span");
-            rank.className = "wall-rank";
-            rank.textContent = String(index + 1).padStart(2, "0");
-
-            const name = document.createElement("span");
-            name.className = "wall-name";
-            name.textContent = sponsor.name;
-
             const account = sponsor.github || sponsor.instagram;
-            const handle = document.createElement("a");
-            handle.className = "wall-handle";
-            handle.href = sponsor.github
+            const name = document.createElement("a");
+            name.href = sponsor.github
               ? `https://github.com/${encodeURIComponent(account)}`
               : `https://www.instagram.com/${encodeURIComponent(account)}/`;
-            handle.rel = "noreferrer";
-            handle.textContent = `@${account}`;
-
-            item.append(rank, name, handle);
+            name.rel = "noreferrer";
+            name.textContent = sponsor.name;
+            item.append(name);
 
             if (typeof sponsor.amount === "number") {
               const amount = document.createElement("span");
-              amount.className = "wall-amount";
+              amount.className = "supporters-amount";
               amount.textContent = `$${sponsor.amount}`;
-              item.append(amount);
+              item.append(" ", amount);
             }
 
             return item;
@@ -622,20 +533,8 @@
         );
 
         if (empty) {
-          const left = 10 - filled.length;
-          empty.replaceChildren();
-          if (left <= 0) {
-            empty.hidden = true;
-          } else if (filled.length === 0) {
-            empty.textContent = T.wallOpen[L];
-            empty.hidden = false;
-          } else {
-            const [before, after = ""] = T.wallLeft[L].split("{n}");
-            const strong = document.createElement("b");
-            strong.textContent = String(left);
-            empty.append(document.createTextNode(before), strong, document.createTextNode(after));
-            empty.hidden = false;
-          }
+          empty.textContent = T.supportersEmpty[lang()];
+          empty.hidden = filled.length > 0;
         }
       }
 

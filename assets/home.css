@@ -6,8 +6,9 @@
      hero      asymmetric split, with a sticker on the headline
      ad band   one wide slot under the hero; two fixed rails sit in the side
                margins on screens wide enough to hold them
+     notice    one amber box: how it works and where it stops
      dantel    product shot beside its pitch, same columns as the hero
-     support   two figures, then a single inline row
+     support   two short asks side by side, supporters on one line
      usage     heading and panel shot beside a numbered flow
    =========================================================================== */
 
@@ -466,32 +467,129 @@ main section.spot-slot {
   border-radius: 7px;
 }
 
+
+
 /* --------------------------------------------------------------------------
-   Support: one inline row, no card
+   Notice: how it works and where it stops, a few sentences in one amber box
    -------------------------------------------------------------------------- */
 
-.support-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-top: 26px;
-  padding-top: 22px;
-  border-top: 1px solid var(--line);
+main section.notice-band {
+  padding-block: 28px;
 }
 
-.support-row p {
-  margin: 0;
+.notice {
+  display: flex;
+  gap: 16px;
+  padding: 22px 24px;
+  border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--warn) 9%, var(--surface));
+}
+
+.notice-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  color: var(--warn);
+}
+
+.notice-title {
+  font-size: var(--step-1);
+  letter-spacing: -0.015em;
+}
+
+.notice p {
+  margin: 8px 0 0;
+  max-width: 78ch;
+  color: var(--muted);
+}
+
+.notice a {
+  color: var(--ink);
+  text-decoration-color: var(--warn);
+  text-underline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Support: two short asks side by side, supporters on one line below
+   -------------------------------------------------------------------------- */
+
+.support {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px clamp(40px, 6vw, 88px);
+}
+
+/* Each ask is a column whose button sits at the bottom, so the two buttons
+   line up however long the sentence above them runs. */
+.support > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.support h2 {
+  font-size: var(--step-2);
+}
+
+.support p {
+  flex: 1;
+  margin: 10px 0 20px;
   max-width: 44ch;
+  color: var(--muted);
+}
+
+.supporters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 24px;
+  margin-top: 40px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
   color: var(--muted);
   font-size: var(--step--1);
 }
 
-.support-actions {
+.supporters-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.supporters-list:empty {
+  display: none;
+}
+
+.supporters a {
+  color: var(--ink);
+  font-size: var(--step-0);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.supporters a:hover {
+  color: var(--accent);
+}
+
+.supporters-amount {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 700px) {
+  .support {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .notice {
+    gap: 12px;
+    padding: 18px;
+  }
 }
 
 
@@ -542,49 +640,6 @@ main section.spot-slot {
 }
 
 
-/* --------------------------------------------------------------------------
-   Figures: the audience numbers in the support section, two equal halves
-   -------------------------------------------------------------------------- */
-
-.figures {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 32px;
-  margin-top: 30px;
-  padding-top: 26px;
-  border-top: 1px solid var(--line);
-  align-items: baseline;
-}
-
-.figure-value {
-  display: block;
-  font-size: clamp(2rem, 1rem + 3.2vw, 3.25rem);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
-}
-
-.figures > div:not(:first-child) .figure-value {
-  font-size: clamp(1.5rem, 0.9rem + 1.8vw, 2rem);
-  color: var(--muted);
-}
-
-.figure-label {
-  display: block;
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: var(--step--1);
-}
-
-.figures--two {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.figures--two > div:not(:first-child) .figure-value {
-  font-size: clamp(2rem, 1rem + 3.2vw, 3.25rem);
-  color: var(--ink);
-}
 
 
 /* --------------------------------------------------------------------------
@@ -704,19 +759,6 @@ main section.spot-slot {
   .usage-split > .shot {
     margin: 0;
   }
-
-  .figures {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 28px;
-  }
-
-  .figures > div:first-child {
-    grid-column: 1 / -1;
-  }
-
-  .figures--two > div:first-child {
-    grid-column: auto;
-  }
 }
 
 /* The shell is 100% - 2 * clamp(20px, 5vw, 64px). That is under 728px at
@@ -756,14 +798,6 @@ main section.spot-slot {
     font-size: 0.9375rem;
   }
 
-  .figures {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .figures--two {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .hero-actions .btn {
     flex: 1 1 auto;
   }
@@ -773,104 +807,6 @@ main section.spot-slot {
   }
 }
 
-/* --------------------------------------------------------------------------
-   Sponsor wall. Ten numbered slots. Scarcity is the motivation, so the count
-   of remaining places is stated rather than implied.
-   -------------------------------------------------------------------------- */
-
-.wall {
-  margin-top: 30px;
-  padding-top: 26px;
-  border-top: 1px solid var(--line);
-}
-
-.wall-lead {
-  margin: 0;
-  max-width: 56ch;
-  color: var(--muted);
-  font-size: var(--step--1);
-}
-
-.wall-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px 28px;
-  margin: 20px 0 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: slot;
-}
-
-.wall-list:empty {
-  display: none;
-  margin: 0;
-}
-
-.wall-slot {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 11px 0;
-  border-bottom: 1px solid var(--line);
-  counter-increment: slot;
-}
-
-.wall-rank {
-  flex: 0 0 1.4rem;
-  color: var(--code-line);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
-}
-
-.wall-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 500;
-}
-
-.wall-handle {
-  flex: 0 0 auto;
-  color: var(--accent);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
-  text-decoration: none;
-}
-
-.wall-handle:hover {
-  text-decoration: underline;
-}
-
-.wall-amount {
-  flex: 0 0 auto;
-  min-width: 3.1rem;
-  text-align: right;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: var(--step--1);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.wall-empty {
-  margin: 18px 0 0;
-  color: var(--muted);
-  font-size: var(--step--1);
-}
-
-.wall-empty b {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-@media (max-width: 700px) {
-  .wall-list {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 
 
 /* --------------------------------------------------------------------------
