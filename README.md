@@ -81,6 +81,12 @@ a rate limit, not a sign-out, because signing in again does not lift it. The pan
 time to resume, and until then Resume sends nothing: one hour after a rate limit, three
 hours after a block or a long run of empty pages.
 
+Since 2.5.1 a real sign-out (a 401, or a login page in place of the list) has no wait:
+signing in again is the pause, and Resume goes straight on. A second sign-out within the
+hour is Instagram holding the account back, so that one waits three hours. After a rate
+limit, a panel left open resumes by itself when the hour is over; after a block or an HTML
+page it waits for you to press Resume.
+
 Since 2.5.0 a large follower list is no longer downloaded when that is the expensive way.
 Instagram serves followers 25 a page, so an account with 30,000 followers needs about
 1,200 pages, and Instagram cuts scans off after a few hundred. The scan first reads the two
@@ -109,7 +115,7 @@ page separate a login redirect, a challenge, a "please wait" page, and the logge
 That request is retried a few times with a short wait. If it is still HTML, Instagram is
 holding the list back: one user who kept resuming into it could not open their follower list
 in the Instagram app until the next day. Since 2.5.0 the scan then pauses for three hours like
-a block, and the Resume and Start over buttons say when they open again instead of answering
+a block (a login page is a sign-out instead, see above), and the Resume and Start over buttons say when they open again instead of answering
 with the same error. A follower count of 0 from that reply stays an error.
 
 Instagram sometimes sends a run of empty pages in the middle of a list, or ends a list

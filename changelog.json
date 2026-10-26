@@ -1,5 +1,17 @@
 [
   {
+    "version": "2.5.1",
+    "date": "2026-10-26",
+    "tr": [
+      "Instagram oturumunu gerçekten kapattıysa (liste yerine giriş sayfası gönderdiyse) artık 3 saat beklenmiyor: tekrar giriş yapıp kodu yapıştırınca Devam et hemen çalışıyor. Bir saat içinde ikinci kez olursa bu bir çıkış değil, Instagram'ın hesabı yavaşlatmasıdır; o zaman 3 saat bekleniyor.",
+      "Instagram istekleri sınırladığında panel açık kalırsa tarama, bir saatlik bekleme bitince kendiliğinden devam ediyor; geri gelip Devam et'e basmak gerekmiyor. Engel ve liste yerine sayfa gibi daha sert durumlarda karar yine senin."
+    ],
+    "en": [
+      "When Instagram really signs you out (a login page in place of your list), there is no three-hour wait any more: sign in again, paste the script and Resume goes straight on. A second sign-out within the hour is Instagram holding the account back, and that one waits three hours.",
+      "When Instagram limits requests, a panel left open resumes the scan by itself once the hour is over; there is no need to come back and press Resume. After a block or an HTML page in place of your list, Resume still waits for you."
+    ]
+  },
+  {
     "version": "2.5.0",
     "date": "2026-10-26",
     "tr": [

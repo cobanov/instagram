@@ -532,6 +532,67 @@ test("a real sign-out keeps no cooldown and shows what Instagram sent", async ()
   assert.equal(api.state.mode, "results");
 });
 
+test("a login page is a sign-out with no wait; a second one within the hour waits three hours", async () => {
+  const page = htmlPage(HTML_LOGIN, "https://www.instagram.com/accounts/login/?next=/api/v1/friendships/123/followers/");
+  const storage = memoryStorage();
+  const doc = { ...fakeDocument(), cookie: "ds_user_id=123" };
+  const { impl, calls } = mockFetch([
+    { status: 200, json: { users: [{ pk: "1", username: "kept" }], has_more: true, next_max_id: "page-two" } },
+    page, page, page, page
+  ]);
+  const api = loadInternals(impl, { document: doc, localStorage: storage });
+  await api.startScan();
+  assert.equal(calls.length, 5);
+  assert.match(api.state.error, /signed you out/);
+  assert.doesNotMatch(api.state.error, /Resume after/);
+  assert.match(api.state.errorDetail, /followers 1 · HTTP 200 · HTML login \/accounts\/login\//);
+  assert.equal(api.state.checkpoint.retryAfter, 0);
+  assert.match(api.renderIdleView(), /data-action="resume-scan">Resume scan</);
+
+  /* Signed in again, pasted again: Resume goes straight on, and Instagram signs out again. */
+  const again = mockFetch([page, page, page, page]);
+  const later = loadInternals(again.impl, { document: doc, localStorage: storage });
+  await later.startScan({ resume: true });
+  assert.equal(again.calls.length, 4);
+  assert.match(again.calls[0].url, /max_id=page-two$/);
+  assert.match(later.state.error, /again within the hour.*Resume after/);
+  const wait = later.state.checkpoint.retryAfter - Date.now();
+  assert.ok(wait > 179 * 60 * 1000 && wait <= 180 * 60 * 1000);
+  assert.equal(later.state.checkpoint.autoResume, false);
+  assert.match(later.renderIdleView(), /data-action="resume-scan" disabled/);
+});
+
+test("after a rate limit an open panel resumes by itself once the wait is over", async () => {
+  const pending = [];
+  const { impl, calls } = mockFetch([
+    { status: 429, json: { message: "Please wait a few minutes before you try again.", status: "fail" } },
+    { status: 200, json: { users: [{ pk: "1", username: "a" }], has_more: false } },
+    { status: 200, json: { users: [{ pk: "1", username: "a" }, { pk: "2", username: "gone" }], has_more: false } }
+  ]);
+  const api = loadInternals(impl, {
+    document: { ...fakeDocument(), cookie: "ds_user_id=123" },
+    /* The hour-long wait is held back; the short pauses between pages fire at once. */
+    setTimeout: (fn, ms) => { if (ms > 60000) pending.push(fn); else fn(); return 0; }
+  });
+  await api.startScan();
+  assert.equal(calls.length, 1);
+  assert.equal(api.state.checkpoint.autoResume, true);
+  assert.match(api.renderIdleView(), /If this tab stays open, the scan continues by itself at /);
+
+  api.bindScanResume({ querySelector: () => null });
+  assert.equal(pending.length, 1);
+  pending[0]();
+  assert.equal(calls.length, 1, "nothing is sent while the wait is still running");
+
+  api.bindScanResume({ querySelector: () => null });
+  api.state.checkpoint.retryAfter = Date.now() - 1;
+  pending[1]();
+  for (let i = 0; i < 50 && api.state.mode !== "results"; i++) await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(calls.length, 3);
+  assert.equal(api.state.mode, "results");
+  assert.equal(api.getDisplayUsers().map((user) => user.username).join(), "gone");
+});
+
 test("a list that ends with has_more but no cursor completes; on followers the results stay unverified", async () => {
   const ends = { users: [{ pk: "1", username: "a" }], has_more: true };
   for (const [followers, following, unverified] of [
@@ -573,6 +634,8 @@ test("an HTML page at the start is an error, not a result of 0 followers", async
   assert.ok(wait > 179 * 60 * 1000 && wait <= 180 * 60 * 1000);
   assert.match(api.state.error, /sent a page instead of your list/);
   assert.match(api.state.error, /Resume after/);
+  assert.equal(api.state.checkpoint.autoResume, false);
+  assert.doesNotMatch(api.renderIdleView(), /continues by itself/);
   assert.doesNotMatch(api.state.errorDetail, /followers 0/);
   assert.match(api.state.errorDetail, /HTTP 200 · HTML page \/api\/v1\/friendships\/123\/followers\//);
   const idle = api.renderIdleView();
@@ -594,7 +657,7 @@ test("an HTML page at the start is an error, not a result of 0 followers", async
 });
 
 test("the Turkish panel names the HTML page and the Resume button, with the technical line under Detay", async () => {
-  const page = htmlPage(HTML_LOGIN, "https://www.instagram.com/accounts/login/?next=/api/v1/friendships/123/followers/");
+  const page = htmlPage(HTML_CHALLENGE, "https://www.instagram.com/challenge/?next=/api/v1/friendships/123/followers/");
   const { impl } = mockFetch([page, page, page, page]);
   const api = loadInternals(impl, {
     document: { ...fakeDocument(), cookie: "ds_user_id=123" },
@@ -610,7 +673,7 @@ test("the Turkish panel names the HTML page and the Resume button, with the tech
   assert.match(api.renderIdleView(), /Saat .* sonrası devam et/);
   assert.doesNotMatch(api.state.error, /oturumunu kapattı/);
   assert.doesNotMatch(api.state.errorDetail, /followers 0/);
-  assert.match(api.state.errorDetail, /HTML login \/accounts\/login\//);
+  assert.match(api.state.errorDetail, /HTML challenge \/challenge\//);
   assert.match(api.renderIdleView(), /Detay: /);
   assert.doesNotMatch(api.renderIdleView(), /herkes seni takip ediyor|bulunamadı|0 takipçi/i);
 });

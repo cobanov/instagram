@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.5.0";
+  const VERSION = "2.5.1";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -153,6 +153,8 @@
       requestFailed: "Request failed: {status}",
       tooManyRequests: "Instagram is limiting requests for this account. You were not signed out, and signing out and back in does not lift it; only waiting does.",
       sessionExpired: "Instagram signed you out. Sign in again, paste the script again and press Resume. The scan continues where it stopped.",
+      signedOutAgain: "Instagram signed you out again within the hour. That is how it holds back an account that sends many requests, so the scan waits before it tries again.",
+      autoResume: "If this tab stays open, the scan continues by itself at {time}.",
       htmlInterrupted: "Instagram sent a page instead of your list, again after a few tries. It is holding back list requests for this account for a while: you may not be able to open your follower list in the app either, and if it signed you out, sign in again. Your progress is saved.",
       detailLabel: "Detail",
       scanBlocked: "Instagram temporarily refused list requests for this account.",
@@ -277,6 +279,8 @@
       requestFailed: "İstek başarısız: {status}",
       tooManyRequests: "Instagram bu hesabın isteklerini sınırlıyor. Oturumun kapanmadı; çıkış yapıp tekrar girmek bunu kaldırmaz, yalnızca beklemek işe yarar.",
       sessionExpired: "Instagram oturumunu kapattı. Tekrar giriş yap, kodu yeniden yapıştır ve Devam et'e bas. Tarama kaldığı yerden sürer.",
+      signedOutAgain: "Instagram bir saat içinde oturumunu yine kapattı. Çok istek gönderen hesabı böyle yavaşlatıyor; tarama tekrar denemeden önce bekler.",
+      autoResume: "Bu sekme açık kalırsa tarama saat {time} olunca kendiliğinden devam eder.",
       htmlInterrupted: "Instagram birkaç denemede de liste yerine bir sayfa gönderdi. Bu hesabın liste isteklerini bir süreliğine geri çeviriyor: uygulamada takipçi listeni de açamayabilirsin, oturumun kapandıysa tekrar giriş yap. İlerlemen kaydedildi.",
       detailLabel: "Detay",
       scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti.",
@@ -431,6 +435,9 @@
       checkUnavailable: false,
       verified: {},
       retryAfter: 0,
+      /* When the last sign-out happened, and whether the wait ends in a resume. */
+      signedOutAt: 0,
+      autoResume: false,
       stopReason: "",
       stopDetail: ""
     };
@@ -779,6 +786,7 @@
        same refusal and throw the progress away, so both wait. */
     const coolingDown = checkpoint?.retryAfter > Date.now();
     const off = coolingDown ? " disabled" : "";
+    const autoLine = coolingDown && checkpoint.autoResume ? `<p>${escapeHTML(t("autoResume", { time: clockTime(checkpoint.retryAfter) }))}</p>` : "";
     const resumeActions = checkpoint ? `
         <div class="iu-welcome-actions">
           <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="resume-scan"${off}>${escapeHTML(coolingDown ? t("resumeScanAt", { time: clockTime(checkpoint.retryAfter) }) : t("resumeScan"))}</button>
@@ -791,6 +799,7 @@
           <div class="iu-welcome-icon iu-welcome-icon--error">${SVG.alert}</div>
           <h2>${escapeHTML(t("scanFailed"))}</h2>
           <p>${escapeHTML(state.error)}</p>
+          ${autoLine}
           ${state.errorDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(state.errorDetail)}</p>` : ""}
           ${checkpoint ? resumeActions : `
           <div class="iu-welcome-actions">
@@ -807,6 +816,7 @@
           <h2>${escapeHTML(t("welcomeTitle"))}</h2>
           <p>${escapeHTML(t("resumeHint"))}</p>
           ${checkpoint.stopReason ? `<p>${escapeHTML(checkpoint.stopReason)}</p>` : ""}
+          ${autoLine}
           ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
           ${resumeActions}
         </div>
@@ -839,7 +849,11 @@
     const mode = state.mode;
     const wait = Number(state.checkpoint?.retryAfter) - Date.now();
     clearTimeout(cooldownTimer);
-    if (wait > 0) cooldownTimer = setTimeout(() => { if (!destroyed && state.mode === mode) renderBody(); }, wait + 1000);
+    if (wait > 0) cooldownTimer = setTimeout(() => {
+      if (destroyed || state.mode !== mode) return;
+      if (state.checkpoint?.autoResume && !(state.checkpoint.retryAfter > Date.now())) startScan({ resume: true });
+      else renderBody();
+    }, wait + 1000);
     body.querySelector("[data-action='resume-scan']")?.addEventListener("click", () => startScan({ resume: true }));
     body.querySelector("[data-action='restart-scan']")?.addEventListener("click", () => {
       clearCheckpoint();
@@ -941,6 +955,7 @@
         <strong>${escapeHTML(t("partialTitle"))}</strong>
         <p>${escapeHTML(t("partialBody", { loaded: formatCount(checkedCount(checkpoint)) }))}</p>
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
+        ${coolingDown && checkpoint.autoResume ? `<p>${escapeHTML(t("autoResume", { time: clockTime(checkpoint.retryAfter) }))}</p>` : ""}
         ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
         <div class="iu-notice-actions">
           <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan"${off}>${escapeHTML(coolingDown ? t("resumeScanAt", { time: clockTime(checkpoint.retryAfter) }) : t("resumeScan"))}</button>
@@ -1411,15 +1426,24 @@
       if (destroyed) return;
       if (state.scanCancelled) return stopScan(checkpoint);
       console.error("[iu] scan failed:", error);
-      const retryAfter = checkpoint && COOLDOWN_MS[error?.kind] ? Date.now() + COOLDOWN_MS[error.kind] : 0;
-      const message = (error?.message || String(error) || t("scanFailed")) +
+      /* Signing in again is pause enough after a real sign-out. A second one
+         within the hour is Instagram holding the account back, so it waits. */
+      const signedOutAgain = error?.kind === "session" && checkpoint?.signedOutAt > Date.now() - COOLDOWN_MS.rate;
+      const wait = signedOutAgain ? COOLDOWN_MS.html : COOLDOWN_MS[error?.kind];
+      const retryAfter = checkpoint && wait ? Date.now() + wait : 0;
+      const message = (signedOutAgain ? t("signedOutAgain") : error?.message || String(error) || t("scanFailed")) +
         (retryAfter ? " " + t("resumeAfter", { time: clockTime(retryAfter) }) : "");
+      const htmlReply = String(error?.detail || "").startsWith("HTML");
       const detail = scanErrorDetail(error, checkpoint);
       state.errorDetail = detail;
       if (checkpoint) {
         checkpoint.stopReason = message;
         checkpoint.stopDetail = detail;
         checkpoint.retryAfter = retryAfter;
+        if (error?.kind === "session") checkpoint.signedOutAt = Date.now();
+        /* A rate limit only asks for time, so an open panel resumes by itself
+           when the wait is over. Blocks and HTML pages wait for the user. */
+        checkpoint.autoResume = error?.kind === "rate";
         saveCheckpoint(checkpoint);
       }
       /* Rows already checked can be shown. An HTML page is not a list, so a
@@ -1430,7 +1454,7 @@
       }
       state.error = message;
       state.mode = "idle";
-      if (error?.kind === "html") {
+      if (htmlReply) {
         state.users = [];
         state.followersCount = 0;
         state.followingCount = 0;
@@ -1454,7 +1478,7 @@
       const name = checking ? "checked" : onFollowers ? "followers" : "following";
       /* "followers 0" is how far the scan got, but on an HTML reply it reads
          as a result. Leave the count off until at least one account was saved. */
-      if (!(error?.kind === "html" && count === 0)) {
+      if (!(String(error?.detail || "").startsWith("HTML") && count === 0)) {
         list = checking ? `${name} ${count}/${checkpoint.following.length}` : `${name} ${count}`;
       }
     }
@@ -1825,8 +1849,12 @@
     return [label, where].filter(Boolean).join(" ");
   }
 
+  /* A login page is a real sign-out: signing in again lifts it, so it is
+     reported like a 401 and does not wait. */
   function htmlReplyError(response, body) {
-    return scanError("html", t("htmlInterrupted"), response.status, classifyHtmlReply(response, body));
+    const detail = classifyHtmlReply(response, body);
+    if (detail.startsWith("HTML login")) return scanError("session", t("sessionExpired"), response.status, detail);
+    return scanError("html", t("htmlInterrupted"), response.status, detail);
   }
 
   /* Every way Instagram ends a scan is turned into a message that says what to
@@ -3189,6 +3217,7 @@
       followBackStatus,
       parseUsernames,
       scanFromResults,
+      bindScanResume,
       showPastedList,
       waitBeforeNextScanPage,
       startScan,
