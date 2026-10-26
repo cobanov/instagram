@@ -30,8 +30,9 @@ So this is a script you paste into your own DevTools console on your own Instagr
 tab. It uses the session already in the browser. Nothing is sent anywhere: the site
 is static, and there is no server on this side to receive anything.
 
-- **It checks follow-back locally.** Like upstream, the scanner loads following first,
-  then followers, and compares the two lists inside the tab.
+- **It checks follow-back locally.** The scanner reads your follower and following
+  counts, then takes whichever way costs Instagram fewer requests: download the follower
+  list and compare it with the accounts you follow, or ask about each followed account.
 - **Nothing leaves the tab.** No backend, no upload, no key. What the panel shows is
   what the browser already had.
 - **Unfollowing is slow on purpose.** Rate limits, blocks and `checkpoint_required`
@@ -79,13 +80,28 @@ a rate limit, not a sign-out, because signing in again does not lift it. The pan
 time to resume, and until then Resume sends nothing: one hour after a rate limit, three
 hours after a block or a long run of empty pages.
 
-Since 2.4.2, HTTP 200 with an HTML body is not an empty follower list and is not announced
-as a sign-out. The final URL and the page separate a login redirect, a challenge, a
-"please wait" page, and the logged-in shell left on the API URL. That request is retried
-a few times with a short wait. If it is still HTML, the scan pauses on its checkpoint and
-Resume continues from the last saved page. The panel says to refresh instagram.com, confirm
-you are signed in, paste the code again and press Resume, and to wait about 30 minutes if
-it keeps happening. A follower count of 0 from that reply stays an error.
+Since 2.5.0 a large follower list is no longer downloaded when that is the expensive way.
+Instagram serves followers about 24 a page, so an account with 30,000 followers needs about
+1,250 pages, and Instagram cuts scans off after a few hundred. The scan first reads the two
+counts from your profile. When you follow fewer accounts than the follower list has pages
+left, it loads the accounts you follow and asks Instagram about each one
+(`/api/v1/friendships/show/<id>/`). Every answer is final and saved, so non-followers show up
+as they are found, and the ones found so far can be unfollowed even if Instagram stops the
+scan. If Instagram does not answer that question, the scan falls back to downloading the
+follower list.
+
+**Unfollow from a list** (since 2.5.0) needs no scan at all. Paste usernames, such as the
+list from `/export` or one copied from an earlier result, and the panel unfollows them at the
+usual pace. Each account is first looked up among the people you follow and skipped if you
+do not follow it. The pasted list is not checked for who follows you back.
+
+Since 2.4.2, HTTP 200 with an HTML body is not an empty follower list. The final URL and the
+page separate a login redirect, a challenge, a "please wait" page, and the logged-in shell.
+That request is retried a few times with a short wait. If it is still HTML, Instagram is
+holding the list back: one user who kept resuming into it could not open their follower list
+in the Instagram app until the next day. Since 2.5.0 the scan then pauses for three hours like
+a block, and the Resume and Start over buttons say when they open again instead of answering
+with the same error. A follower count of 0 from that reply stays an error.
 
 Instagram sometimes sends a run of empty pages in the middle of a list, or ends a list
 while still claiming there is more. Since 2.4.1 the scan steps over up to ten empty pages
