@@ -7,7 +7,7 @@
   }
 
   const APP_ID = "iu-app";
-  const VERSION = "2.4.3";
+  const VERSION = "2.5.0";
   const CLEANUP_EVENT = "iu-cleanup";
   const STYLE_ID = "iu-style";
   const STORAGE_KEY = "iu_state_v3";
@@ -52,21 +52,29 @@
      limit, not a finished list. Try a few times before pausing the scan. */
   const HTML_REPLY_RETRIES = 3;
   /* How long Resume sends nothing after Instagram told the scan to back off,
-     by error kind; asking again sooner only gets refused and can escalate. */
-  const COOLDOWN_MS = { gap: 3 * 60 * 60 * 1000, blocked: 3 * 60 * 60 * 1000, rate: 60 * 60 * 1000 };
+     by error kind; asking again sooner only gets refused and can escalate. An
+     HTML page in place of the list is that too: one user who resumed into it
+     could not open their follower list in the app until the next day. */
+  const COOLDOWN_MS = { gap: 3 * 60 * 60 * 1000, blocked: 3 * 60 * 60 * 1000, html: 3 * 60 * 60 * 1000, rate: 60 * 60 * 1000 };
+  /* Instagram serves the follower list about 24 accounts a page whatever count
+     asks for, which makes it the expensive list on a large account. */
+  const FOLLOWER_PAGE_SIZE = 24;
 
   const I18N = {
     en: {
       title: "Instagram Unfollower",
       subtitle: "See who doesn't follow you back",
       welcomeTitle: "Ready when you are",
-      welcomeBody: "Your followers are loaded first, then everyone you follow is checked against them. Non-followers appear as they are found. Nothing is changed on your account during the scan.",
+      welcomeBody: "The scan reads your two counts and takes the way that costs Instagram fewer requests: load your followers and compare, or ask about each account you follow. Non-followers appear as they are found. Nothing is changed on your account during the scan.",
       scanBtn: "Scan now",
       scanning: "Scanning",
       loadingFollowing: "Step 2 of 2: checking the people you follow",
       loadingFollowers: "Step 1 of 2: loading your followers",
+      loadingFollowingFirst: "Step 1 of 2: loading the people you follow",
+      checkingEach: "Step 2 of 2: asking Instagram about each account you follow",
       liveFound: "Found so far: {count}",
       liveWaiting: "Non-followers will appear here as soon as your followers are loaded.",
+      liveWaitingCheck: "Non-followers will appear here as each account you follow is checked.",
       liveHint: "You can select accounts now. Unfollowing opens when the scan finishes.",
       liveHintGap: "Your follower list may be incomplete, so unfollowing stays off for this scan.",
       emptyPages: "Instagram keeps sending empty pages in your follower list.",
@@ -144,12 +152,22 @@
       requestFailed: "Request failed: {status}",
       tooManyRequests: "Instagram is limiting requests for this account. You were not signed out, and signing out and back in does not lift it; only waiting does.",
       sessionExpired: "Instagram signed you out. Sign in again, paste the script again and press Resume. The scan continues where it stopped.",
-      htmlInterrupted: "Instagram sent a page instead of your list. It was tried again a few times and still failed. Nothing is broken: your session may have ended, or Instagram may be limiting requests for a short while. Refresh the instagram.com tab, make sure you are signed in, paste the code again and press Resume scan. If it happens again, wait about 30 minutes.",
+      htmlInterrupted: "Instagram sent a page instead of your list, again after a few tries. It is holding back list requests for this account for a while: you may not be able to open your follower list in the app either, and if it signed you out, sign in again. Your progress is saved.",
       detailLabel: "Detail",
       scanBlocked: "Instagram temporarily refused list requests for this account.",
       networkError: "The connection dropped. Check the network and press Resume.",
       keepTabVisible: "Keep this tab in front. Chrome slows background tabs down to one step per minute.",
       resumeScan: "Resume scan",
+      resumeScanAt: "Resume after {time}",
+      listBtn: "Unfollow from a list",
+      listTitle: "Unfollow from a list",
+      listBody: "Paste usernames, one per line: the list from instagram.cobanov.dev/export, or one you copied from an earlier scan. Nothing is scanned. Right before each unfollow the account is looked up among the people you follow, and skipped if you do not follow it. Who follows you back is not checked, so paste only accounts you want to unfollow.",
+      listShow: "Show list",
+      listEmpty: "No usernames found in what you pasted.",
+      listNotice: "This is the list you pasted, not a scan. It was not checked for who follows you back.",
+      listCount: "{count} accounts",
+      notFollowing: "You do not follow this account",
+      lookupFailed: "Could not look this account up in the people you follow",
       startOver: "Start over",
       resumeHint: "A previous scan stopped partway. Continue from there instead of starting again.",
       partialTitle: "Scan stopped partway",
@@ -171,13 +189,16 @@
       title: "Instagram Takip Etmeyenler",
       subtitle: "Geri takip etmeyenleri gör",
       welcomeTitle: "Hazır olduğunda başlat",
-      welcomeBody: "Önce takipçilerin yüklenir, sonra takip ettiğin herkes onlarla karşılaştırılır. Takip etmeyenler bulundukça listede belirir. Tarama sırasında hesabında hiçbir şey değişmez.",
+      welcomeBody: "Tarama takipçi ve takip sayını okur, Instagram'a daha az istek atan yolu seçer: takipçilerini yükleyip karşılaştırmak ya da takip ettiğin her hesabı tek tek sormak. Takip etmeyenler bulundukça listede belirir. Tarama sırasında hesabında hiçbir şey değişmez.",
       scanBtn: "Taramayı başlat",
       scanning: "Taranıyor",
       loadingFollowing: "Adım 2/2: Takip ettiklerin kontrol ediliyor",
       loadingFollowers: "Adım 1/2: Takipçilerin yükleniyor",
+      loadingFollowingFirst: "Adım 1/2: Takip ettiklerin yükleniyor",
+      checkingEach: "Adım 2/2: Takip ettiğin her hesap tek tek soruluyor",
       liveFound: "Şu ana kadar bulunan: {count}",
       liveWaiting: "Takipçilerin yüklenir yüklenmez takip etmeyenler burada belirecek.",
+      liveWaitingCheck: "Takip ettiğin hesaplar tek tek kontrol edildikçe takip etmeyenler burada belirecek.",
       liveHint: "Hesapları şimdiden seçebilirsin. Takibi bırakma tarama bitince açılır.",
       liveHintGap: "Takipçi listen eksik olabilir, bu yüzden bu taramada takibi bırakma kapalı.",
       emptyPages: "Instagram takipçi listende üst üste boş sayfalar gönderiyor.",
@@ -255,12 +276,22 @@
       requestFailed: "İstek başarısız: {status}",
       tooManyRequests: "Instagram bu hesabın isteklerini sınırlıyor. Oturumun kapanmadı; çıkış yapıp tekrar girmek bunu kaldırmaz, yalnızca beklemek işe yarar.",
       sessionExpired: "Instagram oturumunu kapattı. Tekrar giriş yap, kodu yeniden yapıştır ve Devam et'e bas. Tarama kaldığı yerden sürer.",
-      htmlInterrupted: "Instagram liste yerine bir sayfa gönderdi. Birkaç kez yeniden denendi, yine olmadı. Araç bozulmadı: oturumun düşmüş ya da istekler kısa süre sınırlanmış olabilir. instagram.com sekmesini yenile, giriş yaptığını kontrol et, kodu yeniden yapıştır ve Taramaya devam et'e bas. Aynı şey tekrar olursa yaklaşık 30 dakika bekle.",
+      htmlInterrupted: "Instagram birkaç denemede de liste yerine bir sayfa gönderdi. Bu hesabın liste isteklerini bir süreliğine geri çeviriyor: uygulamada takipçi listeni de açamayabilirsin, oturumun kapandıysa tekrar giriş yap. İlerlemen kaydedildi.",
       detailLabel: "Detay",
       scanBlocked: "Instagram bu hesap için liste isteklerini geçici olarak reddetti.",
       networkError: "Bağlantı koptu. Ağı kontrol et ve Devam et'e bas.",
       keepTabVisible: "Bu sekmeyi önde tut. Chrome arka plandaki sekmeleri dakikada bir adıma yavaşlatır.",
       resumeScan: "Taramaya devam et",
+      resumeScanAt: "Saat {time} sonrası devam et",
+      listBtn: "Listeden takibi bırak",
+      listTitle: "Listeden takibi bırak",
+      listBody: "Kullanıcı adlarını her satıra bir tane gelecek şekilde yapıştır: instagram.cobanov.dev/export'tan çıkan liste ya da önceki bir taramadan kopyaladığın liste. Tarama yapılmaz. Her hesap, takibi bırakılmadan hemen önce takip ettiklerin arasında aranır; takip etmiyorsan atlanır. Seni geri takip edip etmediğine bakılmaz, o yüzden yalnızca takibi bırakmak istediğin hesapları yapıştır.",
+      listShow: "Listeyi göster",
+      listEmpty: "Yapıştırdığın metinde kullanıcı adı bulunamadı.",
+      listNotice: "Bu, taramadan değil senin yapıştırdığın listeden geliyor. Seni geri takip edenler ayıklanmadı.",
+      listCount: "{count} hesap",
+      notFollowing: "Bu hesabı takip etmiyorsun",
+      lookupFailed: "Bu hesap takip ettiklerin arasında aranamadı",
       startOver: "Baştan başla",
       resumeHint: "Önceki tarama yarıda kaldı. Baştan başlamak yerine oradan devam edebilirsin.",
       partialTitle: "Tarama yarıda kaldı",
@@ -319,6 +350,7 @@
     error: "",
     checkpoint: loadCheckpoint(),
     partial: false,
+    listMode: false,
     coverage: "",
     unverified: false,
     errorDetail: ""
@@ -385,6 +417,14 @@
       followersCursor: "",
       followersDone: false,
       followersGap: false,
+      followersTotal: null,
+      followingTotal: null,
+      /* Ask about each followed account instead of downloading the followers
+         (see checkEachIsCheaper). verified holds the answers: true keeps the
+         account, false is a confirmed non-follower. */
+      checkEach: false,
+      checkUnavailable: false,
+      verified: {},
       retryAfter: 0,
       stopReason: "",
       stopDetail: ""
@@ -430,13 +470,13 @@
     }
   }
 
-  function saveLastScan(savedAt = Date.now()) {
+  function saveLastScan(savedAt = Date.now(), users = state.users.filter((u) => u.follows_viewer === false), unverified = state.unverified) {
     try {
       localStorage.setItem(LAST_SCAN_KEY, JSON.stringify({
         viewerId: getCookie("ds_user_id"),
         savedAt,
-        users: state.users.filter((u) => u.follows_viewer === false),
-        unverified: state.unverified
+        users,
+        unverified
       }));
     } catch {
       /* quota or disabled storage: the next visit simply scans again */
@@ -462,6 +502,7 @@
     state.unverified = Boolean(saved.unverified);
     state.selected.clear();
     state.partial = false;
+    state.listMode = false;
     state.coverage = t("lastScanNotice", { age: timeAgo(saved.savedAt) });
     state.mode = "results";
     renderBody();
@@ -688,7 +729,7 @@
       return t("pillUnfollowing", { current: state.progress.current, total: state.progress.total });
     }
     if (state.mode === "results" && state.users.length) {
-      return t("pillResults", { count: state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length });
+      return t(state.listMode ? "listCount" : "pillResults", { count: state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length });
     }
     return t("pillIdle");
   }
@@ -721,10 +762,17 @@
 
   function renderIdleView() {
     const checkpoint = state.checkpoint;
+    const listButton = `<button type="button" class="iu-btn iu-btn--ghost" data-action="paste-list">${escapeHTML(t("listBtn"))}</button>`;
+    /* While Instagram holds the account back, a button that answers with the
+       same error reads as a broken tool. Starting over would only run into the
+       same refusal and throw the progress away, so both wait. */
+    const coolingDown = checkpoint?.retryAfter > Date.now();
+    const off = coolingDown ? " disabled" : "";
     const resumeActions = checkpoint ? `
         <div class="iu-welcome-actions">
-          <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
-          <button type="button" class="iu-btn iu-btn--ghost" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
+          <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="resume-scan"${off}>${escapeHTML(coolingDown ? t("resumeScanAt", { time: clockTime(checkpoint.retryAfter) }) : t("resumeScan"))}</button>
+          <button type="button" class="iu-btn iu-btn--ghost" data-action="restart-scan"${off}>${escapeHTML(t("startOver"))}</button>
+          ${listButton}
         </div>` : "";
     if (state.error) {
       return `
@@ -734,7 +782,10 @@
           <p>${escapeHTML(state.error)}</p>
           ${state.errorDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(state.errorDetail)}</p>` : ""}
           ${checkpoint ? resumeActions : `
-          <button type="button" class="iu-btn iu-btn--primary" data-action="scan">${escapeHTML(t("retry"))}</button>`}
+          <div class="iu-welcome-actions">
+            <button type="button" class="iu-btn iu-btn--primary" data-action="scan">${escapeHTML(t("retry"))}</button>
+            ${listButton}
+          </div>`}
         </div>
       `;
     }
@@ -760,6 +811,7 @@
         <div class="iu-welcome-actions">
           <button type="button" class="iu-btn iu-btn--primary iu-btn--lg" data-action="scan">${escapeHTML(t("scanBtn"))}</button>
           ${last ? `<button type="button" class="iu-btn iu-btn--ghost" data-action="show-last">${escapeHTML(t("showLastScan", { count: formatCount(last.users.length), age: timeAgo(last.savedAt) }))}</button>` : ""}
+          ${listButton}
         </div>
       </div>
     `;
@@ -768,7 +820,10 @@
   function bindIdle(body) {
     body.querySelector("[data-action='scan']")?.addEventListener("click", () => startScan());
     body.querySelector("[data-action='show-last']")?.addEventListener("click", showLastScan);
+    body.querySelector("[data-action='paste-list']")?.addEventListener("click", showListDialog);
     bindScanResume(body);
+    const wait = Number(state.checkpoint?.retryAfter) - Date.now();
+    if (wait > 0) setTimeout(() => { if (!destroyed && state.mode === "idle") renderBody(); }, wait + 1000);
   }
 
   function bindScanResume(body) {
@@ -824,8 +879,9 @@
   }
 
   function renderLiveResults() {
-    if (!state.checkpoint?.followersDone) {
-      return `<div class="iu-results-summary">${escapeHTML(t("liveWaiting"))}</div>`;
+    const checkpoint = state.checkpoint;
+    if (!checkpoint?.followersDone && !(checkpoint?.checkEach && checkpoint.followingDone)) {
+      return `<div class="iu-results-summary">${escapeHTML(t(checkpoint?.checkEach ? "liveWaitingCheck" : "liveWaiting"))}</div>`;
     }
     const found = liveUsers();
     return `
@@ -867,7 +923,7 @@
     return `
       <div class="iu-notice" role="status">
         <strong>${escapeHTML(t("partialTitle"))}</strong>
-        <p>${escapeHTML(t("partialBody", { loaded: formatCount(checkpoint.following.length) }))}</p>
+        <p>${escapeHTML(t("partialBody", { loaded: formatCount(checkedCount(checkpoint)) }))}</p>
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
         ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
         <div class="iu-notice-actions">
@@ -883,7 +939,8 @@
     const totalNonFollowers = state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length;
     const allSelected = display.length > 0 && display.every((u) => state.selected.has(u.id));
     let summary;
-    if (totalNonFollowers === 0) summary = t("foundNone");
+    if (state.listMode) summary = t("listCount", { count: totalNonFollowers });
+    else if (totalNonFollowers === 0) summary = t("foundNone");
     else if (totalNonFollowers === 1) summary = t("foundOne");
     else summary = t("foundCount", { count: totalNonFollowers });
 
@@ -891,6 +948,8 @@
       <div class="iu-results">
         ${renderPartialNotice()}
         ${state.unverified ? `<div class="iu-notice" role="status"><p>${escapeHTML(t("gapNotice"))}</p></div>` : ""}
+        ${state.listMode ? `<div class="iu-notice" role="status"><p>${escapeHTML(t("listNotice"))}</p>
+          <div class="iu-notice-actions"><button type="button" class="iu-btn iu-btn--small" data-action="scan">${escapeHTML(t("scanBtn"))}</button></div></div>` : ""}
         ${state.coverage ? `<div class="iu-notice" role="status"><p>${escapeHTML(state.coverage)}</p>
           <div class="iu-notice-actions"><button type="button" class="iu-btn iu-btn--small" data-action="scan">${escapeHTML(t("rescan"))}</button></div></div>` : ""}
         <div class="iu-results-summary">${escapeHTML(summary)}</div>
@@ -1241,6 +1300,7 @@
     state.scanCancelled = false;
     state.unfollowCancelled = false;
     state.partial = false;
+    state.listMode = false;
     state.coverage = "";
     state.users = [];
     state.followingCount = 0;
@@ -1262,6 +1322,40 @@
       state.checkpoint = checkpoint;
       renderBody();
 
+      /* On a large account the two ways to find non-followers differ by
+         hundreds of requests, and Instagram cuts a scan off after a few
+         hundred. The profile says how long each list is, so the cheaper way
+         is taken; a resumed download is weighed again on what is left. */
+      if (!checkpoint.followersDone && !checkpoint.checkEach) {
+        Object.assign(checkpoint, await fetchProfileCounts(viewerId));
+        if (state.scanCancelled || destroyed) return stopScan(checkpoint);
+        checkpoint.checkEach = checkEachIsCheaper(checkpoint);
+        saveCheckpoint(checkpoint);
+      }
+
+      if (checkpoint.checkEach) {
+        if (!checkpoint.followingDone) {
+          await scanList(checkpoint, viewerId, "following");
+          if (state.scanCancelled || destroyed) return stopScan(checkpoint);
+          checkpoint.followingCursor = "";
+          checkpoint.followingDone = true;
+          saveCheckpoint(checkpoint);
+          renderBody();
+        }
+        const answered = await checkEachFollowed(checkpoint);
+        if (state.scanCancelled || destroyed) return stopScan(checkpoint);
+        if (answered) {
+          showResults(checkpoint, true);
+          clearCheckpoint();
+          return;
+        }
+        /* Instagram did not answer the per-account question; download the followers after all. */
+        checkpoint.checkEach = false;
+        checkpoint.checkUnavailable = true;
+        saveCheckpoint(checkpoint);
+        renderBody();
+      }
+
       /* Followers first, as upstream does: once that list is complete, every
          followed account missing from it is a confirmed non-follower, so
          results can stream in and survive a scan that stops halfway. */
@@ -1276,7 +1370,7 @@
       if (state.scanCancelled || destroyed) return stopScan(checkpoint);
 
       if (!checkpoint.followingDone) {
-        state.users = addFollowBackStatus(checkpoint.following, followerEntries(checkpoint));
+        state.users = followBackStatus(checkpoint);
         renderBody();
         await scanList(checkpoint, viewerId, "following");
         if (state.scanCancelled || destroyed) return stopScan(checkpoint);
@@ -1303,7 +1397,7 @@
       }
       /* Rows already checked can be shown. An HTML page is not a list, so a
          follower count of 0 from that page stays an error and never a result. */
-      if (checkpoint?.followersDone && checkpoint.following.length) {
+      if (hasResults(checkpoint)) {
         showResults(checkpoint, false);
         return;
       }
@@ -1327,12 +1421,15 @@
   function scanErrorDetail(error, checkpoint) {
     let list = "";
     if (checkpoint) {
-      const onFollowers = !checkpoint.followersDone;
-      const count = onFollowers ? checkpoint.followerIds.length : checkpoint.following.length;
-      const name = onFollowers ? "followers" : "following";
+      const checking = checkpoint.checkEach && checkpoint.followingDone;
+      const onFollowers = !checkpoint.checkEach && !checkpoint.followersDone;
+      const count = checking ? checkedCount(checkpoint) : onFollowers ? checkpoint.followerIds.length : checkpoint.following.length;
+      const name = checking ? "checked" : onFollowers ? "followers" : "following";
       /* "followers 0" is how far the scan got, but on an HTML reply it reads
          as a result. Leave the count off until at least one account was saved. */
-      if (!(error?.kind === "html" && count === 0)) list = `${name} ${count}`;
+      if (!(error?.kind === "html" && count === 0)) {
+        list = checking ? `${name} ${count}/${checkpoint.following.length}` : `${name} ${count}`;
+      }
     }
     return [VERSION, list, error?.status ? `HTTP ${error.status}` : "", error?.detail || ""].filter(Boolean).join(" · ");
   }
@@ -1342,8 +1439,32 @@
   function stopScan(checkpoint) {
     if (destroyed) return;
     state.scanCancelled = false;
-    if (checkpoint?.followersDone && checkpoint.following.length) return showResults(checkpoint, false);
+    if (hasResults(checkpoint)) return showResults(checkpoint, false);
     resetToIdle();
+  }
+
+  /* Confirmed answers exist once the follower list is complete, or for each
+     followed account Instagram was asked about. */
+  function hasResults(checkpoint) {
+    if (!checkpoint?.following.length) return false;
+    return checkpoint.followersDone || (checkpoint.checkEach && Object.keys(checkpoint.verified || {}).length > 0);
+  }
+
+  /* Following, each marked whether it follows back: true from the follower
+     list or Instagram's answer, false once confirmed, null while unknown. */
+  function followBackStatus(checkpoint) {
+    const users = addFollowBackStatus(checkpoint.following, followerEntries(checkpoint));
+    if (!checkpoint.checkEach) return users;
+    const verified = checkpoint.verified || {};
+    return users.map((user) => user.follows_viewer ? user : {
+      ...user,
+      follows_viewer: typeof verified[user.id] === "boolean" ? verified[user.id] : null
+    });
+  }
+
+  function checkedCount(checkpoint) {
+    if (!checkpoint.checkEach) return checkpoint.following.length;
+    return followBackStatus(checkpoint).filter((user) => user.follows_viewer !== null).length;
   }
 
   function followerEntries(checkpoint) {
@@ -1354,10 +1475,12 @@
   function showResults(checkpoint, complete) {
     state.followingCount = checkpoint.following.length;
     state.followersCount = checkpoint.followerIds.length;
-    state.users = addFollowBackStatus(checkpoint.following, followerEntries(checkpoint));
+    state.users = followBackStatus(checkpoint);
     state.coverage = "";
+    state.listMode = false;
     state.partial = !complete;
-    state.unverified = Boolean(checkpoint.followersGap);
+    /* A gap only hides followers; with checkEach Instagram answered for the rest. */
+    state.unverified = Boolean(checkpoint.followersGap) && !checkpoint.checkEach;
     state.mode = "results";
     if (complete) {
       saveLastScan();
@@ -1383,8 +1506,8 @@
   async function scanList(checkpoint, viewerId, kind) {
     const isFollowing = kind === "following";
     const cursorKey = isFollowing ? "followingCursor" : "followersCursor";
-    const label = isFollowing ? "loadingFollowing" : "loadingFollowers";
-    const followers = isFollowing ? followerEntries(checkpoint) : null;
+    const label = isFollowing ? (checkpoint.checkEach ? "loadingFollowingFirst" : "loadingFollowing") : "loadingFollowers";
+    const total = (isFollowing ? checkpoint.followingTotal : checkpoint.followersTotal) || 0;
     const seed = isFollowing ? checkpoint.following : followerEntries(checkpoint);
     /* A gap in following can only miss non-followers; one in followers could
        list a follower as a non-follower, so those results lose unfollow. */
@@ -1393,19 +1516,19 @@
     const onPage = (results, nextCursor) => {
       if (isFollowing) {
         checkpoint.following = results;
-        state.users = addFollowBackStatus(results, followers);
+        state.users = followBackStatus(checkpoint);
       } else {
         checkpoint.followerIds = results.map((user) => user.id);
         checkpoint.followerUsernames = results.map((user) => user.username || "");
       }
       checkpoint[cursorKey] = nextCursor;
       saveCheckpoint(checkpoint);
-      state.progress = { current: results.length, total: 0, label, note: visibilityNote() };
+      state.progress = { current: results.length, total, label, note: visibilityNote() };
       updateProgressDOM();
       if (isFollowing) updateLiveResults();
     };
 
-    state.progress = { current: seed.length, total: 0, label, note: visibilityNote() };
+    state.progress = { current: seed.length, total, label, note: visibilityNote() };
     updateProgressDOM();
 
     try {
@@ -1474,6 +1597,98 @@
       await waitBeforeNextScanPage(page);
     }
     return dedupe(results);
+  }
+
+  /* The list endpoints do not say how long they are; the profile does. One
+     plain request: if it fails, the scan goes on without the totals. The
+     profile page is read first, because /users/<id>/info/ answered 429 in a
+     live test in October 2026. The page abbreviates large counts ("29.6K
+     Followers"), which is close enough to pick the cheaper scan. */
+  async function fetchProfileCounts(viewerId) {
+    const count = (value) => (Number.isFinite(value) && value >= 0 ? value : null);
+    const username = viewerUsername(viewerId);
+    try {
+      if (username) {
+        const response = await fetch(`/${encodeURIComponent(username)}/?hl=en`, { credentials: "include" });
+        const counts = response.ok ? parseProfileSummary(await response.text()) : null;
+        if (counts) return counts;
+      }
+      const response = await fetch(`/api/v1/users/${encodeURIComponent(viewerId)}/info/`, { credentials: "include", headers: IG_HEADERS });
+      const user = response.ok ? JSON.parse(await response.text())?.user : null;
+      return { followersTotal: count(user?.follower_count), followingTotal: count(user?.following_count) };
+    } catch {
+      return { followersTotal: null, followingTotal: null };
+    }
+  }
+
+  /* Every page carries the signed-in account in its PolarisViewer config. */
+  function viewerUsername(viewerId) {
+    for (const script of document.querySelectorAll('script[type="application/json"]')) {
+      const text = script.textContent || "";
+      const at = text.indexOf('"PolarisViewer"');
+      if (at === -1) continue;
+      const viewer = /"id":"(\d+)"[^]*?"username":"([A-Za-z0-9._]{1,30})"/.exec(text.slice(at, at + 5000));
+      if (viewer && viewer[1] === String(viewerId)) return viewer[2];
+    }
+    return null;
+  }
+
+  function parseProfileSummary(html) {
+    const match = /([\d.,]+)([KMB]?) Followers, ([\d.,]+)([KMB]?) Following/.exec(html);
+    if (!match) return null;
+    const scale = { "": 1, K: 1e3, M: 1e6, B: 1e9 };
+    const number = (digits, suffix) => Math.round(Number(digits.replace(/,/g, "")) * scale[suffix]);
+    const followersTotal = number(match[1], match[2]);
+    const followingTotal = number(match[3], match[4]);
+    return Number.isFinite(followersTotal) && Number.isFinite(followingTotal) ? { followersTotal, followingTotal } : null;
+  }
+
+  /* The rest of the follower list costs a request per FOLLOWER_PAGE_SIZE
+     followers; asking about each followed account costs one per account. An
+     account with 30,000 followers that follows 800 asks 800 questions
+     instead of loading 1,250 pages. */
+  function checkEachIsCheaper(checkpoint) {
+    const { followersTotal, followingTotal } = checkpoint;
+    if (checkpoint.checkUnavailable || !Number.isFinite(followersTotal) || !Number.isFinite(followingTotal)) return false;
+    const followerPages = Math.ceil(Math.max(0, followersTotal - checkpoint.followerIds.length) / FOLLOWER_PAGE_SIZE);
+    return followingTotal <= followerPages;
+  }
+
+  /* One question per followed account Instagram's follower list did not
+     already settle. Each answer is final and saved, so what was found
+     survives an interrupted scan. Resolves false only when Instagram does not
+     answer the question at all, before the first answer. */
+  async function checkEachFollowed(checkpoint) {
+    const total = checkpoint.following.length;
+    const pending = followBackStatus(checkpoint).filter((user) => user.follows_viewer === null);
+    state.users = followBackStatus(checkpoint);
+    state.progress = { current: total - pending.length, total, label: "checkingEach", note: visibilityNote() };
+    updateProgressDOM();
+
+    for (let i = 0; i < pending.length; i += 1) {
+      if (state.scanPaused) await waitWhile(() => state.scanPaused && !state.scanCancelled);
+      if (state.scanCancelled || destroyed) return true;
+      const user = pending[i];
+      let json = null;
+      try {
+        json = await igFetch(`/api/v1/friendships/show/${encodeURIComponent(user.id)}/`);
+      } catch (error) {
+        if (error?.kind !== "http") throw error;
+      }
+      if (state.scanCancelled || destroyed) return true;
+      const answered = typeof json?.followed_by === "boolean" && typeof json?.following === "boolean";
+      if (!answered && !Object.keys(checkpoint.verified).length) return false;
+      /* An account gone since the list loaded has no answer; keeping it errs
+         toward not unfollowing. One no longer followed is no target either. */
+      checkpoint.verified[user.id] = answered ? json.followed_by || !json.following : true;
+      saveCheckpoint(checkpoint);
+      state.users = followBackStatus(checkpoint);
+      state.progress = { current: total - pending.length + i + 1, total, label: "checkingEach", note: visibilityNote() };
+      updateProgressDOM();
+      updateLiveResults();
+      if (i < pending.length - 1) await waitBeforeNextScanPage(i + 1);
+    }
+    return true;
   }
 
   async function waitBeforeNextScanPage(page) {
@@ -1784,16 +1999,17 @@
       }
     }
 
+    /* Unfollowed accounts must not come back from a resumed scan or a saved
+       result. Matched by username: a pasted list has no ids. */
+    const gone = new Set(state.users.filter((u) => u.unfollowed).map((u) => u.username.toLowerCase()));
+    const kept = (u) => !gone.has(String(u.username).toLowerCase());
     state.users = state.users.filter((u) => !u.unfollowed);
-    /* Unfollowed accounts must not come back from a resumed scan or a saved result. */
     if (state.checkpoint) {
-      const kept = new Set(state.users.map((u) => u.id));
-      state.checkpoint.following = state.checkpoint.following.filter((u) => kept.has(u.id));
+      state.checkpoint.following = state.checkpoint.following.filter(kept);
       saveCheckpoint(state.checkpoint);
-    } else {
-      const last = loadLastScan();
-      if (last) saveLastScan(last.savedAt);
     }
+    const last = loadLastScan();
+    if (last) saveLastScan(last.savedAt, last.users.filter(kept), last.unverified);
     state.mode = "unfollowDone";
     state.unfollowEndedAt = Date.now();
     state.waitUntil = 0;
@@ -1846,11 +2062,9 @@
   /* Searches the viewer's own following list for one account. Returns null
      when the lookup itself fails, so an unknown is never counted as success. */
   async function isStillFollowing(user) {
-    const viewerId = getCookie("ds_user_id");
-    if (!viewerId) return null;
-    const url = `/api/v1/friendships/${encodeURIComponent(viewerId)}/following/?count=12&query=${encodeURIComponent(user.username)}&search_surface=follow_list_page`;
+    if (!getCookie("ds_user_id")) return null;
     try {
-      const response = await fetch(url, { credentials: "include", headers: IG_HEADERS });
+      const response = await fetch(followingSearchUrl(user.username), { credentials: "include", headers: IG_HEADERS });
       if (!response.ok) return null;
       const json = JSON.parse(await response.text());
       if (!Array.isArray(json?.users)) return null;
@@ -1864,6 +2078,10 @@
     }
   }
 
+  function followingSearchUrl(username) {
+    return `/api/v1/friendships/${encodeURIComponent(getCookie("ds_user_id") || "")}/following/?count=12&query=${encodeURIComponent(username)}&search_surface=follow_list_page`;
+  }
+
   /* Unfollows the way instagram.com's own Unfollow button does, with the
      usePolarisUnfollowMutation GraphQL query (upstream #363). The old REST
      routes stopped working in October 2026. A result only counts once
@@ -1871,6 +2089,20 @@
      is gone, or a search of the following list no longer finds the account. */
   async function unfollowUser(user, csrf) {
     if (destroyed || state.unfollowCancelled) return { ok: false, blocked: true, reason: "Cancelled" };
+    /* A pasted username has no id yet. Searching the viewer's own following
+       finds it, and finding nothing means there is nothing to unfollow. */
+    if (user.listed) {
+      let found;
+      try {
+        found = (await igFetch(followingSearchUrl(user.username))).users;
+      } catch (error) {
+        return { ok: false, blocked: ["rate", "session", "blocked", "html"].includes(error?.kind), reason: error?.message || t("lookupFailed") };
+      }
+      if (!Array.isArray(found)) return { ok: false, blocked: false, reason: t("lookupFailed") };
+      const match = found.map(normalizeUser).find((u) => u.username.toLowerCase() === user.username);
+      if (!match) return { ok: false, blocked: false, reason: t("notFollowing") };
+      user = { ...user, id: match.id };
+    }
     const tokens = await getWebTokens();
     if (!tokens) return { ok: false, blocked: false, reason: "Instagram session tokens (fb_dtsg, lsd) not found on the page" };
 
@@ -1953,6 +2185,49 @@
       catch { /* give up */ }
       ta.remove();
     }
+  }
+
+  /* Usernames from pasted text: one per line or separated by commas or
+     spaces, with or without @, or as profile links. */
+  function parseUsernames(text) {
+    const names = String(text || "").split(/[\s,;]+/).map((part) => {
+      const link = /instagram\.com\/([^/?#]+)/i.exec(part)?.[1];
+      return (link || part).replace(/^@/, "").toLowerCase();
+    }).filter((name) => /^[a-z0-9._]{1,30}$/.test(name));
+    return [...new Set(names)];
+  }
+
+  /* The way out when a scan cannot finish: a list from the data file
+     (instagram.cobanov.dev/export) or an earlier result, unfollowed with no
+     scan at all. */
+  function showListDialog() {
+    showDialog({
+      title: t("listTitle"),
+      body: t("listBody"),
+      contentHTML: `<textarea class="iu-textarea" data-list-input rows="8" spellcheck="false" autocomplete="off" aria-label="${escapeAttr(t("listTitle"))}"></textarea>`,
+      confirmLabel: t("listShow"),
+      onConfirm: (dialog) => showPastedList(dialog.querySelector("[data-list-input]")?.value)
+    });
+  }
+
+  /* Until unfollowUser looks a pasted account up, its username is its key. */
+  function showPastedList(text) {
+    const names = parseUsernames(text);
+    if (!names.length) return toast(t("listEmpty"));
+    state.users = names.map((username) => ({
+      id: "@" + username, username, full_name: "", profile_pic_url: "",
+      is_verified: false, is_private: false, follows_viewer: false, listed: true
+    }));
+    state.selected.clear();
+    state.users.forEach((user) => state.selected.add(user.id));
+    state.listMode = true;
+    state.unverified = false;
+    state.partial = false;
+    state.coverage = "";
+    state.error = "";
+    state.search = "";
+    state.mode = "results";
+    renderBody();
   }
 
   function showSettings() {
@@ -2071,7 +2346,7 @@
     }
 
     /* Never open a destructive dialog with the destructive button pre-focused. */
-    (dialog.querySelector("input") || (destructive ? dialog.querySelector("[data-cancel]") : dialog)).focus();
+    (dialog.querySelector("input, textarea") || (destructive ? dialog.querySelector("[data-cancel]") : dialog)).focus();
   }
 
   function toggleLanguage() {
@@ -2579,6 +2854,18 @@
       transition: border-color 0.15s;
     }
     #${APP_ID} .iu-search:focus { border-color: var(--iu-accent); }
+    #${APP_ID} .iu-textarea {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border: 1px solid var(--iu-line);
+      border-radius: 8px;
+      background: var(--iu-bg-2);
+      color: var(--iu-text);
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      resize: vertical;
+    }
+    #${APP_ID} .iu-textarea:focus { border-color: var(--iu-accent); outline: none; }
     #${APP_ID} .iu-search::-webkit-search-cancel-button { filter: opacity(0.6); cursor: pointer; }
 
     #${APP_ID} .iu-filters {
@@ -2845,6 +3132,12 @@
       createCheckpoint,
       loadCheckpoint,
       loadTimings,
+      checkEachIsCheaper,
+      checkEachFollowed,
+      fetchProfileCounts,
+      followBackStatus,
+      parseUsernames,
+      showPastedList,
       waitBeforeNextScanPage,
       startScan,
       showResults,
