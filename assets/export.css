@@ -257,6 +257,8 @@
   color: var(--muted);
   font: 400 var(--step--1)/1.4 "JetBrains Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
+  /* A list copied by hand is pasted into the panel; dates must not come along. */
+  user-select: none;
 }
 
 .results .note {

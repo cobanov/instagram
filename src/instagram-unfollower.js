@@ -33,7 +33,7 @@
     scanDelayMax: 1300,
     scanPauseEveryPages: 7,
     scanPauseMs: 10000,
-    usersPerRequest: 50,
+    usersPerRequest: 200,
     unfollowDelayMin: 4000,
     unfollowDelayMax: 4800,
     unfollowPauseEvery: 5,
@@ -56,9 +56,10 @@
      HTML page in place of the list is that too: one user who resumed into it
      could not open their follower list in the app until the next day. */
   const COOLDOWN_MS = { gap: 3 * 60 * 60 * 1000, blocked: 3 * 60 * 60 * 1000, html: 3 * 60 * 60 * 1000, rate: 60 * 60 * 1000 };
-  /* Instagram serves the follower list about 24 accounts a page whatever count
-     asks for, which makes it the expensive list on a large account. */
-  const FOLLOWER_PAGE_SIZE = 24;
+  /* Instagram serves the follower list 25 accounts a page whatever count asks
+     for, which makes it the expensive list on a large account. The following
+     list honours count up to 200 (both measured October 2026). */
+  const FOLLOWER_PAGE_SIZE = 25;
 
   const I18N = {
     en: {
@@ -358,6 +359,7 @@
 
   let countdownTimer = null;
   let toastTimer = null;
+  let cooldownTimer = null;
   let dialogCounter = 0;
   let closeActiveDialog = null;
   let wakeSleep = null;
@@ -386,6 +388,9 @@
     if (unfollowKeys.every((key, index) => saved?.[key] === oldUnfollowPreset[index])) {
       for (const key of unfollowKeys) timings[key] = DEFAULT_TIMINGS[key];
     }
+    /* 50 was the default until 2.5.0 and is saved with every panel's state;
+       200 loads the following list in a quarter of the requests. */
+    if (saved?.usersPerRequest === 50) timings.usersPerRequest = DEFAULT_TIMINGS.usersPerRequest;
     timings.usersPerRequest = Math.min(200, Math.max(1, Math.round(timings.usersPerRequest)));
     return timings;
   }
@@ -450,13 +455,22 @@
     }
   }
 
+  /* A followed account is about 650 characters with its picture link and 130
+     without, and the page's storage holds about 5 million: with links a
+     checkpoint stopped saving near 7,700 followed accounts, and Resume lost
+     everything after that. A resumed list shows no pictures. */
+  function storedUser({ profile_pic_url, ...user }) {
+    return isDefaultAvatar({ profile_pic_url }) ? { ...user, default_avatar: true } : user;
+  }
+
   function saveCheckpoint(checkpoint) {
     if (!checkpoint) return;
     checkpoint.savedAt = Date.now();
     try {
-      localStorage.setItem(CHECKPOINT_KEY, JSON.stringify(checkpoint));
-    } catch {
+      localStorage.setItem(CHECKPOINT_KEY, JSON.stringify({ ...checkpoint, following: checkpoint.following.map(storedUser) }));
+    } catch (error) {
       /* quota or disabled storage: resuming after a re-paste is lost, the run itself is not */
+      console.warn("[iu] could not save scan progress:", error);
     }
   }
 
@@ -471,15 +485,12 @@
   }
 
   function saveLastScan(savedAt = Date.now(), users = state.users.filter((u) => u.follows_viewer === false), unverified = state.unverified) {
+    const save = (list) => localStorage.setItem(LAST_SCAN_KEY, JSON.stringify({ viewerId: getCookie("ds_user_id"), savedAt, users: list, unverified }));
     try {
-      localStorage.setItem(LAST_SCAN_KEY, JSON.stringify({
-        viewerId: getCookie("ds_user_id"),
-        savedAt,
-        users,
-        unverified
-      }));
+      save(users);
     } catch {
-      /* quota or disabled storage: the next visit simply scans again */
+      /* Too large with picture links: keep the list without them. */
+      try { save(users.map(storedUser)); } catch { /* storage disabled: the next visit simply scans again */ }
     }
   }
 
@@ -822,11 +833,13 @@
     body.querySelector("[data-action='show-last']")?.addEventListener("click", showLastScan);
     body.querySelector("[data-action='paste-list']")?.addEventListener("click", showListDialog);
     bindScanResume(body);
-    const wait = Number(state.checkpoint?.retryAfter) - Date.now();
-    if (wait > 0) setTimeout(() => { if (!destroyed && state.mode === "idle") renderBody(); }, wait + 1000);
   }
 
   function bindScanResume(body) {
+    const mode = state.mode;
+    const wait = Number(state.checkpoint?.retryAfter) - Date.now();
+    clearTimeout(cooldownTimer);
+    if (wait > 0) cooldownTimer = setTimeout(() => { if (!destroyed && state.mode === mode) renderBody(); }, wait + 1000);
     body.querySelector("[data-action='resume-scan']")?.addEventListener("click", () => startScan({ resume: true }));
     body.querySelector("[data-action='restart-scan']")?.addEventListener("click", () => {
       clearCheckpoint();
@@ -920,6 +933,9 @@
   function renderPartialNotice() {
     const checkpoint = state.checkpoint;
     if (!state.partial || !checkpoint) return "";
+    /* Same wait as the idle view: Resume here would leave the results for the error screen. */
+    const coolingDown = checkpoint.retryAfter > Date.now();
+    const off = coolingDown ? " disabled" : "";
     return `
       <div class="iu-notice" role="status">
         <strong>${escapeHTML(t("partialTitle"))}</strong>
@@ -927,8 +943,8 @@
         ${checkpoint.stopReason ? `<p class="iu-notice-reason">${escapeHTML(checkpoint.stopReason)}</p>` : ""}
         ${checkpoint.stopDetail ? `<p class="iu-detail">${escapeHTML(t("detailLabel"))}: ${escapeHTML(checkpoint.stopDetail)}</p>` : ""}
         <div class="iu-notice-actions">
-          <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan">${escapeHTML(t("resumeScan"))}</button>
-          <button type="button" class="iu-btn iu-btn--ghost iu-btn--small" data-action="restart-scan">${escapeHTML(t("startOver"))}</button>
+          <button type="button" class="iu-btn iu-btn--primary iu-btn--small" data-action="resume-scan"${off}>${escapeHTML(coolingDown ? t("resumeScanAt", { time: clockTime(checkpoint.retryAfter) }) : t("resumeScan"))}</button>
+          <button type="button" class="iu-btn iu-btn--ghost iu-btn--small" data-action="restart-scan"${off}>${escapeHTML(t("startOver"))}</button>
         </div>
       </div>
     `;
@@ -1063,8 +1079,15 @@
 
     body.querySelector("[data-action='copy']")?.addEventListener("click", copyUsernames);
     body.querySelector("[data-action='unfollow']")?.addEventListener("click", confirmUnfollow);
-    body.querySelector("[data-action='scan']")?.addEventListener("click", () => startScan());
+    body.querySelector("[data-action='scan']")?.addEventListener("click", scanFromResults);
     bindScanResume(body);
+  }
+
+  /* Scan now under a pasted list or a saved result. Saved progress is not
+     thrown away from here: the start screen offers Resume, and its wait. */
+  function scanFromResults() {
+    if (state.checkpoint) return resetToIdle();
+    startScan();
   }
 
   /* Row clicks are delegated to the body element, which outlives every
@@ -1345,8 +1368,11 @@
         const answered = await checkEachFollowed(checkpoint);
         if (state.scanCancelled || destroyed) return stopScan(checkpoint);
         if (answered) {
-          showResults(checkpoint, true);
+          /* Accounts Instagram could not settle twice stay unknown: the
+             result stays partial, and Resume asks about them again. */
+          if (followBackStatus(checkpoint).some((user) => user.follows_viewer === null)) return showResults(checkpoint, false);
           clearCheckpoint();
+          showResults(checkpoint, true);
           return;
         }
         /* Instagram did not answer the per-account question; download the followers after all. */
@@ -1378,8 +1404,9 @@
         checkpoint.followingDone = true;
       }
 
-      showResults(checkpoint, true);
+      /* Cleared first: the saved result needs the storage the progress held. */
       clearCheckpoint();
+      showResults(checkpoint, true);
     } catch (error) {
       if (destroyed) return;
       if (state.scanCancelled) return stopScan(checkpoint);
@@ -1484,7 +1511,7 @@
     state.mode = "results";
     if (complete) {
       saveLastScan();
-      const nonFollowers = state.users.filter((u) => !u.follows_viewer && !state.hidden.has(u.id)).length;
+      const nonFollowers = state.users.filter((u) => u.follows_viewer === false && !state.hidden.has(u.id)).length;
       toast(t("scanCompletedToast", { count: nonFollowers }));
     }
     renderBody();
@@ -1493,6 +1520,7 @@
   function resetToIdle() {
     if (destroyed) return;
     state.mode = "idle";
+    state.listMode = false;
     state.users = [];
     state.scanCancelled = false;
     state.error = "";
@@ -1599,25 +1627,21 @@
     return dedupe(results);
   }
 
-  /* The list endpoints do not say how long they are; the profile does. One
-     plain request: if it fails, the scan goes on without the totals. The
-     profile page is read first, because /users/<id>/info/ answered 429 in a
-     live test in October 2026. The page abbreviates large counts ("29.6K
-     Followers"), which is close enough to pick the cheaper scan. */
+  /* The list endpoints do not say how long they are; the profile page does,
+     in one plain page load. Without it the scan goes on without the totals.
+     /api/v1/users/<id>/info/ is not asked: it answered 429 in a live test in
+     October 2026, and a 429 just before a scan only invites the next one. The
+     page abbreviates large counts ("29.6K Followers"), which is close enough
+     to pick the cheaper scan. */
   async function fetchProfileCounts(viewerId) {
-    const count = (value) => (Number.isFinite(value) && value >= 0 ? value : null);
+    const none = { followersTotal: null, followingTotal: null };
     const username = viewerUsername(viewerId);
+    if (!username) return none;
     try {
-      if (username) {
-        const response = await fetch(`/${encodeURIComponent(username)}/?hl=en`, { credentials: "include" });
-        const counts = response.ok ? parseProfileSummary(await response.text()) : null;
-        if (counts) return counts;
-      }
-      const response = await fetch(`/api/v1/users/${encodeURIComponent(viewerId)}/info/`, { credentials: "include", headers: IG_HEADERS });
-      const user = response.ok ? JSON.parse(await response.text())?.user : null;
-      return { followersTotal: count(user?.follower_count), followingTotal: count(user?.following_count) };
+      const response = await fetch(`/${encodeURIComponent(username)}/?hl=en`, { credentials: "include" });
+      return (response.ok && parseProfileSummary(await response.text())) || none;
     } catch {
-      return { followersTotal: null, followingTotal: null };
+      return none;
     }
   }
 
@@ -1646,7 +1670,7 @@
   /* The rest of the follower list costs a request per FOLLOWER_PAGE_SIZE
      followers; asking about each followed account costs one per account. An
      account with 30,000 followers that follows 800 asks 800 questions
-     instead of loading 1,250 pages. */
+     instead of loading 1,200 pages. */
   function checkEachIsCheaper(checkpoint) {
     const { followersTotal, followingTotal } = checkpoint;
     if (checkpoint.checkUnavailable || !Number.isFinite(followersTotal) || !Number.isFinite(followingTotal)) return false;
@@ -1660,33 +1684,56 @@
      answer the question at all, before the first answer. */
   async function checkEachFollowed(checkpoint) {
     const total = checkpoint.following.length;
-    const pending = followBackStatus(checkpoint).filter((user) => user.follows_viewer === null);
-    state.users = followBackStatus(checkpoint);
-    state.progress = { current: total - pending.length, total, label: "checkingEach", note: visibilityNote() };
-    updateProgressDOM();
-
-    for (let i = 0; i < pending.length; i += 1) {
-      if (state.scanPaused) await waitWhile(() => state.scanPaused && !state.scanCancelled);
-      if (state.scanCancelled || destroyed) return true;
-      const user = pending[i];
-      let json = null;
-      try {
-        json = await igFetch(`/api/v1/friendships/show/${encodeURIComponent(user.id)}/`);
-      } catch (error) {
-        if (error?.kind !== "http") throw error;
-      }
-      if (state.scanCancelled || destroyed) return true;
-      const answered = typeof json?.followed_by === "boolean" && typeof json?.following === "boolean";
-      if (!answered && !Object.keys(checkpoint.verified).length) return false;
-      /* An account gone since the list loaded has no answer; keeping it errs
-         toward not unfollowing. One no longer followed is no target either. */
-      checkpoint.verified[user.id] = answered ? json.followed_by || !json.following : true;
-      saveCheckpoint(checkpoint);
+    let misses = 0;
+    let failures = 0;
+    let requests = 0;
+    /* The second pass asks again about what the first could not settle. */
+    for (let pass = 0; pass < 2; pass += 1) {
+      const pending = followBackStatus(checkpoint).filter((user) => user.follows_viewer === null);
+      let done = total - pending.length;
       state.users = followBackStatus(checkpoint);
-      state.progress = { current: total - pending.length + i + 1, total, label: "checkingEach", note: visibilityNote() };
+      state.progress = { current: done, total, label: "checkingEach", note: visibilityNote() };
       updateProgressDOM();
-      updateLiveResults();
-      if (i < pending.length - 1) await waitBeforeNextScanPage(i + 1);
+
+      for (const user of pending) {
+        if (state.scanPaused) await waitWhile(() => state.scanPaused && !state.scanCancelled);
+        if (state.scanCancelled || destroyed) return true;
+        if (requests > 0) await waitBeforeNextScanPage(requests);
+        if (state.scanCancelled || destroyed) return true;
+        requests += 1;
+        let json = null;
+        let status = 0;
+        try {
+          json = await igFetch(`/api/v1/friendships/show/${encodeURIComponent(user.id)}/`);
+        } catch (error) {
+          if (error?.kind !== "http") throw error;
+          status = error.status;
+        }
+        if (state.scanCancelled || destroyed) return true;
+        const answered = typeof json?.followed_by === "boolean" && typeof json?.following === "boolean";
+        const working = Object.keys(checkpoint.verified).length > 0;
+        if (answered || (working && status === 404)) {
+          /* A 404 once the question works is an account gone since the list
+             loaded; keeping it errs toward not unfollowing. One no longer
+             followed is no target either. */
+          checkpoint.verified[user.id] = answered ? json.followed_by || !json.following : true;
+          failures = 0;
+          done += 1;
+          saveCheckpoint(checkpoint);
+          state.users = followBackStatus(checkpoint);
+          state.progress = { current: done, total, label: "checkingEach", note: visibilityNote() };
+          updateProgressDOM();
+          updateLiveResults();
+        } else if (!working) {
+          /* Before any answer a missing account says nothing about the
+             question itself; three unanswered in a row do. */
+          if (++misses >= 3) return false;
+        } else if (++failures >= 3) {
+          /* Any other failure is never taken for an answer: the account stays
+             unknown, and three in a row stop the scan so Resume asks again. */
+          throw scanError("http", t("scanFailed"), status, "friendships/show failed 3 times in a row");
+        }
+      }
     }
     return true;
   }
@@ -2187,13 +2234,17 @@
     }
   }
 
-  /* Usernames from pasted text: one per line or separated by commas or
-     spaces, with or without @, or as profile links. */
+  /* Usernames from pasted text: the first word of each line, with or without
+     @, as a profile link, or several joined by commas without spaces. Only
+     the first word, because a list copied off a page by hand carries dates
+     and names whose words are valid usernames too ("Mar 5, 2024"). */
   function parseUsernames(text) {
-    const names = String(text || "").split(/[\s,;]+/).map((part) => {
-      const link = /instagram\.com\/([^/?#]+)/i.exec(part)?.[1];
-      return (link || part).replace(/^@/, "").toLowerCase();
-    }).filter((name) => /^[a-z0-9._]{1,30}$/.test(name));
+    const names = String(text || "").split(/\r?\n/).flatMap((line) => {
+      const word = line.trim().split(/\s+/)[0] || "";
+      const link = /instagram\.com\/([^/?#]+)/i.exec(word)?.[1];
+      return link ? [link] : word.split(/[,;]/);
+    }).map((part) => part.replace(/^@/, "").toLowerCase())
+      .filter((name) => /^[a-z0-9._]{1,30}$/.test(name));
     return [...new Set(names)];
   }
 
@@ -2398,7 +2449,7 @@
 
   function isDefaultAvatar(user) {
     const url = user.profile_pic_url || "";
-    return /44884218_345707102882519|464760996_1254146839119862/.test(url);
+    return Boolean(user.default_avatar) || /44884218_345707102882519|464760996_1254146839119862/.test(url);
   }
 
   function getCookie(name) {
@@ -3137,6 +3188,7 @@
       fetchProfileCounts,
       followBackStatus,
       parseUsernames,
+      scanFromResults,
       showPastedList,
       waitBeforeNextScanPage,
       startScan,
@@ -3145,6 +3197,7 @@
       renderIdleView,
       renderScanView,
       loadLastScan,
+      saveLastScan,
       showLastScan,
       getDisplayUsers,
       startUnfollow,
