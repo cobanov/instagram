@@ -225,6 +225,57 @@ main section.spot-band {
   white-space: nowrap;
 }
 
+/* bucketmark's house ad in its own look: Paper card, Ink text, one Lamp Green action. */
+.spot--bucketmark {
+  border-color: #e5e5ea;
+  background: #f5f5f7;
+}
+
+.spot--bucketmark::before {
+  display: none;
+}
+
+.spot--bucketmark:hover,
+.spot--bucketmark:focus-visible {
+  border-color: #10734f;
+}
+
+.spot--bucketmark .spot-title {
+  color: #1d1d1f;
+}
+
+.spot--bucketmark .spot-stats {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #6e6e73;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+.spot--bucketmark .spot-cta {
+  border-color: #10734f;
+  background: #10734f;
+  color: #fff;
+}
+
+.spot--bucketmark:hover .spot-cta {
+  border-color: #0c5e41;
+  background: #0c5e41;
+}
+
+/* Keeps "read-later" from breaking at its hyphen. */
+.bm-nw {
+  white-space: nowrap;
+}
+
+/* A background, not an <img>: .spot:has(img) turns the slot into an image creative. */
+.bm-logo {
+  display: block;
+  width: 109px;
+  height: 22px;
+  background: url("bucketmark-logo.svg") no-repeat left center / contain;
+}
+
 /* Rail: a 300x250 rectangle in the page flow; the media query below turns it
    into a 160x600 poster in the side margin. */
 .spot--rail {
