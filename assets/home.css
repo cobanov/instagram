@@ -105,37 +105,35 @@
   line-height: 1.1;
   text-align: center;
   transform: rotate(8deg);
-  box-shadow: 0 16px 32px -12px rgba(214, 41, 118, 0.7), 0 2px 0 rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.6), 0 2px 0 rgba(0, 0, 0, 0.18);
   pointer-events: none;
 }
 
 .sticker-date {
   font: 500 0.6875rem/1.2 "JetBrains Mono", ui-monospace, monospace;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .sticker-text {
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .sticker {
-    animation: sticker-in 0.7s var(--ease) 0.25s both;
+    animation: sticker-in 0.3s var(--ease) 0.25s both;
   }
 
   @keyframes sticker-in {
-    from { opacity: 0; transform: rotate(20deg) scale(1.5); }
-    to { opacity: 1; transform: rotate(8deg) scale(1); }
+    from { opacity: 0; transform: translateY(-4px) rotate(8deg); }
+    to { opacity: 1; transform: rotate(8deg); }
   }
 }
 
 /* --------------------------------------------------------------------------
    Ad slots: an unsold slot is a house banner in the site's own parts (surface,
-   mono kicker, Instagram gradient stripe, accent pill) that mails Mert; a sold
+   mono kicker, accent pill) that mails Mert; a sold
    one holds the creative and is labelled as an ad. No class here starts with
    "ad-": ad blockers hide those, house banner and all.
    -------------------------------------------------------------------------- */
@@ -151,21 +149,11 @@ main section.spot-band {
   margin-inline: auto;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
-  background:
-    radial-gradient(120% 140% at 0% 0%, rgba(229, 97, 146, 0.16), transparent 55%),
-    var(--surface);
+  background: var(--surface);
   color: var(--muted);
   font-size: var(--step--1);
   text-decoration: none;
   transition: border-color 0.25s var(--ease), transform 0.25s var(--ease);
-}
-
-.spot::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 3px;
-  background: linear-gradient(90deg, #feda75, #fa7e1e 26%, #d62976 60%, #962fbf);
 }
 
 .spot:hover,
@@ -181,8 +169,6 @@ main section.spot-band {
 .spot-kicker {
   color: var(--code-muted);
   font: 500 0.6875rem/1.2 "JetBrains Mono", ui-monospace, monospace;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .spot-title {
@@ -231,10 +217,6 @@ main section.spot-band {
   background: #f5f5f7;
 }
 
-.spot--bucketmark::before {
-  display: none;
-}
-
 .spot--bucketmark:hover,
 .spot--bucketmark:focus-visible {
   border-color: #10734f;
@@ -245,7 +227,7 @@ main section.spot-band {
 }
 
 .spot--bucketmark .spot-stats {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   color: #6e6e73;
   line-height: 1.45;
@@ -284,9 +266,6 @@ main section.spot-band {
   flex-direction: column;
   gap: 8px;
   padding: 18px 18px 14px;
-  background:
-    radial-gradient(160% 80% at 50% 0%, rgba(229, 97, 146, 0.2), transparent 70%),
-    var(--surface);
 }
 
 .spot--rail .spot-title {
@@ -354,10 +333,6 @@ main section.spot-band {
   background: var(--surface);
 }
 
-.spot:has(img)::before {
-  content: none;
-}
-
 .spot img {
   display: block;
   width: 100%;
@@ -406,9 +381,6 @@ main section.spot-slot {
     height: 600px;
     gap: 18px;
     padding: 26px 16px 18px;
-    background:
-      radial-gradient(160% 60% at 50% 0%, rgba(229, 97, 146, 0.2), transparent 70%),
-      var(--surface);
   }
 
   .spot--rail .spot-title {
@@ -499,11 +471,6 @@ main section.spot-slot {
   display: block;
   width: 100%;
   height: auto;
-  transition: transform 0.6s var(--ease);
-}
-
-.product-shot:hover img {
-  transform: scale(1.02);
 }
 
 .product-brand {
