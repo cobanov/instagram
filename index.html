@@ -99,18 +99,14 @@
         <span class="promo-bar-actions">
           <a
             class="btn btn-sm"
-            href="https://terminal.army/?ref=instagram"
+            href="https://bucketmark.app/?ref=instagram"
             rel="noreferrer"
-            data-oa-event="visit-terminal-army"
+            data-oa-event="visit-bucketmark"
           >
-            <svg class="promo-bar-icon" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.7" aria-hidden="true">
-              <rect x="2.5" y="4" width="19" height="16" rx="1" />
-              <path d="M6 9l3 3-3 3" stroke-linecap="round" stroke-linejoin="round" />
-              <path d="M12.5 15h5" stroke-linecap="round" />
-            </svg>
-            <span class="promo-full" lang="en">A space empire from your terminal</span>
-            <span class="promo-full" lang="tr">Terminalden uzay imparatorluğu</span>
-            <span class="promo-tiny">terminal.army</span>
+            <svg class="promo-bar-icon" viewBox="0 0 256 256" aria-hidden="true"><path fill="#5CC995" fill-rule="evenodd" d="M72 0 H184 A72 72 0 0 1 256 72 V184 A72 72 0 0 1 184 256 H72 A72 72 0 0 1 0 184 V72 A72 72 0 0 1 72 0 Z M32 192 V72 A40 40 0 0 1 72 32 H184 A40 40 0 0 1 224 72 V192 A16 16 0 0 1 192 192 V136 A24 24 0 0 0 168 112 H88 A24 24 0 0 0 64 136 V192 A16 16 0 0 1 32 192 Z"/></svg>
+            <span class="promo-full" lang="en">Save it now, read it later</span>
+            <span class="promo-full" lang="tr">Şimdi kaydet, sonra oku</span>
+            <span class="promo-tiny">bucketmark</span>
           </a>
           <a
             class="btn btn-sm btn-more"
@@ -674,7 +670,7 @@
       const PROMO_QUIET_DAYS = 30;
 
       function promoIsDismissed() {
-        const at = Number(localStorage.getItem("cobanov_iu_promo_closed") || 0);
+        const at = Number(localStorage.getItem("cobanov_iu_promo_closed_bucketmark") || 0);
         return at > 0 && Date.now() - at < PROMO_QUIET_DAYS * 86400000;
       }
 
@@ -697,7 +693,7 @@
             setTimeout(() => { promo.hidden = true; }, 550);
           }
           try {
-            localStorage.setItem("cobanov_iu_promo_closed", String(Date.now()));
+            localStorage.setItem("cobanov_iu_promo_closed_bucketmark", String(Date.now()));
           } catch {
             /* Private window, or storage refused. Closing it for this visit
                is still the right answer; it simply returns next time. */
