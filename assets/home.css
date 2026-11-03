@@ -7,7 +7,7 @@
      ad band   one wide slot under the hero; two fixed rails sit in the side
                margins on screens wide enough to hold them
      notice    one amber box: how it works and where it stops
-     dantel    product shot beside its pitch, same columns as the hero
+     product   product shot beside its pitch, same columns as the hero
      support   two short asks side by side, supporters on one line
      usage     heading and panel shot beside a numbered flow
    =========================================================================== */
@@ -426,17 +426,17 @@ main section.spot-slot {
 }
 
 /* --------------------------------------------------------------------------
-   Dantel: the product shot beside its pitch, on the hero's columns
+   Product: the shot beside its pitch, on the hero's columns
    -------------------------------------------------------------------------- */
 
-.dantel {
+.product {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   gap: clamp(32px, 6vw, 88px);
   align-items: center;
 }
 
-.dantel-shot {
+.product-shot {
   display: block;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -444,18 +444,18 @@ main section.spot-slot {
   box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.9);
 }
 
-.dantel-shot img {
+.product-shot img {
   display: block;
   width: 100%;
   height: auto;
   transition: transform 0.6s var(--ease);
 }
 
-.dantel-shot:hover img {
+.product-shot:hover img {
   transform: scale(1.02);
 }
 
-.dantel-brand {
+.product-brand {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -463,7 +463,7 @@ main section.spot-slot {
   font-weight: 600;
 }
 
-.dantel-brand img {
+.product-brand img {
   border-radius: 7px;
 }
 
@@ -742,7 +742,7 @@ main section.notice-band {
 
 @media (max-width: 900px) {
   .hero-split,
-  .dantel,
+  .product,
   .usage-split {
     grid-template-columns: minmax(0, 1fr);
   }
