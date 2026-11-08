@@ -765,7 +765,14 @@
       body.innerHTML = renderScanView();
       bindScan(body);
     } else if (state.mode === "results") {
+      /* Hide, filter and select-all redraw the whole results view, which made
+         a fresh list at the top. Carry the list's scroll over so the person
+         stays where they were instead of scrolling back down after each click. */
+      const oldList = body.querySelector("[data-list]");
+      const scrollTop = oldList ? oldList.scrollTop : 0;
       body.innerHTML = renderResultsView();
+      const newList = body.querySelector("[data-list]");
+      if (newList && scrollTop) newList.scrollTop = scrollTop;
       bindResults(body);
     } else if (state.mode === "unfollowing" || state.mode === "unfollowDone") {
       body.innerHTML = renderUnfollowView();
