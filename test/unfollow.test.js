@@ -1601,3 +1601,32 @@ test("a rate limit while looking up a pasted account stops the whole run", async
   assert.equal(calls.length, 1);
   assert.equal(api.state.unfollowBlocked, 1);
 });
+
+/* A results panel whose list is a fresh element after every redraw, as with
+   innerHTML in the browser. Captures the delegated click handler. */
+function resultsPanel() {
+  const panel = { list: null, click: null };
+  const body = {
+    set innerHTML(html) { panel.list = /data-list/.test(html) ? { scrollTop: 0 } : null; },
+    querySelector: (selector) => (selector === "[data-list]" ? panel.list : null),
+    querySelectorAll: () => [],
+    addEventListener: (type, fn) => { if (type === "click") panel.click = fn; }
+  };
+  const document = { ...fakeDocument(), querySelector: (selector) => (/\[data-body\]/.test(selector) ? body : null) };
+  return { panel, document };
+}
+
+test("hiding a row keeps the list scrolled where it was", () => {
+  const { panel, document } = resultsPanel();
+  const api = loadInternals(undefined, { document });
+  api.showPastedList("first\nsecond\nthird");
+  panel.list.scrollTop = 480;
+  const hideButton = { getAttribute: () => "@second" };
+  panel.click({
+    target: { closest: (selector) => (selector === "[data-hide]" ? hideButton : null) },
+    preventDefault: () => {},
+    stopPropagation: () => {}
+  });
+  assert.equal(api.state.hidden.has("@second"), true);
+  assert.equal(panel.list.scrollTop, 480);
+});
